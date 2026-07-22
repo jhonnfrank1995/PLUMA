@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Pluma\Tests\Unit\Kernel;
+
+use Brain\Monkey\Functions;
+use Mockery;
+use Pluma\Kernel\Activador;
+use Pluma\Tests\Unit\CasoDePruebaUnitario;
+use Pluma\Tests\Unit\Dobles\RelojFijo;
+use wpdb;
+
+/**
+ * @covers \Pluma\Kernel\Activador
+ */
+final class ActivadorTest extends CasoDePruebaUnitario {
+
+	protected function setUp(): void {
+		parent::setUp();
+		$GLOBALS['wpdb'] = new wpdb();
+	}
+
+	protected function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+		parent::tearDown();
+	}
+
+	public function test_activar_instala_capacidades_migra_el_esquema_y_registra_el_instante(): void {
+		$rol = Mockery::mock( 'WP_Role' );
+		$rol->expects( 'add_cap' )->times( 3 );
+		Functions\expect( 'get_role' )->once()->with( 'administrator' )->andReturn( $rol );
+
+		Functions\expect( 'get_option' )->once()->with( 'pluma_db_version', '0.0.0' )->andReturn( '0.0.0' );
+		Functions\expect( 'update_option' )->once()->with( 'pluma_db_version', '0.1.0', false )->andReturn( true );
+
+		Functions\expect( 'add_option' )
+			->once()
+			->with( Activador::OPCION_CONSERVAR_DATOS, true, '', false )
+			->andReturn( true );
+
+		Functions\expect( 'update_option' )
+			->once()
+			->with( Activador::OPCION_ACTIVADO_EN, '2026-07-22T12:00:00+00:00', false )
+			->andReturn( true );
+
+		Activador::activar( new RelojFijo(), '0.1.0' );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_activar_para_red_sin_multisitio_activa_una_sola_vez(): void {
+		Functions\expect( 'is_multisite' )->once()->andReturn( false );
+
+		$rol = Mockery::mock( 'WP_Role' );
+		$rol->expects( 'add_cap' )->times( 3 );
+		Functions\expect( 'get_role' )->once()->andReturn( $rol );
+		Functions\expect( 'get_option' )->once()->andReturn( '0.1.0' );
+		Functions\expect( 'add_option' )->once()->andReturn( true );
+		Functions\expect( 'update_option' )->once();
+
+		Activador::activarParaRed( false, new RelojFijo(), '0.1.0' );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_activar_para_red_completa_en_multisitio_activa_en_cada_sitio(): void {
+		Functions\expect( 'is_multisite' )->once()->andReturn( true );
+		Functions\expect( 'get_sites' )->once()->with( array( 'fields' => 'ids' ) )->andReturn( array( 1, 2 ) );
+		Functions\expect( 'switch_to_blog' )->twice();
+		Functions\expect( 'restore_current_blog' )->twice();
+
+		$rol = Mockery::mock( 'WP_Role' );
+		$rol->expects( 'add_cap' )->times( 6 ); // 3 capacidades × 2 sitios
+		Functions\expect( 'get_role' )->twice()->andReturn( $rol );
+		Functions\expect( 'get_option' )->twice()->andReturn( '0.1.0' );
+		Functions\expect( 'add_option' )->twice()->andReturn( true );
+		Functions\expect( 'update_option' )->twice();
+
+		Activador::activarParaRed( true, new RelojFijo(), '0.1.0' );
+
+		$this->expectNotToPerformAssertions();
+	}
+}

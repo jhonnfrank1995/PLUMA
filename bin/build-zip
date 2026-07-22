@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Empaquetado reproducible de PLUMA Engine (GOVERNANCE §5.2).
+#
+# Copia solo los archivos de producción a un directorio limpio, instala
+# dependencias sin paquetes de desarrollo, prefija vendor/ con PHP-Scoper
+# (para que el ZIP nunca colisione con las dependencias de otro plugin en el
+# WordPress del cliente) y produce pluma-engine.zip listo para distribución.
+#
+# Uso: bin/build-zip [version]
+
+set -euo pipefail
+
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$RAIZ"
+
+VERSION="${1:-$(grep -m1 '"version"' composer.json | sed -E 's/.*: *"([^"]+)".*/\1/')}"
+DIST_DIR="$RAIZ/build/dist"
+PLUGIN_DIR="$DIST_DIR/pluma-engine"
+ZIP_PATH="$RAIZ/pluma-engine-${VERSION}.zip"
+
+echo "== PLUMA Engine — build-zip v${VERSION} =="
+
+rm -rf "$DIST_DIR" "$ZIP_PATH"
+mkdir -p "$PLUGIN_DIR"
+
+echo "-> Copiando archivos de producción"
+cp pluma-engine.php "$PLUGIN_DIR/"
+cp uninstall.php "$PLUGIN_DIR/"
+cp composer.json "$PLUGIN_DIR/"
+mkdir -p "$PLUGIN_DIR/src"
+cp -r src/. "$PLUGIN_DIR/src/"
+
+if [ -d "build/panel" ]; then
+    mkdir -p "$PLUGIN_DIR/build/panel"
+    cp -r build/panel/. "$PLUGIN_DIR/build/panel/"
+else
+    echo "ERROR: build/panel ausente. Ejecuta 'npm run build' antes de empaquetar." >&2
+    exit 1
+fi
+
+if [ -d languages ]; then
+    mkdir -p "$PLUGIN_DIR/languages"
+    cp -r languages/. "$PLUGIN_DIR/languages/"
+fi
+
+if [ -f LICENSES-THIRD-PARTY.md ]; then
+    cp LICENSES-THIRD-PARTY.md "$PLUGIN_DIR/"
+fi
+
+echo "-> Instalando dependencias de producción (--no-dev)"
+composer install --no-dev --optimize-autoloader --no-interaction --no-progress --working-dir="$PLUGIN_DIR"
+
+echo "-> Prefijando vendor/ con PHP-Scoper (aislamiento de dependencias)"
+if [ -d "$PLUGIN_DIR/vendor" ] && [ "$(ls -A "$PLUGIN_DIR/vendor" 2>/dev/null | grep -v '^autoload.php$\|^composer$')" ]; then
+    php "$RAIZ/vendor/bin/php-scoper" add-prefix \
+        --config="$RAIZ/scoper.inc.php" \
+        --working-dir="$PLUGIN_DIR" \
+        --output-dir="$PLUGIN_DIR/build-scoped" \
+        --force
+
+    rm -rf "$PLUGIN_DIR/vendor"
+    mv "$PLUGIN_DIR/build-scoped/vendor" "$PLUGIN_DIR/vendor"
+    rm -rf "$PLUGIN_DIR/build-scoped"
+    composer dump-autoload --classmap-authoritative --no-dev --working-dir="$PLUGIN_DIR"
+else
+    echo "   (sin dependencias de producción que prefijar en esta Etapa)"
+fi
+
+echo "-> Comprimiendo $ZIP_PATH"
+(cd "$DIST_DIR" && zip -r -q "$ZIP_PATH" "pluma-engine")
+
+echo "-> Limpiando directorio temporal"
+rm -rf "$DIST_DIR"
+
+echo "OK: $ZIP_PATH"

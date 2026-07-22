@@ -1,0 +1,38 @@
+# Dependencias
+/vendor/
+/node_modules/
+
+# Build de producción (se genera reproducible en CI; no se versiona)
+/build/
+/dist/
+/panel/dist/
+/*.zip
+
+# PHP-Scoper
+/build-scoped/
+
+# Calidad y caché de herramientas
+/.phpunit.cache/
+/.phpunit.result.cache
+/.phpcs-cache
+/.php-cs-fixer.cache
+
+# wp-env
+/.wp-env-override/
+.wp-env.override.json
+
+# Playwright
+/playwright-report/
+/test-results/
+/blob-report/
+
+# Entorno local
+.env
+.env.local
+*.log
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

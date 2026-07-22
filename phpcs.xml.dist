@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<ruleset name="PLUMA Engine">
+    <description>PLUMA Engine — WordPress-Extra + reglas de seguridad, PHP 8.2 (GOVERNANCE §1, §3).</description>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>pluma-engine.php</file>
+    <file>uninstall.php</file>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="extensions" value="php"/>
+    <arg value="sp"/>
+
+    <config name="testVersion" value="8.2-"/>
+    <config name="minimum_supported_wp_version" value="6.4"/>
+
+    <rule ref="WordPress-Extra">
+        <!-- El plugin usa namespaces PSR-4 (Pluma\...): el convenio de nombre de archivo de WP no aplica. -->
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+    <rule ref="WordPress.Security"/>
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="pluma-engine"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="PHPCompatibilityWP"/>
+
+    <!--
+        GOVERNANCE §1.4: nomenclatura propia del proyecto — clases/interfaces/
+        enums en español del dominio, métodos y variables en camelCase (verbo
+        primero), no en el snake_case de las funciones procedurales de WP.
+        Los nombres descriptivos de test (test_hace_x_cuando_y) tampoco son
+        camelCase por convención de la comunidad PHPUnit — se excluyen igual.
+        Ninguna de estas reglas toca seguridad (WordPress.Security se mantiene
+        íntegro): es una decisión de estilo, no un debilitamiento de gate.
+    -->
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName">
+        <exclude-pattern>*/src/*</exclude-pattern>
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.ValidFunctionName">
+        <exclude-pattern>*/src/*</exclude-pattern>
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="WordPress.NamingConventions.ValidVariableName">
+        <exclude-pattern>*/src/*</exclude-pattern>
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+    <!--
+        Los dobles de prueba fingen globales de WP (p. ej. $wp_roles) para
+        simular Capacidades::desinstalar() sin cargar WordPress real
+        (GOVERNANCE §4.4/pl-testing). Producción nunca hace esto: la regla
+        sigue activa fuera de tests/.
+    -->
+    <rule ref="WordPress.WP.GlobalVariablesOverride">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+</ruleset>

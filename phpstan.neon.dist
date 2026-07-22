@@ -1,0 +1,13 @@
+parameters:
+    level: 8
+    bootstrapFiles:
+        - .phpstan/bootstrap.php
+    paths:
+        - src
+        - pluma-engine.php
+        - uninstall.php
+    excludePaths:
+        - src/**/*.blade.php
+    treatPhpDocTypesAsCertain: false
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
