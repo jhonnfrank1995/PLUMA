@@ -13,10 +13,10 @@
 
 declare(strict_types=1);
 
-$pluma_tests_dir = getenv('WP_TESTS_DIR');
+$pluma_tests_dir = getenv( 'WP_TESTS_DIR' );
 
-if (false === $pluma_tests_dir || '' === $pluma_tests_dir) {
-    $pluma_tests_dir = '/tmp/wordpress-tests-lib';
+if ( false === $pluma_tests_dir || '' === $pluma_tests_dir ) {
+	$pluma_tests_dir = '/tmp/wordpress-tests-lib';
 }
 
 require_once $pluma_tests_dir . '/includes/functions.php';
@@ -24,10 +24,9 @@ require_once $pluma_tests_dir . '/includes/functions.php';
 /**
  * Carga PLUMA Engine como si WordPress lo hubiera activado.
  */
-function _pluma_cargar_plugin_bajo_prueba(): void
-{
-    require dirname(__DIR__) . '/pluma-engine.php';
+function _pluma_cargar_plugin_bajo_prueba(): void {
+	require dirname( __DIR__ ) . '/pluma-engine.php';
 }
-tests_add_filter('muplugins_loaded', '_pluma_cargar_plugin_bajo_prueba');
+tests_add_filter( 'muplugins_loaded', '_pluma_cargar_plugin_bajo_prueba' );
 
 require $pluma_tests_dir . '/includes/bootstrap.php';

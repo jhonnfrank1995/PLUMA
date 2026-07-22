@@ -19,65 +19,59 @@ use WP_UnitTestCase;
  * @covers \Pluma\Kernel\Desactivador
  * @covers \Pluma\Kernel\Desinstalador
  */
-final class CicloDeVidaTest extends WP_UnitTestCase
-{
-    public function test_activar_concede_las_tres_capacidades_al_rol_administrador_real(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
+final class CicloDeVidaTest extends WP_UnitTestCase {
 
-        $administrador = get_role('administrator');
+	public function test_activar_concede_las_tres_capacidades_al_rol_administrador_real(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
 
-        self::assertNotNull($administrador);
-        self::assertTrue($administrador->has_cap('pluma_gestionar_periodistas'));
-        self::assertTrue($administrador->has_cap('pluma_aprobar_piezas'));
-        self::assertTrue($administrador->has_cap('pluma_configurar_motor'));
-    }
+		$administrador = get_role( 'administrator' );
 
-    public function test_activar_deja_la_version_de_esquema_registrada(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
+		self::assertNotNull( $administrador );
+		self::assertTrue( $administrador->has_cap( 'pluma_gestionar_periodistas' ) );
+		self::assertTrue( $administrador->has_cap( 'pluma_aprobar_piezas' ) );
+		self::assertTrue( $administrador->has_cap( 'pluma_configurar_motor' ) );
+	}
 
-        self::assertSame('0.1.0', get_option(Migrador::OPCION_VERSION));
-    }
+	public function test_activar_deja_la_version_de_esquema_registrada(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
 
-    public function test_activar_conserva_datos_por_defecto(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
+		self::assertSame( '0.1.0', get_option( Migrador::OPCION_VERSION ) );
+	}
 
-        self::assertTrue(get_option(Activador::OPCION_CONSERVAR_DATOS));
-    }
+	public function test_activar_conserva_datos_por_defecto(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
 
-    public function test_activar_dos_veces_es_idempotente(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
-        $primeraVersion = get_option(Migrador::OPCION_VERSION);
+		self::assertTrue( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
+	}
 
-        Activador::activar(new RelojSistema(), '0.1.0');
-        $segundaVersion = get_option(Migrador::OPCION_VERSION);
+	public function test_activar_dos_veces_es_idempotente(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
+		$primeraVersion = get_option( Migrador::OPCION_VERSION );
 
-        self::assertSame($primeraVersion, $segundaVersion);
-        self::assertTrue(get_role('administrator')->has_cap('pluma_configurar_motor'));
-    }
+		Activador::activar( new RelojSistema(), '0.1.0' );
+		$segundaVersion = get_option( Migrador::OPCION_VERSION );
 
-    public function test_desactivar_no_borra_ninguna_opcion_de_datos_del_cliente(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
+		self::assertSame( $primeraVersion, $segundaVersion );
+		self::assertTrue( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+	}
 
-        Desactivador::desactivar(new RelojSistema());
+	public function test_desactivar_no_borra_ninguna_opcion_de_datos_del_cliente(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
 
-        self::assertSame('0.1.0', get_option(Migrador::OPCION_VERSION));
-        self::assertTrue(get_option(Activador::OPCION_CONSERVAR_DATOS));
-        self::assertTrue(get_role('administrator')->has_cap('pluma_configurar_motor'));
-    }
+		Desactivador::desactivar( new RelojSistema() );
 
-    public function test_purgar_revoca_capacidades_y_borra_las_opciones_del_nucleo(): void
-    {
-        Activador::activar(new RelojSistema(), '0.1.0');
+		self::assertSame( '0.1.0', get_option( Migrador::OPCION_VERSION ) );
+		self::assertTrue( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
+		self::assertTrue( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+	}
 
-        Desinstalador::purgar();
+	public function test_purgar_revoca_capacidades_y_borra_las_opciones_del_nucleo(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
 
-        self::assertFalse(get_role('administrator')->has_cap('pluma_configurar_motor'));
-        self::assertFalse(get_option(Migrador::OPCION_VERSION));
-        self::assertFalse(get_option(Activador::OPCION_CONSERVAR_DATOS));
-    }
+		Desinstalador::purgar();
+
+		self::assertFalse( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+		self::assertFalse( get_option( Migrador::OPCION_VERSION ) );
+		self::assertFalse( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
+	}
 }
