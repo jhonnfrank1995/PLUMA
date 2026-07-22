@@ -22,6 +22,18 @@ if ( false === $pluma_tests_dir || '' === $pluma_tests_dir ) {
 require_once $pluma_tests_dir . '/includes/functions.php';
 
 /**
+ * La suite de tests de WordPress core (`includes/bootstrap.php`) solo
+ * COMPRUEBA `defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' )` — nunca lee la
+ * variable de entorno por sí misma. Definir la constante aquí es
+ * responsabilidad del plugin consumidor: sin esto, PHPUnit 10 falla al
+ * cargar `includes/phpunit6/compat.php` (clases `PHPUnit\Framework\Error\*`
+ * y `PHPUnit\Util\Test::parseTestMethodAnnotations()` ya no existen).
+ */
+if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+	define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills' );
+}
+
+/**
  * Carga PLUMA Engine como si WordPress lo hubiera activado.
  */
 function _pluma_cargar_plugin_bajo_prueba(): void {

@@ -23,10 +23,13 @@ test.describe('Sala de Máquinas — Salud del sistema', () => {
         const raiz = page.locator('#pluma-salud-root');
         await expect(raiz).toBeVisible();
 
-        await expect(page.getByText('Sala de Máquinas — Salud del sistema')).toBeVisible();
-        await expect(page.getByText('PHP', { exact: true })).toBeVisible();
-        await expect(page.getByText('WordPress', { exact: true })).toBeVisible();
-        await expect(page.getByText('Esquema PLUMA', { exact: true })).toBeVisible();
+        // Acotado al contenedor de la pantalla: "WordPress"/"PHP" también
+        // aparecen en el pie de página nativo de wp-admin (strict mode
+        // violation si se busca en toda la página).
+        await expect(raiz.getByText('Sala de Máquinas — Salud del sistema')).toBeVisible();
+        await expect(raiz.getByText('PHP', { exact: true })).toBeVisible();
+        await expect(raiz.getByText('WordPress', { exact: true })).toBeVisible();
+        await expect(raiz.getByText('Esquema PLUMA', { exact: true })).toBeVisible();
     });
 
     test('un usuario sin la capacidad pluma_configurar_motor no ve la pantalla', async ({ page, request }) => {
