@@ -36,3 +36,6 @@
 Thumbs.db
 .vscode/
 .idea/
+
+# Estado de sesión de Claude Code (no es parte del proyecto)
+.claude/scheduled_tasks.lock

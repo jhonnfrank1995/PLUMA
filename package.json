@@ -9,7 +9,7 @@
         "test": "vitest run",
         "test:watch": "vitest",
         "wp-env": "wp-env",
-        "test:integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/pluma-engine composer test:integration",
+        "test:integration": "wp-env run tests-cli --env-cwd=wp-content/plugins/pluma-engine env WP_TESTS_PHPUNIT_POLYFILLS_PATH=vendor/yoast/phpunit-polyfills composer test:integration",
         "test:e2e": "playwright test"
     },
     "dependencies": {

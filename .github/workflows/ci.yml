@@ -89,6 +89,7 @@ jobs:
         with:
           name: panel-build
           path: ${{ env.PLUGIN_DIR }}/build/panel
+          include-hidden-files: true
           retention-days: 1
 
   integracion:
