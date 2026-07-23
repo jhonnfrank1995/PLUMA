@@ -4,7 +4,7 @@
          bootstrap="tests/bootstrap-integration.php"
          colors="true"
          failOnWarning="true"
-         cacheDirectory=".phpunit.cache">
+         cacheResultFile=".phpunit.cache/test-results-integration">
     <testsuites>
         <testsuite name="Integration">
             <directory>tests/Integration</directory>
