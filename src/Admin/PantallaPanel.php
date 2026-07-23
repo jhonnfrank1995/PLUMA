@@ -119,10 +119,11 @@ final class PantallaPanel {
 	 */
 	private function datosParaElPanel(): array {
 		return array(
-			'restUrl'       => esc_url_raw( rest_url() ),
-			'nonce'         => wp_create_nonce( 'wp_rest' ),
-			'salud'         => $this->datosSalud(),
-			'textosPortada' => $this->textosPortada(),
+			'restUrl'          => esc_url_raw( rest_url() ),
+			'nonce'            => wp_create_nonce( 'wp_rest' ),
+			'salud'            => $this->datosSalud(),
+			'textosPortada'    => $this->textosPortada(),
+			'textosTendencias' => $this->textosTendencias(),
 		);
 	}
 
@@ -200,6 +201,29 @@ final class PantallaPanel {
 				'titulo' => __( 'Tendencias calientes ahora', 'pluma-engine' ),
 				'vacio'  => __( 'todavía no se ha detectado ninguna tendencia', 'pluma-engine' ),
 			),
+		);
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function textosTendencias(): array {
+		return array(
+			'titulo'          => __( 'Sala de Tendencias', 'pluma-engine' ),
+			'cargando'        => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'      => __( 'No se pudo cargar la Sala de Tendencias. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'     => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'vacio'           => __( 'todavía no se ha detectado ninguna tendencia', 'pluma-engine' ),
+			'velocidad'       => __( 'Velocidad', 'pluma-engine' ),
+			'afinidad'        => __( 'Afinidad', 'pluma-engine' ),
+			'total'           => __( 'Puntuación de Oportunidad', 'pluma-engine' ),
+			'desgloseParcial' => __( 'Desglose sobre velocidad y afinidad; hueco competitivo y vida útil llegan con el Radar completo.', 'pluma-engine' ),
+			'quienCubre'      => __( 'Quién la está cubriendo ya', 'pluma-engine' ),
+			'nadieCubre'      => __( 'sin cobertura detectada en las señales', 'pluma-engine' ),
+			'estadoVigilada'  => __( 'En vigilancia', 'pluma-engine' ),
+			'cubrirAhora'     => __( 'Cubrir ahora', 'pluma-engine' ),
+			'ignorar'         => __( 'Ignorar', 'pluma-engine' ),
+			'vigilar'         => __( 'Vigilar', 'pluma-engine' ),
 		);
 	}
 

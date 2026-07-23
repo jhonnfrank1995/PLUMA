@@ -67,6 +67,23 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             },
             tendencias: { titulo: 'Tendencias calientes ahora', vacio: 'todavía no se ha detectado ninguna tendencia' },
         },
+        textosTendencias: {
+            titulo: 'Sala de Tendencias',
+            cargando: 'Cargando…',
+            errorCarga: 'No se pudo cargar la Sala de Tendencias.',
+            errorAccion: 'La acción no se pudo completar.',
+            vacio: 'todavía no se ha detectado ninguna tendencia',
+            velocidad: 'Velocidad',
+            afinidad: 'Afinidad',
+            total: 'Puntuación de Oportunidad',
+            desgloseParcial: 'Desglose sobre velocidad y afinidad.',
+            quienCubre: 'Quién la está cubriendo ya',
+            nadieCubre: 'sin cobertura detectada en las señales',
+            estadoVigilada: 'En vigilancia',
+            cubrirAhora: 'Cubrir ahora',
+            ignorar: 'Ignorar',
+            vigilar: 'Vigilar',
+        },
     };
 }
 

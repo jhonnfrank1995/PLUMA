@@ -64,7 +64,7 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 	}
 
 	public function test_administrador_ve_las_piezas_retenidas(): void {
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 
@@ -81,7 +81,7 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 	}
 
 	public function test_aprobar_mueve_la_pieza_a_aprobada(): void {
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 
@@ -100,7 +100,7 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 	}
 
 	public function test_devolver_mueve_la_pieza_a_optimizada(): void {
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 
@@ -120,7 +120,7 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 	}
 
 	public function test_descartar_una_pieza_inexistente_devuelve_404(): void {
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 

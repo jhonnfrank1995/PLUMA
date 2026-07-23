@@ -25,6 +25,20 @@ interface RepositorioPiezasInterface {
 	public function obtenerPorId( int $id ): ?Pieza;
 
 	/**
+	 * La Pieza más reciente de una tendencia (Sala de Tendencias, Libro
+	 * Cap. 10.2: las acciones Cubrir/Ignorar/Vigilar operan sobre la Pieza
+	 * en curso de la tarjeta). `null` si nunca se creó una.
+	 */
+	public function obtenerUltimaPorTendencia( int $tendenciaId ): ?Pieza;
+
+	/**
+	 * "Cubrir ahora (salta la cola)" (Libro Cap. 10.2): marca la Pieza como
+	 * prioritaria — el Orquestador ordena cada lote por prioridad DESC antes
+	 * que por antigüedad. Devuelve `false` si la Pieza no existe.
+	 */
+	public function priorizar( int $id, DateTimeImmutable $ahora ): bool;
+
+	/**
 	 * @return list<Pieza>
 	 */
 	public function obtenerPorEstado( EstadoPieza $estado, int $limite ): array;

@@ -300,6 +300,145 @@
     color: var(--pluma-color-texto-tenue);
 }
 
+/* Sala de Tendencias */
+
+.pluma-tendencias__vacio {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.9rem;
+}
+
+.pluma-tendencias__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--pluma-espaciado);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pluma-tendencias__tarjeta {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.pluma-tendencias__tarjeta--vigilada {
+    border-color: var(--pluma-color-en-revision);
+}
+
+.pluma-tendencias__cabecera {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.pluma-tendencias__cabecera h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    flex: 1;
+}
+
+.pluma-tendencias__insignia {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--pluma-color-en-revision);
+    border: 1px solid var(--pluma-color-en-revision);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    white-space: nowrap;
+}
+
+.pluma-tendencias__total {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pluma-tendencias__desglose {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+}
+
+.pluma-tendencias__desglose dt {
+    font-size: 0.75rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-tendencias__desglose dd {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.pluma-tendencias__nota {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-tendencias__cobertura h3 {
+    margin: 0 0 0.25rem;
+    font-size: 0.85rem;
+}
+
+.pluma-tendencias__cobertura ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.pluma-tendencias__cobertura a {
+    color: inherit;
+}
+
+.pluma-tendencias__fuente {
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-tendencias__acciones {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.pluma-tendencias__boton {
+    flex: 1;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.pluma-tendencias__boton:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.pluma-tendencias__boton--cubrir {
+    border-color: var(--pluma-color-publicada);
+    color: var(--pluma-color-publicada);
+    font-weight: 600;
+}
+
+.pluma-tendencias__boton--ignorar {
+    color: var(--pluma-color-texto-tenue);
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

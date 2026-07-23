@@ -2,24 +2,30 @@ import { useEffect, useState } from 'react';
 import { BarraEstado } from './BarraEstado';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalud, type DatosSalud } from './PantallaSalud';
+import { PantallaTendencias, type TextosTendencias } from './PantallaTendencias';
 
 export interface DatosPlumaPanel {
     restUrl: string;
     nonce: string;
     salud: DatosSalud;
     textosPortada: TextosPortada;
+    textosTendencias: TextosTendencias;
 }
 
 interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
 function leerRuta(): Ruta {
-    return '#/salud' === window.location.hash ? 'salud' : 'portada';
+    if ('#/salud' === window.location.hash) {
+        return 'salud';
+    }
+
+    return '#/tendencias' === window.location.hash ? 'tendencias' : 'portada';
 }
 
 /**
@@ -86,6 +92,12 @@ export function Aplicacion({ datos }: Props) {
                 <a href="#/portada" className={'portada' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navPortada}
                 </a>
+                <a
+                    href="#/tendencias"
+                    className={'tendencias' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosTendencias.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -93,6 +105,7 @@ export function Aplicacion({ datos }: Props) {
 
             <main className="pluma-panel__contenido">
                 {'portada' === ruta && <PantallaPortada datos={portada} error={error} textos={datos.textosPortada} />}
+                {'tendencias' === ruta && <PantallaTendencias restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosTendencias} />}
                 {'salud' === ruta && <PantallaSalud datos={datos.salud} />}
             </main>
         </div>

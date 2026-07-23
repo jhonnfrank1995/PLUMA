@@ -49,7 +49,7 @@ final class RestBancoPeriodistasTest extends WP_UnitTestCase {
 	}
 
 	public function test_administrador_puede_exportar_un_banco_vacio(): void {
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 
@@ -67,7 +67,7 @@ final class RestBancoPeriodistasTest extends WP_UnitTestCase {
 	public function test_importar_crea_el_periodista_y_se_refleja_en_una_exportacion_posterior(): void {
 		global $wpdb;
 
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 

@@ -26,7 +26,7 @@ final class RepositorioColaPublicacionTest extends WP_UnitTestCase {
 
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		Activador::activar( new RelojSistema(), '0.7.0' );
+		Activador::activar( new RelojSistema(), '0.8.0' );
 	}
 
 	public function test_programar_y_obtener_entre_dos_fechas(): void {

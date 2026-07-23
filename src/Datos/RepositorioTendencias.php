@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pluma\Datos;
 
 use DateTimeImmutable;
+use Pluma\Sensores\EstadoTendencia;
 use Pluma\Sensores\TendenciaDetectada;
 use wpdb;
 
@@ -93,5 +94,53 @@ final class RepositorioTendencias implements RepositorioTendenciasInterface {
 			),
 			$filas
 		);
+	}
+
+	public function obtenerParaSala( int $limite ): array {
+		$sql = $this->wpdb->prepare(
+			"SELECT id, termino, fuente_senal, puntuacion_velocidad, puntuacion_afinidad, puntuacion_total, estado, articulos_relacionados, detectada_en FROM {$this->tabla()} WHERE estado != %s ORDER BY puntuacion_total DESC, detectada_en DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			EstadoTendencia::Ignorada->value,
+			$limite
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		if ( ! is_array( $filas ) ) {
+			return array();
+		}
+
+		return array_map(
+			static function ( array $fila ): array {
+				/** @var list<array{titulo: string, url: string, fuente: string}> $articulos */
+				$articulos = json_decode( (string) $fila['articulos_relacionados'], true ) ?? array();
+
+				return array(
+					'id'                    => (int) $fila['id'],
+					'termino'               => (string) $fila['termino'],
+					'fuenteSenal'           => (string) $fila['fuente_senal'],
+					'velocidad'             => (float) $fila['puntuacion_velocidad'],
+					'afinidad'              => (float) $fila['puntuacion_afinidad'],
+					'puntuacionTotal'       => (float) $fila['puntuacion_total'],
+					'estado'                => EstadoTendencia::tryFrom( (string) $fila['estado'] ) ?? EstadoTendencia::EnPipeline,
+					'articulosRelacionados' => $articulos,
+					'detectadaEn'           => (string) $fila['detectada_en'],
+				);
+			},
+			$filas
+		);
+	}
+
+	public function actualizarEstadoTendencia( int $id, EstadoTendencia $estado ): bool {
+		$actualizadas = $this->wpdb->update(
+			$this->tabla(),
+			array( 'estado' => $estado->value ),
+			array( 'id' => $id ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $actualizadas && $actualizadas > 0;
 	}
 }

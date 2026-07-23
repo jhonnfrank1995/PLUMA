@@ -10,6 +10,7 @@ use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestPortada;
 use Pluma\Admin\RestSalaRevision;
+use Pluma\Admin\RestSalaTendencias;
 use Pluma\Compuertas\CompuertaCalidad;
 use Pluma\Compuertas\CompuertaOriginalidad;
 use Pluma\Compuertas\CompuertaRiesgo;
@@ -39,6 +40,7 @@ use Pluma\Datos\RepositorioVocabularioInterface;
 use Pluma\Investigacion\InvestigadorInterface;
 use Pluma\Investigacion\InvestigadorMecanico;
 use Pluma\Pipeline\GestorSalaRevision;
+use Pluma\Pipeline\GestorSalaTendencias;
 use Pluma\Pipeline\LectorConfiguracionCadencia;
 use Pluma\Pipeline\Orquestador;
 use Pluma\Pipeline\ProgramadorCadencia;
@@ -412,6 +414,20 @@ final class Nucleo {
 		$this->contenedor->registrar( NotificadorRevision::class, static fn (): NotificadorRevision => new NotificadorRevision() );
 
 		$this->contenedor->registrar(
+			GestorSalaTendencias::class,
+			fn ( Contenedor $c ): GestorSalaTendencias => new GestorSalaTendencias(
+				$c->obtener( RepositorioTendenciasInterface::class ),
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( Transicionador::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+		$this->contenedor->registrar(
+			RestSalaTendencias::class,
+			fn ( Contenedor $c ): RestSalaTendencias => new RestSalaTendencias( $c->obtener( GestorSalaTendencias::class ) )
+		);
+
+		$this->contenedor->registrar(
 			RestPortada::class,
 			fn ( Contenedor $c ): RestPortada => new RestPortada(
 				$c->obtener( RepositorioPiezasInterface::class ),
@@ -462,5 +478,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestSalaRevision::class )->registrar();
 		$this->contenedor->obtener( NotificadorRevision::class )->registrar();
 		$this->contenedor->obtener( RestPortada::class )->registrar();
+		$this->contenedor->obtener( RestSalaTendencias::class )->registrar();
 	}
 }

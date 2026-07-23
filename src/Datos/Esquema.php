@@ -28,6 +28,9 @@ final class Esquema {
 		$charset = $wpdb->get_charset_collate();
 
 		return array(
+			// Etapa 4 añade estado (Libro Cap. 11: la tabla de tendencias lleva
+			// estado; la Sala de Tendencias lo usa para las acciones directas
+			// Cubrir ahora / Ignorar / Vigilar, Cap. 10.2).
 			"CREATE TABLE {$prefijo}tendencias (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 termino VARCHAR(191) NOT NULL,
@@ -36,11 +39,13 @@ final class Esquema {
                 puntuacion_afinidad DECIMAL(5,2) NOT NULL,
                 puntuacion_total DECIMAL(5,2) NOT NULL,
                 articulos_relacionados LONGTEXT NOT NULL,
+                estado VARCHAR(20) NOT NULL DEFAULT 'en_pipeline',
                 detectada_en DATETIME NOT NULL,
                 creada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY termino_fuente (termino(100), fuente_senal),
-                KEY puntuacion_total (puntuacion_total)
+                KEY puntuacion_total (puntuacion_total),
+                KEY estado (estado)
             ) {$charset};",
 			// Etapa 2 añade periodista_id, periodista_version_id (trazabilidad de
 			// qué Conducta redactó la pieza, pl-periodistas §1) y
@@ -53,12 +58,16 @@ final class Esquema {
 			// keyword?", Libro Cap. 6.3), datos_seo (JSON completo de
 			// `DatosSeo`) y resultado_taxonomia (JSON completo de
 			// `ResultadoTaxonomia`, Libro Cap. 7).
+			// Etapa 4 añade prioridad: "Cubrir ahora (salta la cola)" de la Sala
+			// de Tendencias (Cap. 10.2) — el Orquestador ordena cada lote por
+			// prioridad DESC antes que por antigüedad.
 			"CREATE TABLE {$prefijo}piezas (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 tendencia_id BIGINT UNSIGNED NOT NULL,
                 periodista_id BIGINT UNSIGNED NULL,
                 periodista_version_id BIGINT UNSIGNED NULL,
                 estado VARCHAR(30) NOT NULL,
+                prioridad TINYINT UNSIGNED NOT NULL DEFAULT 0,
                 expediente LONGTEXT NULL,
                 ficha_decision_editorial LONGTEXT NULL,
                 modo_efectivo VARCHAR(20) NULL,
@@ -71,6 +80,7 @@ final class Esquema {
                 actualizada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY estado_actualizada (estado, actualizada_en),
+                KEY estado_prioridad (estado, prioridad, actualizada_en),
                 KEY tendencia_id (tendencia_id),
                 KEY periodista_id (periodista_id),
                 KEY keyword_principal (keyword_principal(100))

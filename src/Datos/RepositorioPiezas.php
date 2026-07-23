@@ -53,6 +53,31 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return (int) $this->wpdb->insert_id;
 	}
 
+	public function obtenerUltimaPorTendencia( int $tendenciaId ): ?Pieza {
+		$sql = $this->wpdb->prepare( "SELECT * FROM {$this->tabla()} WHERE tendencia_id = %d ORDER BY id DESC LIMIT 1", $tendenciaId ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$fila = $this->wpdb->get_row( $sql, ARRAY_A );
+
+		return null !== $fila ? $this->filaAPieza( $fila ) : null;
+	}
+
+	public function priorizar( int $id, DateTimeImmutable $ahora ): bool {
+		$actualizadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'prioridad'      => 1,
+				'actualizada_en' => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%d', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $actualizadas && $actualizadas > 0;
+	}
+
 	public function obtenerPorId( int $id ): ?Pieza {
 		$sql = $this->wpdb->prepare( "SELECT * FROM {$this->tabla()} WHERE id = %d", $id ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
 		assert( null !== $sql );
@@ -65,7 +90,7 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 
 	public function obtenerPorEstado( EstadoPieza $estado, int $limite ): array {
 		$sql = $this->wpdb->prepare(
-			"SELECT * FROM {$this->tabla()} WHERE estado = %s ORDER BY actualizada_en ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			"SELECT * FROM {$this->tabla()} WHERE estado = %s ORDER BY prioridad DESC, actualizada_en ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
 			$estado->value,
 			$limite
 		);
