@@ -1,0 +1,354 @@
+/*
+ * PLUMA Engine — estilos del panel (Libro Cap. 10.1):
+ * "metáfora de redacción, no de configuración" — serif con carácter para
+ * titulares, sans limpia para datos, color con significado, modo oscuro
+ * nativo, densidad calibrada. Cero dependencia externa (CDN de fuentes
+ * incluido): solo pilas de fuentes del sistema.
+ */
+
+:root {
+    --pluma-fuente-titular: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --pluma-fuente-datos: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+    --pluma-color-fondo: #f7f5f2;
+    --pluma-color-superficie: #ffffff;
+    --pluma-color-texto: #1c1a17;
+    --pluma-color-texto-tenue: #6b6459;
+    --pluma-color-borde: #e2ddd4;
+
+    --pluma-color-publicada: #1e7d3c;
+    --pluma-color-en-revision: #b8860b;
+    --pluma-color-retenida: #b3261e;
+    --pluma-color-neutro: #6b6459;
+
+    --pluma-radio: 8px;
+    --pluma-espaciado: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --pluma-color-fondo: #17150f;
+        --pluma-color-superficie: #221f19;
+        --pluma-color-texto: #f1ede6;
+        --pluma-color-texto-tenue: #b3ab9d;
+        --pluma-color-borde: #38332a;
+
+        --pluma-color-publicada: #4caf6e;
+        --pluma-color-en-revision: #e0af3d;
+        --pluma-color-retenida: #e5615a;
+        --pluma-color-neutro: #b3ab9d;
+    }
+}
+
+#pluma-panel-root,
+#pluma-panel-root * {
+    box-sizing: border-box;
+}
+
+#pluma-panel-root {
+    font-family: var(--pluma-fuente-datos);
+    color: var(--pluma-color-texto);
+    background: var(--pluma-color-fondo);
+    min-height: 100vh;
+}
+
+#pluma-panel-root h1,
+#pluma-panel-root h2,
+#pluma-panel-root h3 {
+    font-family: var(--pluma-fuente-titular);
+    font-weight: 600;
+    margin: 0 0 0.5em;
+}
+
+.pluma-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Barra de estado persistente */
+
+.pluma-barra-estado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.75rem var(--pluma-espaciado);
+    background: var(--pluma-color-superficie);
+    border-bottom: 1px solid var(--pluma-color-borde);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.pluma-barra-estado__marca {
+    font-family: var(--pluma-fuente-titular);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-right: auto;
+}
+
+.pluma-barra-estado__cargando {
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-barra-estado__modo {
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid var(--pluma-color-borde);
+}
+
+.pluma-barra-estado__modo--piloto {
+    color: var(--pluma-color-neutro);
+}
+
+.pluma-barra-estado__modo--copiloto {
+    color: var(--pluma-color-en-revision);
+    border-color: var(--pluma-color-en-revision);
+}
+
+.pluma-barra-estado__modo--autonomo {
+    color: var(--pluma-color-publicada);
+    border-color: var(--pluma-color-publicada);
+}
+
+.pluma-barra-estado__dato {
+    font-size: 0.9rem;
+    color: var(--pluma-color-texto-tenue);
+    white-space: nowrap;
+}
+
+.pluma-barra-estado__salud {
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--pluma-radio);
+}
+
+.pluma-barra-estado__salud--ok {
+    color: var(--pluma-color-publicada);
+}
+
+.pluma-barra-estado__salud--alerta {
+    color: var(--pluma-color-retenida);
+    font-weight: 600;
+}
+
+/* Navegación */
+
+.pluma-panel__nav {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem var(--pluma-espaciado);
+    background: var(--pluma-color-superficie);
+    border-bottom: 1px solid var(--pluma-color-borde);
+}
+
+.pluma-panel__nav-enlace {
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--pluma-radio);
+    color: var(--pluma-color-texto-tenue);
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+
+.pluma-panel__nav-enlace--activo {
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+    font-weight: 600;
+}
+
+.pluma-panel__contenido {
+    flex: 1;
+    padding: var(--pluma-espaciado) calc(var(--pluma-espaciado) * 1.5);
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Portada */
+
+.pluma-portada__aviso {
+    background: color-mix(in srgb, var(--pluma-color-retenida) 12%, transparent);
+    border: 1px solid var(--pluma-color-retenida);
+    color: var(--pluma-color-retenida);
+    border-radius: var(--pluma-radio);
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+}
+
+.pluma-portada__seccion {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    margin-bottom: var(--pluma-espaciado);
+}
+
+.pluma-portada__vacio {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.9rem;
+}
+
+.pluma-portada__kanban {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.pluma-portada__columna {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: var(--pluma-radio);
+    background: var(--pluma-color-fondo);
+    border-top: 3px solid var(--pluma-color-neutro);
+}
+
+.pluma-portada__columna--publicada {
+    border-top-color: var(--pluma-color-publicada);
+}
+
+.pluma-portada__columna--en_revision,
+.pluma-portada__columna--programada {
+    border-top-color: var(--pluma-color-en-revision);
+}
+
+.pluma-portada__columna--retenida,
+.pluma-portada__columna--fallida {
+    border-top-color: var(--pluma-color-retenida);
+}
+
+.pluma-portada__columna-etiqueta {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-portada__columna-total {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.pluma-portada__alertas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--pluma-espaciado);
+}
+
+.pluma-portada__alerta ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pluma-portada__alerta li {
+    font-size: 0.88rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--pluma-radio);
+    background: var(--pluma-color-fondo);
+}
+
+.pluma-portada__alerta-total {
+    font-variant-numeric: tabular-nums;
+    color: var(--pluma-color-texto-tenue);
+    font-weight: 400;
+}
+
+.pluma-portada__alerta--retenida h3 {
+    color: var(--pluma-color-en-revision);
+}
+
+.pluma-portada__alerta--fallida h3 {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-portada__tendencias {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pluma-portada__tendencias li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--pluma-radio);
+    background: var(--pluma-color-fondo);
+    font-size: 0.92rem;
+}
+
+.pluma-portada__tendencia-puntuacion {
+    font-variant-numeric: tabular-nums;
+    color: var(--pluma-color-texto-tenue);
+}
+
+/* Sala de Máquinas (Salud) */
+
+.pluma-salud {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+}
+
+.pluma-salud__lista {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pluma-salud__fila {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--pluma-color-borde);
+}
+
+.pluma-salud__fila dt {
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-salud__estado--ok {
+    color: var(--pluma-color-publicada);
+    font-weight: 600;
+}
+
+.pluma-salud__estado--advertencia {
+    color: var(--pluma-color-retenida);
+    font-weight: 600;
+}
+
+/* Responsivo: la ventana de veto se usa desde el teléfono (Cap. 10.1) */
+
+@media (max-width: 640px) {
+    .pluma-barra-estado {
+        gap: 0.6rem;
+    }
+
+    .pluma-panel__contenido {
+        padding: 0.75rem;
+    }
+
+    .pluma-portada__alertas {
+        grid-template-columns: 1fr;
+    }
+}

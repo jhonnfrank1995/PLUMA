@@ -45,4 +45,23 @@ final class RepositorioBitacora implements RepositorioBitacoraInterface {
 			array( '%d' )
 		);
 	}
+
+	public function obtenerUltima(): ?array {
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery -- tabla interna, sin entrada de usuario que parametrizar.
+		$fila = $this->wpdb->get_row( "SELECT iniciada_en, finalizada_en, lotes_procesados, errores FROM {$this->tabla()} ORDER BY iniciada_en DESC LIMIT 1", ARRAY_A );
+
+		if ( null === $fila ) {
+			return null;
+		}
+
+		/** @var list<string> $errores */
+		$errores = null !== $fila['errores'] ? ( json_decode( (string) $fila['errores'], true ) ?? array() ) : array();
+
+		return array(
+			'iniciadaEn'      => (string) $fila['iniciada_en'],
+			'finalizadaEn'    => null !== $fila['finalizada_en'] ? (string) $fila['finalizada_en'] : null,
+			'lotesProcesados' => (int) $fila['lotes_procesados'],
+			'errores'         => $errores,
+		);
+	}
 }

@@ -69,4 +69,29 @@ final class RepositorioTendencias implements RepositorioTendenciasInterface {
 			'articulosRelacionados' => $articulos,
 		);
 	}
+
+	public function obtenerRecientes( int $limite ): array {
+		$sql = $this->wpdb->prepare(
+			"SELECT id, termino, puntuacion_total, detectada_en FROM {$this->tabla()} ORDER BY puntuacion_total DESC, detectada_en DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$limite
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		if ( ! is_array( $filas ) ) {
+			return array();
+		}
+
+		return array_map(
+			static fn ( array $fila ): array => array(
+				'id'              => (int) $fila['id'],
+				'termino'         => (string) $fila['termino'],
+				'puntuacionTotal' => (float) $fila['puntuacion_total'],
+				'detectadaEn'     => (string) $fila['detectada_en'],
+			),
+			$filas
+		);
+	}
 }

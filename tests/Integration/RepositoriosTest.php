@@ -9,6 +9,7 @@ use Pluma\Compuertas\DiagnosticoOriginalidad;
 use Pluma\Compuertas\DiagnosticoRiesgo;
 use Pluma\Compuertas\ModoOperacion;
 use Pluma\Compuertas\ResultadoEvaluacion;
+use Pluma\Datos\RepositorioBitacora;
 use Pluma\Datos\RepositorioPiezas;
 use Pluma\Datos\RepositorioTendencias;
 use Pluma\Investigacion\Expediente;
@@ -34,6 +35,7 @@ use WP_UnitTestCase;
  *
  * @covers \Pluma\Datos\RepositorioPiezas
  * @covers \Pluma\Datos\RepositorioTendencias
+ * @covers \Pluma\Datos\RepositorioBitacora
  */
 final class RepositoriosTest extends WP_UnitTestCase {
 
@@ -228,5 +230,71 @@ final class RepositoriosTest extends WP_UnitTestCase {
 		self::assertNotNull( $piezaActualizada->resultadoTaxonomia );
 		self::assertSame( 'Economía', $piezaActualizada->resultadoTaxonomia->categoriaAsignada );
 		self::assertSame( 'Banco de la República', $piezaActualizada->resultadoTaxonomia->etiquetas[0]->nombre );
+	}
+
+	public function test_obtener_recientes_ordena_las_tendencias_por_puntuacion_total(): void {
+		global $wpdb;
+		$repo  = new RepositorioTendencias( $wpdb );
+		$reloj = new RelojSistema();
+
+		$repo->guardar(
+			new TendenciaDetectada( 'tendencia baja', PuntuacionOportunidad::calcular( 10, 10 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$idAlta = $repo->guardar(
+			new TendenciaDetectada( 'tendencia alta', PuntuacionOportunidad::calcular( 90, 90 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$repo->guardar(
+			new TendenciaDetectada( 'tendencia media', PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+
+		$recientes = $repo->obtenerRecientes( 2 );
+
+		self::assertCount( 2, $recientes );
+		self::assertSame( $idAlta, $recientes[0]['id'] );
+		self::assertSame( 'tendencia alta', $recientes[0]['termino'] );
+		self::assertGreaterThan( $recientes[1]['puntuacionTotal'], $recientes[0]['puntuacionTotal'] );
+	}
+
+	public function test_contar_por_estado_devuelve_el_total_exacto_sin_limitarlo(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$totalAntes = $repoPiezas->contarPorEstado( EstadoPieza::Detectada );
+
+		for ( $i = 0; $i < 3; $i++ ) {
+			$tendenciaId = $repoTendencias->guardar(
+				new TendenciaDetectada( 'tendencia conteo ' . $i, PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+				$reloj->ahora()
+			);
+			$repoPiezas->crear( $tendenciaId, $reloj->ahora() );
+		}
+
+		self::assertSame( $totalAntes + 3, $repoPiezas->contarPorEstado( EstadoPieza::Detectada ) );
+	}
+
+	public function test_obtener_ultima_ejecucion_de_la_bitacora(): void {
+		global $wpdb;
+		$repo  = new RepositorioBitacora( $wpdb );
+		$reloj = new RelojSistema();
+
+		self::assertNull( $repo->obtenerUltima() );
+
+		$primeraId = $repo->iniciarEjecucion( $reloj->ahora() );
+		$repo->finalizarEjecucion( $primeraId, $reloj->ahora(), 2, array() );
+
+		$segundaId = $repo->iniciarEjecucion( $reloj->ahora()->modify( '+1 minute' ) );
+		$repo->finalizarEjecucion( $segundaId, $reloj->ahora()->modify( '+1 minute' ), 1, array( 'fallo de proveedor' ) );
+
+		$ultima = $repo->obtenerUltima();
+
+		self::assertNotNull( $ultima );
+		self::assertSame( 1, $ultima['lotesProcesados'] );
+		self::assertSame( array( 'fallo de proveedor' ), $ultima['errores'] );
+		self::assertNotNull( $ultima['finalizadaEn'] );
 	}
 }

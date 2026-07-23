@@ -30,6 +30,14 @@ interface RepositorioPiezasInterface {
 	public function obtenerPorEstado( EstadoPieza $estado, int $limite ): array;
 
 	/**
+	 * Total exacto de Piezas en `$estado` (Portada, Libro Cap. 10.2: "piezas
+	 * en cada estado del pipeline, como un tablero kanban"). Deliberadamente
+	 * un `COUNT(*)` propio y no `count(obtenerPorEstado(...))`: ese método
+	 * está acotado por `$limite` y subestimaría el total real.
+	 */
+	public function contarPorEstado( EstadoPieza $estado ): int;
+
+	/**
 	 * Actualización optimista: solo aplica si la fila sigue en
 	 * `$estadoEsperado` (candado por-Pieza — pl-pipeline §2). Devuelve
 	 * `false` si otra ejecución ya la movió.

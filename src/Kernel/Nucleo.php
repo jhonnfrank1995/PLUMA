@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Pluma\Kernel;
 
 use Pluma\Admin\NotificadorRevision;
-use Pluma\Admin\PantallaSalud;
+use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestOrquestador;
+use Pluma\Admin\RestPortada;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Compuertas\CompuertaCalidad;
 use Pluma\Compuertas\CompuertaOriginalidad;
@@ -411,6 +412,19 @@ final class Nucleo {
 		$this->contenedor->registrar( NotificadorRevision::class, static fn (): NotificadorRevision => new NotificadorRevision() );
 
 		$this->contenedor->registrar(
+			RestPortada::class,
+			fn ( Contenedor $c ): RestPortada => new RestPortada(
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioTendenciasInterface::class ),
+				$c->obtener( RepositorioColaPublicacionInterface::class ),
+				$c->obtener( RepositorioBitacoraInterface::class ),
+				$c->obtener( LectorConfiguracionCadencia::class ),
+				$c->obtener( PresupuestoLenguaje::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+
+		$this->contenedor->registrar(
 			ExportadorBancoPeriodistas::class,
 			fn ( Contenedor $c ): ExportadorBancoPeriodistas => new ExportadorBancoPeriodistas(
 				$c->obtener( RepositorioPeriodistasInterface::class ),
@@ -442,10 +456,11 @@ final class Nucleo {
 			dirname( plugin_basename( $archivoPrincipalPlugin ) ) . '/languages'
 		);
 
-		( new PantallaSalud( $this->contenedor->obtener( DetectorEntorno::class ) ) )->registrar();
+		( new PantallaPanel( $this->contenedor->obtener( DetectorEntorno::class ) ) )->registrar();
 		$this->contenedor->obtener( RestOrquestador::class )->registrar();
 		$this->contenedor->obtener( RestBancoPeriodistas::class )->registrar();
 		$this->contenedor->obtener( RestSalaRevision::class )->registrar();
 		$this->contenedor->obtener( NotificadorRevision::class )->registrar();
+		$this->contenedor->obtener( RestPortada::class )->registrar();
 	}
 }

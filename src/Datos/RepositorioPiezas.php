@@ -77,6 +77,19 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return array_map( fn ( array $fila ): Pieza => $this->filaAPieza( $fila ), $filas ?? array() );
 	}
 
+	public function contarPorEstado( EstadoPieza $estado ): int {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE estado = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$estado->value
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$total = $this->wpdb->get_var( $sql );
+
+		return null !== $total ? (int) $total : 0;
+	}
+
 	public function actualizarEstado(
 		int $id,
 		EstadoPieza $estadoEsperado,

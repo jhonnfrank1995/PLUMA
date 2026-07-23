@@ -1,14 +1,15 @@
 import { createRoot } from 'react-dom/client';
-import { PantallaSalud, type DatosSalud } from './PantallaSalud';
+import { Aplicacion, type DatosPlumaPanel } from './Aplicacion';
+import './estilos.css';
 
 declare global {
     interface Window {
-        plumaSalud?: DatosSalud;
+        plumaPanel?: DatosPlumaPanel;
     }
 }
 
-const contenedor = document.getElementById('pluma-salud-root');
+const contenedor = document.getElementById('pluma-panel-root');
 
-if (contenedor && window.plumaSalud) {
-    createRoot(contenedor).render(<PantallaSalud datos={window.plumaSalud} />);
+if (contenedor && window.plumaPanel) {
+    createRoot(contenedor).render(<Aplicacion datos={window.plumaPanel} />);
 }

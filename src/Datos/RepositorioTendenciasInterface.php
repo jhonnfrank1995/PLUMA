@@ -21,4 +21,13 @@ interface RepositorioTendenciasInterface {
 	 * @return array{termino: string, articulosRelacionados: list<array{titulo: string, url: string, fuente: string}>}|null
 	 */
 	public function obtenerPorId( int $id ): ?array;
+
+	/**
+	 * Tendencias más recientes ordenadas por puntuación total (Portada,
+	 * Libro Cap. 10.2: "tendencias calientes ahora"). Sin acciones ni
+	 * estado propio todavía — eso llega con la Sala de Tendencias.
+	 *
+	 * @return list<array{id: int, termino: string, puntuacionTotal: float, detectadaEn: string}>
+	 */
+	public function obtenerRecientes( int $limite ): array;
 }
