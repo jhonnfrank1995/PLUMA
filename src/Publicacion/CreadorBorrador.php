@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Pluma\Publicacion;
 
-use Pluma\Redaccion\BorradorMecanico;
-
 /**
  * Único punto del plugin que llama `wp_insert_post` (CLAUDE.md § Ley de
  * Arquitectura). Etapa 1 = modo Piloto siempre: el post nace como borrador,
@@ -16,11 +14,11 @@ final class CreadorBorrador implements CreadorBorradorInterface {
 	/**
 	 * @throws CreacionBorradorException
 	 */
-	public function crear( BorradorMecanico $borrador ): int {
+	public function crear( string $titulo, string $cuerpoHtml ): int {
 		$postId = wp_insert_post(
 			array(
-				'post_title'   => $borrador->titulo,
-				'post_content' => $borrador->cuerpoHtml,
+				'post_title'   => $titulo,
+				'post_content' => $cuerpoHtml,
 				'post_status'  => 'draft',
 				'post_type'    => 'post',
 			),

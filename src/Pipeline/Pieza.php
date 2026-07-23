@@ -6,6 +6,7 @@ namespace Pluma\Pipeline;
 
 use DateTimeImmutable;
 use Pluma\Investigacion\Expediente;
+use Pluma\Redaccion\FichaDecisionEditorial;
 
 /**
  * Instantánea inmutable de una Pieza (GOVERNANCE §1.2): cada lectura del
@@ -23,6 +24,9 @@ final readonly class Pieza {
 		public ?int $postId,
 		public DateTimeImmutable $creadaEn,
 		public DateTimeImmutable $actualizadaEn,
+		public ?int $periodistaId = null,
+		public ?int $periodistaVersionId = null,
+		public ?FichaDecisionEditorial $fichaDecisionEditorial = null,
 	) {
 	}
 
@@ -35,6 +39,9 @@ final readonly class Pieza {
 			$this->postId,
 			$this->creadaEn,
 			$ahora,
+			$this->periodistaId,
+			$this->periodistaVersionId,
+			$this->fichaDecisionEditorial,
 		);
 	}
 
@@ -47,6 +54,9 @@ final readonly class Pieza {
 			$this->postId,
 			$this->creadaEn,
 			$ahora,
+			$this->periodistaId,
+			$this->periodistaVersionId,
+			$this->fichaDecisionEditorial,
 		);
 	}
 
@@ -59,6 +69,39 @@ final readonly class Pieza {
 			$postId,
 			$this->creadaEn,
 			$ahora,
+			$this->periodistaId,
+			$this->periodistaVersionId,
+			$this->fichaDecisionEditorial,
+		);
+	}
+
+	public function conPeriodistaAsignado( int $periodistaId, int $periodistaVersionId, DateTimeImmutable $ahora ): self {
+		return new self(
+			$this->id,
+			$this->tendenciaId,
+			$this->estado,
+			$this->expediente,
+			$this->postId,
+			$this->creadaEn,
+			$ahora,
+			$periodistaId,
+			$periodistaVersionId,
+			$this->fichaDecisionEditorial,
+		);
+	}
+
+	public function conFichaDecisionEditorial( FichaDecisionEditorial $ficha, DateTimeImmutable $ahora ): self {
+		return new self(
+			$this->id,
+			$this->tendenciaId,
+			$this->estado,
+			$this->expediente,
+			$this->postId,
+			$this->creadaEn,
+			$ahora,
+			$this->periodistaId,
+			$this->periodistaVersionId,
+			$ficha,
 		);
 	}
 }

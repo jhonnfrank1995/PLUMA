@@ -9,8 +9,18 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
+        <testsuite name="Invariantes">
+            <directory>tests/Invariantes</directory>
+        </testsuite>
     </testsuites>
-    <!-- tests/Invariantes (GOVERNANCE §2, suite del contrato del producto) nace en la Etapa 3 con las compuertas.
+    <!-- tests/Invariantes (GOVERNANCE §2, suite del contrato del producto — PLAN-MAESTRO.md
+         Etapa 2: "invariantes GOVERNANCE §2 en verde" es criterio de salida explícito).
+         Cubre aquí lo que YA aplica sin Compuertas: §2.2 primera capa (bloqueo de sátira en
+         Tragedia — la segunda capa en Pluma\Compuertas es Etapa 3), §2.4 anti-alucinación
+         (Corrector Interno), §2.5 cita y enlace de fuentes, §2.6 transparencia de autoría IA.
+         §2.1 (registro en pluma_auditoria de las tres compuertas), §2.3 (RETENIDA por
+         afirmación fáctica sin doble fuente) y §2.7 (escasez honesta) exigen `Pluma\Compuertas`,
+         que nace en la Etapa 3 — se añaden a esta misma carpeta entonces, no en una nueva.
          tests/Integration (wp-env) corre bajo phpunit-integration.xml.dist, no en esta config. -->
     <coverage>
         <include>

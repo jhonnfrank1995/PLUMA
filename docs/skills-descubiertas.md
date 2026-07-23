@@ -96,3 +96,19 @@ Etapa 0 cerrada (CI en verde, run 29968501162). Inventario para Etapa 1 releído
 Sub-agentes de AGENTS.md que se activan: **ESQUEMA** (tablas `pluma_piezas`, `pluma_tendencias`, `pluma_fuentes`, `pluma_bitacora_motor`, `pluma_auditoria`), **ORQUESTADOR** (motor cron, candado, presupuesto de tiempo), **SEGURIDAD** (endpoint del cron con token rotable + rate limit).
 
 No aplicables aún: `pl-periodistas` (E2 — el redactor con diales no existe hasta entonces), `pl-compuertas` (E3). Hueco a decidir con el propietario antes de codificar: la Sala de Redacción completa es Etapa 2, pero el criterio de salida de Etapa 1 pide un "borrador trazable, aunque sea rudimentario" — el plan de Etapa 1 propone el alcance exacto y lo deja pendiente de aprobación.
+
+## Apertura de Etapa 2 — "El periodista" (2026-07-23)
+
+Etapa 1 cerrada (CI en verde, run 29973288960). Inventario para Etapa 2 releído íntegro:
+
+| Skill | Aplicación en Etapa 2 |
+|---|---|
+| `pl-periodistas` (+ `references/conducta.md`) | Núcleo de la etapa: 4 capas persistentes, versionado de conducta, memoria-antes-de-tesis, Corrector con checklist de 6 puntos, test de voz medible, export/import como API pública |
+| `pl-proveedor-ia` (+ `references/contrato-lenguaje.md`) | Primera implementación real de `LenguajeInterface`: PeticionLenguaje/RespuestaLenguaje, neutralización anti-inyección (corpus adversarial), presupuesto ANTES de cada llamada, enrutamiento por propósito, fixtures sin red |
+| `pl-wp-core` | 3 tablas nuevas + migración 0.2.0→0.3.0 con datos existentes, endpoints REST export/import con capacidad `pluma_gestionar_periodistas`, cifrado de llaves |
+| `pl-testing` | Nace `tests/Invariantes/` (GOVERNANCE §2.4, §2.2-parcial, §2.5, §2.6); fixtures de proveedor de lenguaje |
+| `pl-pipeline` | El Orquestador incorpora las fases de decisión editorial y redacción sintética; estados EN_REVISION/RETENIDA cobran uso real |
+| Ecosistema: `llm-structured-output`, `prompt-engineering-patterns`, `prompt-caching`, `avoid-ai-writing` | Salidas JSON del modelo, compilación de directrices, control de coste, lista de muletillas IA para el vocabulario prohibido |
+| LG: combo completo de "módulo nuevo" (SKILLS-STACK §1) | First Principles → Product Vision → CTO Mode → Risk Radar → Critical Review → Decision Framework |
+
+Sub-agentes que se activan: **ESQUEMA** (pluma_periodistas, pluma_periodistas_versiones, pluma_memoria_editorial, pluma_borradores, ALTER pluma_piezas), **PERIODISTA** (toda la capa Redaccion), **SEGURIDAD** (llave de API cifrada, anti-inyección, endpoints REST de import), **ORQUESTADOR** (nuevas fases del tick, presupuesto de coste).

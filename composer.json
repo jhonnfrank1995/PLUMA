@@ -45,6 +45,7 @@
         "analyse": "phpstan analyse --memory-limit=1536M",
         "test": "phpunit",
         "test:unit": "phpunit --testsuite=Unit",
+        "test:invariantes": "phpunit --testsuite=Invariantes",
         "test:integration": "phpunit -c phpunit-integration.xml.dist"
     }
 }

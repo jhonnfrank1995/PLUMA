@@ -30,3 +30,20 @@ disparen por primera vez.
 **Promoción a público**: cuando un módulo fuera del núcleo (newsletter,
 redes sociales, analítica — Libro Cap. 2.3) consuma un hook, se promueve
 aquí a "Público" y su firma queda congelada hasta la siguiente major.
+
+## Eventos de la Sala de Redacción (Etapa 2)
+
+| Hook | Firma | Estabilidad | Desde |
+|---|---|---|---|
+| `pluma/presupuesto_al_80` | `(float $gastoHoyUsd, float $limiteDiarioUsd)` | Interno | Etapa 2 |
+| `pluma/redactor_fallback_mecanico` | `(int $piezaId, string $motivo)` | Interno | Etapa 2 |
+
+`pluma/presupuesto_al_80` lo dispara `Pluma\Proveedores\PresupuestoLenguaje::registrarGasto()`
+una sola vez por día al cruzar el 80% del límite diario configurado.
+
+`pluma/redactor_fallback_mecanico` lo dispara `Pluma\Redaccion\RedactorConFallbackMecanico`
+cuando el proveedor de lenguaje no tiene presupuesto disponible o no hay
+credenciales configuradas — decisión explícita del propietario: notificar y
+usar `RedactorMecanico` en vez de bloquear la pieza (CLAUDE.md § Contrato del
+Proveedor de Lenguaje). Un fallo técnico real (red, HTTP, formato, circuito
+abierto) NO dispara este hook: se propaga y la pieza se marca `fallida`.

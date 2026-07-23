@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Pluma\Investigacion\Expediente;
 use Pluma\Pipeline\EstadoPieza;
 use Pluma\Pipeline\Pieza;
+use Pluma\Redaccion\FichaDecisionEditorial;
 use wpdb;
 
 /**
@@ -124,6 +125,49 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return false !== $filasAfectadas;
 	}
 
+	public function asignarPeriodista( int $id, int $periodistaId, int $periodistaVersionId, DateTimeImmutable $ahora ): bool {
+		$filasAfectadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'periodista_id'         => $periodistaId,
+				'periodista_version_id' => $periodistaVersionId,
+				'actualizada_en'        => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%d', '%d', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $filasAfectadas;
+	}
+
+	public function actualizarFichaDecisionEditorial( int $id, FichaDecisionEditorial $ficha, DateTimeImmutable $ahora ): bool {
+		$filasAfectadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'ficha_decision_editorial' => wp_json_encode( $ficha->aArray() ),
+				'actualizada_en'           => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $filasAfectadas;
+	}
+
+	public function contarAsignadasDesde( int $periodistaId, DateTimeImmutable $desde ): int {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE periodista_id = %d AND creada_en >= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$periodistaId,
+			$desde->format( 'Y-m-d H:i:s' )
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		return (int) $this->wpdb->get_var( $sql );
+	}
+
 	/**
 	 * @param array<string, mixed> $fila
 	 */
@@ -137,6 +181,15 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			$expediente = Expediente::desdeArray( $datos );
 		}
 
+		$fichaJson = $fila['ficha_decision_editorial'] ?? null;
+		$ficha     = null;
+
+		if ( is_string( $fichaJson ) && '' !== $fichaJson ) {
+			/** @var array{periodistaId: int, periodistaVersionId: int, clasificacion: array{tema: string, gravedad: int, polaridad: string, novedad: string, potencialConversacional: int, tipoNoticia: string}, candidatosTesis: list<array{tesis: string, puntuacionOriginalidad: float, puntuacionCompatibilidadLinea: float, puntuacionSustento: float, puntuacionConversacional: float}>, indiceTesisElegida: int, tonoDominante: string, tonoApoyo: string, esqueleto: array{gancho: string, hechosEsencialesConAtribucion: string, movimientosArgumentales: list<string>, contraargumentoReconocido: string, remate: string}, creadaEn: string} $datosFicha */
+			$datosFicha = json_decode( $fichaJson, true );
+			$ficha      = FichaDecisionEditorial::desdeArray( $datosFicha );
+		}
+
 		return new Pieza(
 			(int) $fila['id'],
 			(int) $fila['tendencia_id'],
@@ -144,7 +197,10 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			$expediente,
 			null !== $fila['post_id'] ? (int) $fila['post_id'] : null,
 			new DateTimeImmutable( (string) $fila['creada_en'] ),
-			new DateTimeImmutable( (string) $fila['actualizada_en'] )
+			new DateTimeImmutable( (string) $fila['actualizada_en'] ),
+			null !== ( $fila['periodista_id'] ?? null ) ? (int) $fila['periodista_id'] : null,
+			null !== ( $fila['periodista_version_id'] ?? null ) ? (int) $fila['periodista_version_id'] : null,
+			$ficha
 		);
 	}
 }

@@ -1,0 +1,23 @@
+{
+    "id": "gen-anonimizado-001",
+    "provider": "Anthropic",
+    "model": "anthropic/claude-sonnet-5",
+    "object": "chat.completion",
+    "created": 1784847600,
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "Titular: El mercado reacciona ante el nuevo dato\n\nCuerpo del borrador de prueba, generado por el modelo para fines de fixture de test."
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 512,
+        "completion_tokens": 128,
+        "total_tokens": 640,
+        "cost": 0.0034
+    }
+}

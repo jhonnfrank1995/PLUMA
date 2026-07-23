@@ -174,10 +174,23 @@ final class Orquestador {
 				return;
 			}
 
-			$borrador = $this->redactor->redactar( $transitada->expediente );
-			$this->transicionador->transitar( $pieza->id, EstadoPieza::Redactada, 'borrador mecánico construido' );
+			$resultado = $this->redactor->redactar( $transitada );
 
-			$postId = $this->creadorBorrador->crear( $borrador );
+			if ( $resultado->retenida ) {
+				// El Corrector Interno no aprobó tras el máximo de ciclos (Libro
+				// Cap. 5.6): revisión humana, no un fallo del sistema.
+				$this->transicionador->transitar(
+					$pieza->id,
+					EstadoPieza::Retenida,
+					$resultado->motivoRetenida ?? 'El Corrector Interno no aprobó la pieza.'
+				);
+
+				return;
+			}
+
+			$this->transicionador->transitar( $pieza->id, EstadoPieza::Redactada, 'borrador construido' );
+
+			$postId = $this->creadorBorrador->crear( $resultado->titulo, $resultado->cuerpoHtml );
 			$this->piezas->actualizarPostId( $pieza->id, $postId, $this->reloj->ahora() );
 		} catch ( Throwable $e ) {
 			$this->marcarFallida( $pieza->id, $e, $errores );

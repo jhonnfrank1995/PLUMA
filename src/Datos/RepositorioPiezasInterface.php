@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Pluma\Investigacion\Expediente;
 use Pluma\Pipeline\EstadoPieza;
 use Pluma\Pipeline\Pieza;
+use Pluma\Redaccion\FichaDecisionEditorial;
 
 /**
  * Contrato del repositorio de Piezas. `Pluma\Pipeline\Transicionador` y
@@ -40,4 +41,19 @@ interface RepositorioPiezasInterface {
 	public function actualizarExpediente( int $id, Expediente $expediente, DateTimeImmutable $ahora ): bool;
 
 	public function actualizarPostId( int $id, int $postId, DateTimeImmutable $ahora ): bool;
+
+	/**
+	 * Paso 2 del Algoritmo de Decisión Editorial (Libro Cap. 5.5): registra
+	 * qué periodista y qué versión de su Conducta redactó la pieza.
+	 */
+	public function asignarPeriodista( int $id, int $periodistaId, int $periodistaVersionId, DateTimeImmutable $ahora ): bool;
+
+	public function actualizarFichaDecisionEditorial( int $id, FichaDecisionEditorial $ficha, DateTimeImmutable $ahora ): bool;
+
+	/**
+	 * Piezas asignadas a `$periodistaId` desde `$desde` (inclusive). Paso 2
+	 * del Algoritmo de Decisión Editorial (Libro Cap. 5.5): "balance de
+	 * carga — nadie firma 10 piezas seguidas el mismo día".
+	 */
+	public function contarAsignadasDesde( int $periodistaId, DateTimeImmutable $desde ): int;
 }

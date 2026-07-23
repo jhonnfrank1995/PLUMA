@@ -20,8 +20,8 @@ use Pluma\Pipeline\Pieza;
 use Pluma\Pipeline\Transicionador;
 use Pluma\Proveedores\ProveedorTendenciasException;
 use Pluma\Publicacion\CreadorBorradorInterface;
-use Pluma\Redaccion\BorradorMecanico;
 use Pluma\Redaccion\RedactorInterface;
+use Pluma\Redaccion\ResultadoRedaccion;
 use Pluma\Sensores\PuntuacionOportunidad;
 use Pluma\Sensores\SensorInterface;
 use Pluma\Sensores\TendenciaDetectada;
@@ -350,12 +350,76 @@ final class OrquestadorTest extends CasoDePruebaUnitario {
 		$sensor = Mockery::mock( SensorInterface::class );
 		$sensor->expects( 'detectar' )->andReturn( array() );
 
-		$borrador = new BorradorMecanico( 'Titulo', '<p>cuerpo</p>' );
-		$redactor = Mockery::mock( RedactorInterface::class );
-		$redactor->expects( 'redactar' )->with( $expediente )->andReturn( $borrador );
+		$resultadoRedaccion = new ResultadoRedaccion( 'Titulo', '<p>cuerpo</p>', false, null, 1 );
+		$redactor           = Mockery::mock( RedactorInterface::class );
+		$redactor->expects( 'redactar' )
+			->with( Mockery::on( static fn ( Pieza $p ): bool => 9 === $p->id && EstadoPieza::EnRedaccion === $p->estado && $expediente === $p->expediente ) )
+			->andReturn( $resultadoRedaccion );
 
 		$creadorBorrador = Mockery::mock( CreadorBorradorInterface::class );
-		$creadorBorrador->expects( 'crear' )->with( $borrador )->andReturn( 321 );
+		$creadorBorrador->expects( 'crear' )->with( 'Titulo', '<p>cuerpo</p>' )->andReturn( 321 );
+
+		$orquestador = $this->construir(
+			$candado,
+			$bitacora,
+			$piezas,
+			$tendencias,
+			new Transicionador( $piezas, $auditoria, new RelojFijo() ),
+			$sensor,
+			Mockery::mock( InvestigadorInterface::class ),
+			$redactor,
+			$creadorBorrador
+		);
+
+		$resultado = $orquestador->ejecutarTick();
+
+		self::assertSame( 1, $resultado['lotesProcesados'] );
+		self::assertSame( array(), $resultado['errores'] );
+	}
+
+	public function test_una_pieza_retenida_por_el_corrector_no_crea_borrador_ni_marca_fallida(): void {
+		$candado = Mockery::mock( CandadoGlobalInterface::class );
+		$candado->expects( 'adquirir' )->andReturn( true );
+		$candado->expects( 'liberar' )->once();
+
+		$bitacora = Mockery::mock( RepositorioBitacoraInterface::class );
+		$bitacora->expects( 'iniciarEjecucion' )->andReturn( 1 );
+		$bitacora->expects( 'finalizarEjecucion' )->once()->with( 1, Mockery::any(), 1, array() );
+
+		$expediente       = new Expediente( 'una tendencia', array() );
+		$piezaInvestigada = $this->pieza( 11, EstadoPieza::Investigada, $expediente );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+		$piezas->expects( 'obtenerPorEstado' )->with( EstadoPieza::Detectada, Mockery::any() )->andReturn( array() );
+		$piezas->expects( 'obtenerPorEstado' )->with( EstadoPieza::Investigada, Mockery::any() )->andReturn( array( $piezaInvestigada ) );
+		$piezas->expects( 'obtenerPorId' )->with( 11 )->twice()->andReturn(
+			$piezaInvestigada,
+			$this->pieza( 11, EstadoPieza::EnRedaccion, $expediente )
+		);
+		$piezas->expects( 'actualizarEstado' )
+			->with( 11, EstadoPieza::Investigada, EstadoPieza::EnRedaccion, Mockery::any() )
+			->andReturn( true );
+		$piezas->expects( 'actualizarEstado' )
+			->with( 11, EstadoPieza::EnRedaccion, EstadoPieza::Retenida, Mockery::any() )
+			->andReturn( true );
+		$piezas->expects( 'actualizarPostId' )->never();
+
+		$auditoria = Mockery::mock( RepositorioAuditoriaInterface::class );
+		$auditoria->expects( 'registrar' )->twice();
+
+		Functions\when( 'do_action' )->justReturn( null );
+
+		$tendencias = Mockery::mock( RepositorioTendenciasInterface::class );
+
+		$sensor = Mockery::mock( SensorInterface::class );
+		$sensor->expects( 'detectar' )->andReturn( array() );
+
+		$resultadoRedaccion = new ResultadoRedaccion( '', '', true, 'El Corrector Interno no aprobó la pieza tras 2 ciclos de revisión.', 2 );
+		$redactor           = Mockery::mock( RedactorInterface::class );
+		$redactor->expects( 'redactar' )->once()->andReturn( $resultadoRedaccion );
+
+		$creadorBorrador = Mockery::mock( CreadorBorradorInterface::class );
+		$creadorBorrador->expects( 'crear' )->never();
 
 		$orquestador = $this->construir(
 			$candado,

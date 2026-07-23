@@ -12,8 +12,15 @@ use Pluma\Investigacion\HechoFuente;
  * contenido de las fuentes es un dato externo no confiable (GOVERNANCE
  * §3.4/pl-wp-core §1): se escapa igual que cualquier salida, nunca se
  * interpreta como HTML/instrucciones.
+ *
+ * Desde la Etapa 2 ya no es el redactor de producción por defecto — es el
+ * colaborador de fallback de `RedactorConFallbackMecanico` cuando
+ * `RedactorSintetico` no tiene presupuesto o credenciales (deuda documentada:
+ * este redactor mecánico se mejorará a nivel máximo en una etapa futura, ver
+ * docs/deuda.md). Por eso conserva su firma original (`Expediente` en vez de
+ * `Pieza`) y no implementa `RedactorInterface` directamente.
  */
-final class RedactorMecanico implements RedactorInterface {
+final class RedactorMecanico {
 
 	public function redactar( Expediente $expediente ): BorradorMecanico {
 		$titulo = ucfirst( $expediente->tendenciaOrigen );

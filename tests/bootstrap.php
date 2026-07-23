@@ -14,6 +14,12 @@ if ( ! defined( 'PLUMA_ENGINE_VERSION' ) ) {
 	define( 'PLUMA_ENGINE_VERSION', '0.0.0-test' );
 }
 
+if ( ! defined( 'DAY_IN_SECONDS' ) ) {
+	// Constante real de WordPress (wp-includes/default-constants.php): no es
+	// una función, así que Brain\Monkey no puede simularla como tal.
+	define( 'DAY_IN_SECONDS', 86400 );
+}
+
 if ( ! class_exists( 'WP_Error' ) ) {
 	/**
 	 * Doble mínimo de `WP_Error` para la suite Unit: solo lo que
