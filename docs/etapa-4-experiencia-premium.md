@@ -1,6 +1,6 @@
 # Etapa 4 — La experiencia premium
 
-**Estado: EN CURSO.** Ninguna de las tres porciones entregadas hasta ahora está subida a `origin/main` todavía (commits locales `bea0a84`, `64008d3`, `8a50602` sobre `main`) — no hay CI verificado en este punto porque no se ha hecho push. Este documento se actualizará con cada porción nueva.
+**Estado: EN CURSO.** Tres porciones subidas a `origin/main` y con CI verde confirmado (`bea0a84`, `64008d3`, `8a50602`, más el fix de una regresión de E2E propia — run [30025921402](https://github.com/jhonnfrank1995/PLUMA/actions/runs/30025921402) falló, corregido en `c45494b` con el siguiente run [30026606648](https://github.com/jhonnfrank1995/PLUMA/actions/runs/30026606648) en verde — y la documentación por fase en `5b0482b`). La porción 4 (commit `c30f6ea`) está commiteada localmente, todavía sin push ni CI verificado en este punto. Este documento se actualiza con cada porción nueva.
 
 ## Objetivo y criterio de salida (PLAN-MAESTRO)
 
@@ -59,15 +59,31 @@ Las 7 pantallas del Cap. 10.2 del Libro de Arquitectura son: **Portada, Sala de 
 1. **"Forzar aprobación" limitada a RETENIDA** (frente a la alternativa de una ruta de aprobación general): se eligió la opción segura porque una ruta que fuerce cualquier Pieza no terminal a APROBADA sin pasar por Compuertas es exactamente lo que CLAUDE.md prohíbe explícitamente.
 2. **Alcance completo, incluyendo editar y diff** (frente a diferir esas dos features): el propietario pidió el alcance completo en una sola porción, por lo que esta porción es notablemente más grande que las dos anteriores.
 
+## Porción 4 — Banco de Periodistas + Estudio de Conducta (commit `c30f6ea`)
+
+**Qué se agregó:**
+- Tarjetas del banco con métricas vivas **reales**: piezas publicadas (COUNT exacto) y verticales donde más publica (extraídos de `clasificacion.tema` de la Ficha de Decisión Editorial de sus Piezas publicadas, top 3 por frecuencia). "Tráfico medio" del Cap. 10.2 queda fuera — sin fuente real todavía, mismo criterio que "resultados de ayer" en la Portada (porción 1).
+- Acciones del banco: **crear desde plantilla** (los tres periodistas de siembra del Cap. 5.8 — analista/columnista/cronista), **clonar** (copia identidad + conducta actual bajo un nombre nuevo), **jubilar** — las tres construidas enteramente sobre métodos ya existentes de `RepositorioPeriodistasInterface` (`crear()`, `jubilar()`), sin duplicar lógica.
+- El **Estudio de Conducta**: diales de temperamento como controles deslizantes, reglas cualitativas editables (línea editorial, líneas rojas, muletillas, vocabulario prohibido, trato al lector, estilo de pregunta final), matriz de tonos editable para los 4 tipos de noticia normales — la fila de `TipoNoticia::Tragedia` se muestra siempre bloqueada y de solo lectura, la misma regla de sistema inviolable del Cap. 5.3 (sátira bloqueada) — y memoria editorial reciente navegable.
+- **Vista previa en vivo** (Libro Cap. 10.2: "la función que enamora en las demos"): `Pluma\Redaccion\GeneradorVistaPrevia` redacta un párrafo corto sobre un **hecho neutro fijo** (nunca una Pieza ni un expediente real — esto es una demostración de conducta) usando la conducta CANDIDATA todavía sin guardar. Nuevo `PropositoLenguaje::VistaPrevia`, deliberadamente no premium (modelo económico). El frontend hace debounce de 800ms tras el último cambio y no repite la llamada si la combinación exacta de diales/reglas/matriz ya se pidió. Consume del mismo presupuesto diario compartido con la producción real — `LenguajeInterface::completar()` ya verifica `PresupuestoLenguaje::disponible()` antes de cada llamada, así que `GeneradorVistaPrevia` no duplica ni rodea esa verificación.
+- `Pluma\Admin\RestPeriodistas` (`GET /periodistas`, `GET /periodistas/{id}`, `GET /periodistas/plantillas`, `POST /periodistas/plantilla`, `POST /periodistas/{id}/{clonar,conducta,jubilar}`, `POST /periodistas/vista-previa`), capacidad `pluma_gestionar_periodistas` (la misma que ya protegía export/import del banco).
+- `Pluma\Datos\RepositorioPiezas::metricasPorPeriodista()` — solo lectura, sin cambio de esquema.
+
+**Decisiones tomadas al abrir esta porción (preguntadas explícitamente al propietario):**
+1. **Alcance completo en una sola porción** (tarjetas + Estudio de Conducta + vista previa + acciones juntos) frente a partirla en dos — el propietario eligió la entrega completa, consistente con "cada pantalla llega 100% funcional antes de pasar a la siguiente".
+2. **Tráfico omitido, comentarios también omitidos** de las métricas de tarjeta — el propietario eligió no mezclar señales de fuerza distinta (comentarios reales de WordPress sí existen, pero se dejaron fuera junto con tráfico para no inventar qué quiso decir el Libro con "métricas vivas" más allá de piezas/verticales).
+
+**Nota de verificación en integración:** en el entorno de pruebas `wp-env` no hay ninguna llave de OpenRouter configurada, así que `POST /periodistas/vista-previa` sigue un camino determinista y sin red real: `ProveedorOpenRouter::completar()` lanza "sin credenciales" antes de cualquier llamada HTTP, y el test de integración verifica exactamente ese 503 — el camino de éxito con red real está cubierto por los tests Unit con un doble de `LenguajeInterface`, no por Integration.
+
 ## Pendiente dentro de esta Etapa
 
-Pantallas del Cap. 10.2 sin construir todavía: **Banco de Periodistas + Estudio de Conducta** (la "pantalla estrella" — diales como controles deslizantes con vista previa en vivo, matriz de tonos editable, memoria navegable), **Sala de Revisión visual** (la superficie funcional/REST ya existe desde la Etapa 3 — falta el diseño premium del Cap. 10.2 y las notificaciones con enlaces de acción directa vía Telegram/Slack, hoy solo hay correo), **Estudio SEO y Taxonomía**, **Sala de Máquinas completa** (bitácora de ejecuciones, coste por pieza/día, estado de cada API, configuración técnica — hoy solo tiene versiones + estado del cron), y el **onboarding de 5 actos** (Cap. 10.3).
+Pantallas del Cap. 10.2 sin construir todavía: **Sala de Revisión visual** (la superficie funcional/REST ya existe desde la Etapa 3 — falta el diseño premium del Cap. 10.2 y las notificaciones con enlaces de acción directa vía Telegram/Slack, hoy solo hay correo), **Estudio SEO y Taxonomía**, **Sala de Máquinas completa** (bitácora de ejecuciones, coste por pieza/día, estado de cada API, configuración técnica — hoy solo tiene versiones + estado del cron), y el **onboarding de 5 actos** (Cap. 10.3).
 
 Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía sin resolver por ninguna de las tres porciones**:
 
 | Ticket | Deuda | Nota |
 |---|---|---|
-| PLUMA-E2-4 | Sin pantalla/endpoint para cargar la llave de OpenRouter | Bloquea que cualquier instalación nueva use redacción sintética real en vez de fallback mecánico — candidata a Sala de Máquinas u onboarding acto 2 |
+| PLUMA-E2-4 | Sin pantalla/endpoint para cargar la llave de OpenRouter | Bloquea que cualquier instalación nueva use redacción sintética real en vez de fallback mecánico — candidata a Sala de Máquinas u onboarding acto 2. Reconfirmado en la porción 4: el propio test de integración de la vista previa depende de que NO haya llave configurada en wp-env, evidencia directa de que este hueco sigue abierto |
 | PLUMA-E3-1 | Sitemap de noticias con ping de indexación | Sin priorizar todavía |
 | PLUMA-E3-6 | Modo pausa / modo respeto (toggle en el panel) | Sin priorizar todavía |
 | PLUMA-E3-8 | Detección activa de WP-Cron real + guía de instalación por hosting | Portada ya muestra si el cron está configurado (heredado de Etapa 0), pero falta la guía activa |
@@ -77,15 +93,19 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 
 - **`react`, `react-dom` y `diff` son ahora dependencias de producción reales** del bundle del panel (`build/panel/`) — cualquier auditoría de licencias (`LICENSES-THIRD-PARTY.md`) debe seguir actualizándose cada vez que el panel incorpore una librería nueva, no solo el lado PHP.
 - **El shell (`Aplicacion.tsx`) solo enlaza pantallas que existen de verdad** — cada porción nueva añade su propia entrada de navegación al terminar, nunca antes (cero enlaces muertos). Quien construya la próxima porción debe seguir este mismo patrón.
-- **`PresupuestoLenguaje` sigue siendo un único pool diario compartido** (Etapa 2) — la vista previa en vivo del Estudio de Conducta, cuando se construya, debe seguir consumiendo de ahí; introducir un pool separado sería una regresión sobre la decisión ya tomada.
+- **`PresupuestoLenguaje` sigue siendo un único pool diario compartido** (Etapa 2), y desde la porción 4 la vista previa en vivo del Estudio de Conducta también consume de ahí — introducir un pool separado para vista previa sería una regresión sobre la decisión ya tomada (2026-07-23).
 - **El renombre de `PantallaSalud` a `PantallaPanel`** (porción 1) es un punto de fricción si alguna documentación o memoria de sesiones anteriores todavía referencia el nombre viejo — verificado que no quedan referencias en `src/` al cierre de la porción 3.
+- **Cualquier endpoint REST nuevo que agregue una pantalla del panel a wp-env debe correr también Playwright E2E localmente antes de cerrar la porción** — la porción 1 renombró el slug/id del shell (`pluma-engine-salud`→`pluma-engine-panel`) y esto rompió el smoke E2E de la Etapa 0 en CI (run [30025921402](https://github.com/jhonnfrank1995/PLUMA/actions/runs/30025921402)) porque Playwright no se había corrido en ninguna de las tres primeras porciones, solo PHPUnit/PHPCS/PHPStan/Vitest/Integration wp-env. Corregido en `c45494b`; a partir de la porción 4 el Delivery Guardian de esta etapa incluye `npx playwright test` antes de cerrar.
+- **`PropositoLenguaje::VistaPrevia` es un propósito nuevo, deliberadamente NO premium** — cualquier ajuste futuro al enrutamiento de modelos (`EnrutadorModelos`) debe mantenerlo en la rama económica; moverlo a premium encarecería cada movimiento de un dial en el Estudio de Conducta.
+- **`GeneradorVistaPrevia` construye un `Periodista`/`ConductaVersion` sintéticos en memoria** (id de versión `0`, nunca persistido) solo para reutilizar `CompiladorDirectrices::compilar()` — si `CompiladorDirectrices` cambia su firma o dependencias en el futuro, este generador debe actualizarse en paralelo.
 
-## Evidencia de gates (acumulado, sin push todavía)
+## Evidencia de gates
 
-| Porción | Unit | Invariantes | Integration (wp-env real) | Vitest | PHPCS / PHPStan L8 |
-|---|---|---|---|---|---|
-| 1 — Portada | — | — | 46/46 | 19/19 | limpio |
-| 2 — Sala de Tendencias | 299/299 | 21/21 | 52/52 | 24/24 | limpio |
-| 3 — Mesa Editorial | 301/301 | 21/21 | 60/60 | 32/32 | limpio |
+| Porción | Unit | Invariantes | Integration (wp-env real) | Vitest | E2E | PHPCS / PHPStan L8 | Push + CI |
+|---|---|---|---|---|---|---|---|
+| 1 — Portada | — | — | 46/46 | 19/19 | no corrido | limpio | ✅ verde (con fix posterior de E2E) |
+| 2 — Sala de Tendencias | 299/299 | 21/21 | 52/52 | 24/24 | no corrido | limpio | ✅ verde |
+| 3 — Mesa Editorial | 301/301 | 21/21 | 60/60 | 32/32 | no corrido | limpio | ✅ verde |
+| 4 — Banco de Periodistas | 304/304 | 21/21 | 70/70 | 42/42 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin llave de API filtrada en ningún commit (verificado explícitamente antes de cada uno).
