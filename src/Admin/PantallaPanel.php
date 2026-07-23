@@ -127,6 +127,7 @@ final class PantallaPanel {
 			'textosMesaEditorial'    => $this->textosMesaEditorial(),
 			'textosBancoPeriodistas' => $this->textosBancoPeriodistas(),
 			'textosSalaRevision'     => $this->textosSalaRevision(),
+			'textosSalaMaquinas'     => $this->textosSalaMaquinas(),
 		);
 	}
 
@@ -404,6 +405,56 @@ final class PantallaPanel {
 			'tiempoRestante'     => __( 'Tiempo restante para vetar', 'pluma-engine' ),
 			'tiempoAgotado'      => __( 'La ventana de veto ya expiró — se publicará en el próximo tick del motor', 'pluma-engine' ),
 			'confirmarDescartar' => __( '¿Descartar esta Pieza? Esta acción queda registrada en la auditoría y no se puede deshacer.', 'pluma-engine' ),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosSalaMaquinas(): array {
+		return array(
+			'cargando'    => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'  => __( 'No se pudo cargar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion' => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'bitacora'    => array(
+				'titulo'     => __( 'Bitácora del motor', 'pluma-engine' ),
+				'vacia'      => __( 'el motor no se ha ejecutado todavía', 'pluma-engine' ),
+				'inicio'     => __( 'Inicio', 'pluma-engine' ),
+				'duracion'   => __( 'Duración', 'pluma-engine' ),
+				'lotes'      => __( 'Lotes procesados', 'pluma-engine' ),
+				'errores'    => __( 'Errores', 'pluma-engine' ),
+				'sinErrores' => __( 'sin errores', 'pluma-engine' ),
+				'enCurso'    => __( 'en curso', 'pluma-engine' ),
+			),
+			'coste'       => array(
+				'titulo'        => __( 'Coste', 'pluma-engine' ),
+				'gastoHoy'      => __( 'Gasto de hoy', 'pluma-engine' ),
+				'limiteDiario'  => __( 'Límite diario (USD)', 'pluma-engine' ),
+				'guardarLimite' => __( 'Guardar límite', 'pluma-engine' ),
+				'guardado'      => __( 'Límite actualizado', 'pluma-engine' ),
+			),
+			'apis'        => array(
+				'titulo'          => __( 'Estado de las APIs conectadas', 'pluma-engine' ),
+				'openRouter'      => __( 'OpenRouter (proveedor de lenguaje)', 'pluma-engine' ),
+				'googleTrends'    => __( 'Google Trends (Radar)', 'pluma-engine' ),
+				'configurada'     => __( 'configurada', 'pluma-engine' ),
+				'noConfigurada'   => __( 'sin configurar', 'pluma-engine' ),
+				'circuitoAbierto' => __( 'en enfriamiento tras fallos repetidos', 'pluma-engine' ),
+				'circuitoCerrado' => __( 'conectada', 'pluma-engine' ),
+			),
+			'llave'       => array(
+				'titulo'          => __( 'Llave de OpenRouter', 'pluma-engine' ),
+				'actual'          => __( 'Llave actual', 'pluma-engine' ),
+				'campoNueva'      => __( 'Nueva llave', 'pluma-engine' ),
+				'guardar'         => __( 'Guardar llave', 'pluma-engine' ),
+				'probar'          => __( 'Probar conexión', 'pluma-engine' ),
+				'probando'        => __( 'Probando…', 'pluma-engine' ),
+				'valida'          => __( 'La llave es válida.', 'pluma-engine' ),
+				'invalida'        => __( 'La llave no es válida o no se pudo verificar.', 'pluma-engine' ),
+				'cambiar'         => __( 'Cambiar llave', 'pluma-engine' ),
+				'quitar'          => __( 'Quitar llave', 'pluma-engine' ),
+				'confirmarQuitar' => __( '¿Quitar la llave? Sin ella, la redacción vuelve al modo mecánico de respaldo.', 'pluma-engine' ),
+			),
 		);
 	}
 

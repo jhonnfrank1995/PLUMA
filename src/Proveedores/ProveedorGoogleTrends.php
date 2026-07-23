@@ -83,13 +83,22 @@ final class ProveedorGoogleTrends implements ProveedorTendenciasInterface {
 	 * @throws ProveedorTendenciasException si el circuito está abierto
 	 */
 	private function verificarCircuitoCerrado(): void {
-		$abiertoHasta = (int) get_option( self::OPCION_ABIERTO_HASTA, 0 );
-
-		if ( $abiertoHasta > $this->reloj->ahora()->getTimestamp() ) {
+		if ( $this->circuitoAbierto() ) {
 			throw new ProveedorTendenciasException(
 				'Circuito abierto: el proveedor de tendencias falló repetidamente; en enfriamiento.'
 			);
 		}
+	}
+
+	/**
+	 * Estado del circuit breaker para la Sala de Máquinas (Libro Cap. 10.2:
+	 * "estado de cada API conectada") — el mismo estado que ya usa
+	 * `verificarCircuitoCerrado()`, expuesto en solo lectura.
+	 */
+	public function circuitoAbierto(): bool {
+		$abiertoHasta = (int) get_option( self::OPCION_ABIERTO_HASTA, 0 );
+
+		return $abiertoHasta > $this->reloj->ahora()->getTimestamp();
 	}
 
 	private function registrarFallo(): void {

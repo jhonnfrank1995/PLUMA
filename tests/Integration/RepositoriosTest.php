@@ -296,5 +296,27 @@ final class RepositoriosTest extends WP_UnitTestCase {
 		self::assertSame( 1, $ultima['lotesProcesados'] );
 		self::assertSame( array( 'fallo de proveedor' ), $ultima['errores'] );
 		self::assertNotNull( $ultima['finalizadaEn'] );
+
+		// Fechas en DATE_ATOM (parseables por `Date` de JavaScript en el
+		// panel), no la cadena cruda de MySQL — Sala de Máquinas, Cap. 10.2.
+		self::assertMatchesRegularExpression( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', $ultima['iniciadaEn'] );
+	}
+
+	public function test_obtener_recientes_devuelve_las_ejecuciones_mas_nuevas_primero(): void {
+		global $wpdb;
+		$repo  = new RepositorioBitacora( $wpdb );
+		$reloj = new RelojSistema();
+
+		$primeraId = $repo->iniciarEjecucion( $reloj->ahora() );
+		$repo->finalizarEjecucion( $primeraId, $reloj->ahora(), 2, array() );
+
+		$segundaId = $repo->iniciarEjecucion( $reloj->ahora()->modify( '+1 minute' ) );
+		$repo->finalizarEjecucion( $segundaId, $reloj->ahora()->modify( '+1 minute' ), 4, array( 'fallo de proveedor' ) );
+
+		$recientes = $repo->obtenerRecientes( 1 );
+
+		self::assertCount( 1, $recientes );
+		self::assertSame( 4, $recientes[0]['lotesProcesados'] );
+		self::assertSame( array( 'fallo de proveedor' ), $recientes[0]['errores'] );
 	}
 }

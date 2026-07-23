@@ -84,17 +84,33 @@ Las 7 pantallas del Cap. 10.2 del Libro de Arquitectura son: **Portada, Sala de 
 
 **Decisión de diseño relevante:** las notificaciones por Telegram/Slack con "enlaces de acción directa" (Cap. 10.2) NO se construyeron en esta porción — ya eran una decisión tomada en la Etapa 3 (documentada en el propio código de `NotificadorRevision`: "solo correo por ahora"), pero **nunca había quedado registrada formalmente como deuda** hasta ahora. Registrada como `PLUMA-E3-9` en `docs/deuda.md` al abrir esta porción. Motivo adicional para no abordarla junto con el rediseño visual: un enlace de acción directa clicable desde un correo/Telegram/Slack sin pasar por el login de wp-admin exige diseñar un mecanismo de autenticación de un solo uso que no exista todavía — no es una simple cuestión de formato de mensaje.
 
+## Porción 6 — Sala de Máquinas completa (commit pendiente)
+
+**Qué se agregó:**
+- Bitácora del motor: últimas ejecuciones (inicio, duración calculada, lotes procesados, errores) — nuevo `RepositorioBitacora::obtenerRecientes()`.
+- Coste de hoy contra el límite diario, con el límite editable desde la propia pantalla (`PresupuestoLenguaje::OPCION_LIMITE_DIARIO`).
+- Estado de cada API conectada: OpenRouter (configurada o no + circuit breaker) y Google Trends (circuit breaker) — nuevos métodos públicos `circuitoAbierto()` en ambos proveedores, exponiendo en solo lectura un estado que ya existía internamente desde la Etapa 1/2.
+- **La pantalla que por fin paga `PLUMA-E2-4`**: cargar, probar en vivo, cambiar y quitar la llave de OpenRouter. La llave nunca se devuelve en texto plano por ningún endpoint — solo un booleano "configurada" y, como mucho, sus últimos 4 caracteres.
+- `Pluma\Admin\RestSalaMaquinas` (`GET /motor/bitacora`, `GET /motor/estado`, `POST`/`DELETE /motor/llave-openrouter`, `POST /motor/llave-openrouter/probar`, `POST /motor/presupuesto`), capacidad `pluma_configurar_motor`.
+- `panel/src/PantallaSalud.tsx` renombrada a `PantallaSalaMaquinas.tsx` — mismo patrón que el rename de la porción 1, ahora que la pantalla es mucho más que "salud del entorno".
+
+**Verificado contra documentación oficial de OpenRouter, no alucinado:** `GET https://openrouter.ai/api/v1/key` (créditos/límite restantes de una llave) es el endpoint real para la "prueba en vivo" — deliberadamente distinto de `LenguajeInterface::completar()`, que sí generaría coste real de una petición de redacción solo para validar una llave.
+
+**Bug latente corregido de paso:** `RepositorioBitacora::obtenerUltima()`/`obtenerRecientes()` devolvían las fechas como la cadena cruda de MySQL (`Y-m-d H:i:s`, sin zona horaria) en vez de `DATE_ATOM` como el resto de repositorios del proyecto — sin efecto visible hasta ahora porque ningún frontend las parseaba como fecha (la Portada, que ya consume `obtenerUltima()` desde la porción 1, solo mira `.errores.length`). La nueva tabla de bitácora de esta porción sí necesita fechas parseables, así que se corrigió en la fuente para las dos.
+
+**Honestidad de alcance (cero invención), tal como se acordó al abrir la porción:** "coste por pieza" no se construyó — `pluma_bitacora_motor` no atribuye gasto a una Pieza individual, solo hay agregado diario. "Reintentos" tampoco — no existe backoff automático todavía (`PLUMA-E3-7`, sigue abierta). Se muestra el gasto agregado real y los errores tal como se registraron, sin inventar una atribución o un mecanismo que no existen.
+
 ## Pendiente dentro de esta Etapa
 
-Pantallas del Cap. 10.2 sin construir todavía: **Estudio SEO y Taxonomía**, **Sala de Máquinas completa** (bitácora de ejecuciones, coste por pieza/día, estado de cada API, configuración técnica — hoy solo tiene versiones + estado del cron), y el **onboarding de 5 actos** (Cap. 10.3).
+Pantallas del Cap. 10.2 sin construir todavía: **Estudio SEO y Taxonomía**, y el **onboarding de 5 actos** (Cap. 10.3).
 
-Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía sin resolver por ninguna de las tres porciones**:
+Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 
 | Ticket | Deuda | Nota |
 |---|---|---|
-| PLUMA-E2-4 | Sin pantalla/endpoint para cargar la llave de OpenRouter | Bloquea que cualquier instalación nueva use redacción sintética real en vez de fallback mecánico — candidata a Sala de Máquinas u onboarding acto 2. Reconfirmado en la porción 4: el propio test de integración de la vista previa depende de que NO haya llave configurada en wp-env, evidencia directa de que este hueco sigue abierto |
+| ~~PLUMA-E2-4~~ | ~~Sin pantalla/endpoint para cargar la llave de OpenRouter~~ | **Pagada en la porción 6** (Sala de Máquinas completa) |
 | PLUMA-E3-1 | Sitemap de noticias con ping de indexación | Sin priorizar todavía |
-| PLUMA-E3-6 | Modo pausa / modo respeto (toggle en el panel) | Sin priorizar todavía |
+| PLUMA-E3-6 | Modo pausa / modo respeto (toggle en el panel) | Sin priorizar todavía — candidata natural a la porción de Sala de Máquinas ya que esta ya tiene la configuración técnica del motor, pero no se abordó en la porción 6 para no ampliar más su alcance |
 | PLUMA-E3-8 | Detección activa de WP-Cron real + guía de instalación por hosting | Portada ya muestra si el cron está configurado (heredado de Etapa 0), pero falta la guía activa |
 | PLUMA-E3-4 (ver `docs/etapa-3-capa-competitiva.md`) | JSON-LD nunca se emite en el frontend — verificado como no pagado pese a que `docs/deuda.md` lo daba por hecho en H3 de la Etapa 3 | Descubierto durante la redacción de este documento, no durante código de la Etapa 4 |
 | PLUMA-E3-9 | Notificaciones por Telegram/Slack con enlaces de acción directa — solo hay correo | Registrada al abrir la porción 5 (Sala de Revisión); exige además diseñar autenticación de un solo uso para los enlaces de acción, no solo el envío del mensaje |
@@ -109,6 +125,8 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 - **`PropositoLenguaje::VistaPrevia` es un propósito nuevo, deliberadamente NO premium** — cualquier ajuste futuro al enrutamiento de modelos (`EnrutadorModelos`) debe mantenerlo en la rama económica; moverlo a premium encarecería cada movimiento de un dial en el Estudio de Conducta.
 - **`GeneradorVistaPrevia` construye un `Periodista`/`ConductaVersion` sintéticos en memoria** (id de versión `0`, nunca persistido) solo para reutilizar `CompiladorDirectrices::compilar()` — si `CompiladorDirectrices` cambia su firma o dependencias en el futuro, este generador debe actualizarse en paralelo.
 - **`RestSalaRevision` demuestra el patrón correcto para "enriquecer sin reescribir"**: la porción 5 le agregó tres dependencias nuevas y una función privada compartida (`piezaComoArray()`) reutilizada entre `retenidas()` y `colaDeVeto()`, sin tocar `GestorSalaRevision` ni el grafo del Transicionador — cuando una pantalla ya tiene REST funcional de una etapa anterior, la porción visual casi siempre debe ser "enriquecer la serialización", no "reescribir el backend".
+- **El registro DI del Contenedor no memoiza por interfaz**: `ProveedorOpenRouter`/`ProveedorGoogleTrends` ya estaban registrados detrás de `LenguajeInterface::class`/`ProveedorTendenciasInterface::class` respectivamente; la porción 6 tuvo que añadir un registro ADICIONAL del tipo concreto (`ProveedorOpenRouter::class`, `ProveedorGoogleTrends::class`) para poder inyectar métodos propios (`circuitoAbierto()`, `probarLlave()`) que no pertenecen al contrato de la interfaz. Cualquier clase futura que necesite un método propio de una implementación concreta debe seguir este mismo patrón de doble registro, sin tocar el contrato de la interfaz.
+- **Toda fecha que un repositorio expone a un endpoint REST debe ser `DATE_ATOM`**, nunca la cadena cruda de MySQL — la porción 6 encontró y corrigió un caso donde esto no se cumplía (`RepositorioBitacora`) precisamente porque nadie había necesitado parsear esa fecha como `Date` hasta ahora. Vale la pena revisar los demás repositorios si alguna porción futura empieza a mostrar fechas sin parsearlas correctamente.
 
 ## Evidencia de gates
 
@@ -119,5 +137,6 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 | 3 — Mesa Editorial | 301/301 | 21/21 | 60/60 | 32/32 | no corrido | limpio | ✅ verde |
 | 4 — Banco de Periodistas | 304/304 | 21/21 | 70/70 | 42/42 | 2/2 | limpio | commiteado, sin push todavía |
 | 5 — Sala de Revisión | 304/304 | 21/21 | 71/71 | 48/48 | 2/2 | limpio | commiteado, sin push todavía |
+| 6 — Sala de Máquinas | 311/311 | 21/21 | 80/80 | 51/51 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin llave de API filtrada en ningún commit (verificado explícitamente antes de cada uno).

@@ -21,13 +21,19 @@ use Pluma\Kernel\RelojInterface;
  */
 final class ProveedorOpenRouter implements LenguajeInterface {
 
-	private const URL                   = 'https://openrouter.ai/api/v1/chat/completions';
-	private const TIMEOUT_SEGUNDOS      = 60;
-	public const OPCION_LLAVE_CIFRADA   = 'pluma_openrouter_llave_cifrada';
-	private const OPCION_FALLOS         = 'pluma_proveedor_lenguaje_fallos';
-	private const OPCION_ABIERTO_HASTA  = 'pluma_proveedor_lenguaje_abierto_hasta';
-	private const UMBRAL_FALLOS         = 3;
-	private const ENFRIAMIENTO_SEGUNDOS = 300;
+	private const URL = 'https://openrouter.ai/api/v1/chat/completions';
+	// Verificado contra la documentación oficial de OpenRouter
+	// (openrouter.ai/docs/api-reference/limits): "para consultar el límite o
+	// los créditos restantes de una llave, haz un GET a esta URL" — sin
+	// coste de generación, el endpoint correcto para "prueba en vivo".
+	private const URL_VERIFICACION_LLAVE        = 'https://openrouter.ai/api/v1/key';
+	private const TIMEOUT_SEGUNDOS              = 60;
+	private const TIMEOUT_VERIFICACION_SEGUNDOS = 15;
+	public const OPCION_LLAVE_CIFRADA           = 'pluma_openrouter_llave_cifrada';
+	private const OPCION_FALLOS                 = 'pluma_proveedor_lenguaje_fallos';
+	private const OPCION_ABIERTO_HASTA          = 'pluma_proveedor_lenguaje_abierto_hasta';
+	private const UMBRAL_FALLOS                 = 3;
+	private const ENFRIAMIENTO_SEGUNDOS         = 300;
 
 	public function __construct(
 		private readonly EnrutadorModelos $enrutador,
@@ -139,6 +145,40 @@ final class ProveedorOpenRouter implements LenguajeInterface {
 		);
 	}
 
+	/**
+	 * "Prueba en vivo" de una llave (Libro Cap. 10.3, onboarding acto 2; y
+	 * Sala de Máquinas, Cap. 10.2): valida contra la API real de OpenRouter
+	 * SIN generar coste — nunca invoca `completar()` para esto.
+	 */
+	public function probarLlave( string $llaveEnTextoPlano ): bool {
+		$respuesta = wp_remote_get(
+			self::URL_VERIFICACION_LLAVE,
+			array(
+				'timeout' => self::TIMEOUT_VERIFICACION_SEGUNDOS,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $llaveEnTextoPlano,
+				),
+			)
+		);
+
+		if ( is_wp_error( $respuesta ) ) {
+			return false;
+		}
+
+		return 200 === wp_remote_retrieve_response_code( $respuesta );
+	}
+
+	/**
+	 * Estado del circuit breaker para la Sala de Máquinas (Cap. 10.2:
+	 * "estado de cada API conectada") — el mismo estado que ya usa
+	 * `verificarCircuitoCerrado()`, expuesto en solo lectura.
+	 */
+	public function circuitoAbierto(): bool {
+		$abiertoHasta = (int) get_option( self::OPCION_ABIERTO_HASTA, 0 );
+
+		return $abiertoHasta > $this->reloj->ahora()->getTimestamp();
+	}
+
 	private function obtenerLlave(): ?string {
 		$sobre = get_option( self::OPCION_LLAVE_CIFRADA );
 
@@ -153,9 +193,7 @@ final class ProveedorOpenRouter implements LenguajeInterface {
 	 * @throws ProveedorLenguajeException si el circuito está abierto
 	 */
 	private function verificarCircuitoCerrado(): void {
-		$abiertoHasta = (int) get_option( self::OPCION_ABIERTO_HASTA, 0 );
-
-		if ( $abiertoHasta > $this->reloj->ahora()->getTimestamp() ) {
+		if ( $this->circuitoAbierto() ) {
 			throw new ProveedorLenguajeException( 'Circuito abierto: OpenRouter falló repetidamente; en enfriamiento.' );
 		}
 	}

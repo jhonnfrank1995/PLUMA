@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Aplicacion, type DatosPlumaPanel } from './Aplicacion';
 import type { DatosPortada } from './PantallaPortada';
-import type { DatosSalud } from './PantallaSalud';
+import type { DatosSalud } from './PantallaSalaMaquinas';
 
 function saludDeEjemplo(): DatosSalud {
     return {
@@ -198,6 +198,50 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             tiempoAgotado: 'La ventana de veto ya expiró.',
             confirmarDescartar: '¿Descartar esta Pieza?',
         },
+        textosSalaMaquinas: {
+            cargando: 'Cargando…',
+            errorCarga: 'No se pudo cargar.',
+            errorAccion: 'La acción no se pudo completar.',
+            bitacora: {
+                titulo: 'Bitácora del motor',
+                vacia: 'sin ejecuciones todavía',
+                inicio: 'Inicio',
+                duracion: 'Duración',
+                lotes: 'Lotes',
+                errores: 'Errores',
+                sinErrores: 'sin errores',
+                enCurso: 'en curso',
+            },
+            coste: {
+                titulo: 'Coste',
+                gastoHoy: 'Gasto de hoy',
+                limiteDiario: 'Límite diario (USD)',
+                guardarLimite: 'Guardar límite',
+                guardado: 'Guardado',
+            },
+            apis: {
+                titulo: 'Estado de las APIs',
+                openRouter: 'OpenRouter',
+                googleTrends: 'Google Trends',
+                configurada: 'configurada',
+                noConfigurada: 'sin configurar',
+                circuitoAbierto: 'en enfriamiento',
+                circuitoCerrado: 'conectada',
+            },
+            llave: {
+                titulo: 'Llave de OpenRouter',
+                actual: 'Llave actual',
+                campoNueva: 'Nueva llave',
+                guardar: 'Guardar llave',
+                probar: 'Probar conexión',
+                probando: 'Probando…',
+                valida: 'La llave es válida.',
+                invalida: 'La llave no es válida.',
+                cambiar: 'Cambiar llave',
+                quitar: 'Quitar llave',
+                confirmarQuitar: '¿Quitar la llave?',
+            },
+        },
         textosMesaEditorial: {
             titulo: 'Mesa Editorial',
             cargando: 'Cargando…',
@@ -289,7 +333,27 @@ describe('Aplicacion', () => {
     });
 
     it('navega a la Sala de Máquinas cuando el hash cambia, sin perder la barra de estado', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(portadaDeEjemplo()) }));
+        vi.stubGlobal(
+            'fetch',
+            vi.fn((url: string) => {
+                if (url.endsWith('/motor/bitacora')) {
+                    return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
+                }
+                if (url.endsWith('/motor/estado')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () =>
+                            Promise.resolve({
+                                gastoHoyUsd: 0,
+                                limiteDiarioUsd: 5,
+                                openRouter: { configurada: false, ultimosCuatro: null, circuitoAbierto: false },
+                                googleTrends: { circuitoAbierto: false },
+                            }),
+                    });
+                }
+                return Promise.resolve({ ok: true, json: () => Promise.resolve(portadaDeEjemplo()) });
+            })
+        );
 
         render(<Aplicacion datos={datosPanelDeEjemplo()} />);
 

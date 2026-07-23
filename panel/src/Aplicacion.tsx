@@ -4,7 +4,7 @@ import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './Pantall
 import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalaRevision, type TextosSalaRevision } from './PantallaSalaRevision';
-import { PantallaSalud, type DatosSalud } from './PantallaSalud';
+import { PantallaSalaMaquinas, type DatosSalud, type TextosSalaMaquinas } from './PantallaSalaMaquinas';
 import { PantallaTendencias, type TextosTendencias } from './PantallaTendencias';
 
 export interface DatosPlumaPanel {
@@ -16,6 +16,7 @@ export interface DatosPlumaPanel {
     textosMesaEditorial: TextosMesaEditorial;
     textosBancoPeriodistas: TextosBancoPeriodistas;
     textosSalaRevision: TextosSalaRevision;
+    textosSalaMaquinas: TextosSalaMaquinas;
 }
 
 interface Props {
@@ -151,7 +152,9 @@ export function Aplicacion({ datos }: Props) {
                 {'revision' === ruta && (
                     <PantallaSalaRevision restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaRevision} />
                 )}
-                {'salud' === ruta && <PantallaSalud datos={datos.salud} />}
+                {'salud' === ruta && (
+                    <PantallaSalaMaquinas datos={datos.salud} restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaMaquinas} />
+                )}
             </main>
         </div>
     );

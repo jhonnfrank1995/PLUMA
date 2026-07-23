@@ -11,6 +11,7 @@ use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
 use Pluma\Admin\RestPeriodistas;
 use Pluma\Admin\RestPortada;
+use Pluma\Admin\RestSalaMaquinas;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Admin\RestSalaTendencias;
 use Pluma\Compuertas\CompuertaCalidad;
@@ -185,6 +186,13 @@ final class Nucleo {
 			ProveedorTendenciasInterface::class,
 			fn ( Contenedor $c ): ProveedorGoogleTrends => new ProveedorGoogleTrends( $c->obtener( RelojInterface::class ) )
 		);
+		// Registro adicional del tipo concreto (Sala de Máquinas, Cap. 10.2:
+		// "estado de cada API conectada") — `circuitoAbierto()` es propio de
+		// esta implementación, no del contrato `ProveedorTendenciasInterface`.
+		$this->contenedor->registrar(
+			ProveedorGoogleTrends::class,
+			fn ( Contenedor $c ): ProveedorGoogleTrends => new ProveedorGoogleTrends( $c->obtener( RelojInterface::class ) )
+		);
 		$this->contenedor->registrar(
 			SensorInterface::class,
 			fn ( Contenedor $c ): SensorGoogleTrends => new SensorGoogleTrends( $c->obtener( ProveedorTendenciasInterface::class ) )
@@ -202,6 +210,17 @@ final class Nucleo {
 		);
 		$this->contenedor->registrar(
 			LenguajeInterface::class,
+			fn ( Contenedor $c ): ProveedorOpenRouter => new ProveedorOpenRouter(
+				$c->obtener( EnrutadorModelos::class ),
+				$c->obtener( PresupuestoLenguaje::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+		// Registro adicional del tipo concreto (Sala de Máquinas, Cap. 10.2:
+		// "estado de cada API conectada" + "prueba en vivo" de la llave) —
+		// métodos propios de OpenRouter, no del contrato `LenguajeInterface`.
+		$this->contenedor->registrar(
+			ProveedorOpenRouter::class,
 			fn ( Contenedor $c ): ProveedorOpenRouter => new ProveedorOpenRouter(
 				$c->obtener( EnrutadorModelos::class ),
 				$c->obtener( PresupuestoLenguaje::class ),
@@ -496,6 +515,15 @@ final class Nucleo {
 				$c->obtener( RelojInterface::class )
 			)
 		);
+		$this->contenedor->registrar(
+			RestSalaMaquinas::class,
+			fn ( Contenedor $c ): RestSalaMaquinas => new RestSalaMaquinas(
+				$c->obtener( RepositorioBitacoraInterface::class ),
+				$c->obtener( PresupuestoLenguaje::class ),
+				$c->obtener( ProveedorOpenRouter::class ),
+				$c->obtener( ProveedorGoogleTrends::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin ): void {
@@ -514,5 +542,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestSalaTendencias::class )->registrar();
 		$this->contenedor->obtener( RestMesaEditorial::class )->registrar();
 		$this->contenedor->obtener( RestPeriodistas::class )->registrar();
+		$this->contenedor->obtener( RestSalaMaquinas::class )->registrar();
 	}
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pluma\Tests\Unit\Proveedores;
 
 use Brain\Monkey\Functions;
+use Mockery;
 use Pluma\Kernel\Cifrado;
 use Pluma\Proveedores\EnrutadorModelos;
 use Pluma\Proveedores\PeticionLenguaje;
@@ -277,5 +278,46 @@ final class ProveedorOpenRouterTest extends CasoDePruebaUnitario {
 		$this->expectExceptionMessageMatches( '/[Cc]ircuito abierto/' );
 
 		$this->proveedor()->completar( $this->peticionDePrueba() );
+	}
+
+	public function test_circuito_abierto_expone_el_mismo_estado_para_la_sala_de_maquinas(): void {
+		$this->mockearOpciones( array( self::OPCION_ABIERTO_HASTA => ( new RelojFijo() )->ahora()->getTimestamp() + 100 ) );
+
+		self::assertTrue( $this->proveedor()->circuitoAbierto() );
+	}
+
+	public function test_circuito_cerrado_cuando_no_hay_enfriamiento_activo(): void {
+		$this->mockearOpciones( array( self::OPCION_ABIERTO_HASTA => 0 ) );
+
+		self::assertFalse( $this->proveedor()->circuitoAbierto() );
+	}
+
+	public function test_probar_llave_devuelve_verdadero_si_openrouter_responde_200(): void {
+		Functions\expect( 'wp_remote_get' )
+			->once()
+			->with(
+				'https://openrouter.ai/api/v1/key',
+				Mockery::on( static fn ( array $args ): bool => 'Bearer sk-or-v1-a-probar' === ( $args['headers']['Authorization'] ?? null ) )
+			)
+			->andReturn( array( 'response' => array( 'code' => 200 ) ) );
+		Functions\when( 'is_wp_error' )->justReturn( false );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 200 );
+
+		self::assertTrue( $this->proveedor()->probarLlave( 'sk-or-v1-a-probar' ) );
+	}
+
+	public function test_probar_llave_devuelve_falso_si_openrouter_rechaza_la_llave(): void {
+		Functions\when( 'wp_remote_get' )->justReturn( array( 'response' => array( 'code' => 401 ) ) );
+		Functions\when( 'is_wp_error' )->justReturn( false );
+		Functions\when( 'wp_remote_retrieve_response_code' )->justReturn( 401 );
+
+		self::assertFalse( $this->proveedor()->probarLlave( 'sk-or-v1-invalida' ) );
+	}
+
+	public function test_probar_llave_devuelve_falso_si_hay_un_fallo_de_red(): void {
+		Functions\when( 'wp_remote_get' )->justReturn( new WP_Error( 'http_request_failed', 'Timeout' ) );
+		Functions\when( 'is_wp_error' )->alias( static fn ( $valor ): bool => $valor instanceof WP_Error );
+
+		self::assertFalse( $this->proveedor()->probarLlave( 'sk-or-v1-cualquiera' ) );
 	}
 }

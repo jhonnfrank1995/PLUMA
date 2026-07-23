@@ -54,12 +54,36 @@ final class RepositorioBitacora implements RepositorioBitacoraInterface {
 			return null;
 		}
 
+		return $this->filaAResumen( $fila );
+	}
+
+	public function obtenerRecientes( int $limite ): array {
+		$sql = $this->wpdb->prepare(
+			"SELECT iniciada_en, finalizada_en, lotes_procesados, errores FROM {$this->tabla()} ORDER BY iniciada_en DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$limite
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		return array_map( fn ( array $fila ): array => $this->filaAResumen( $fila ), $filas ?? array() );
+	}
+
+	/**
+	 * @param array<string, mixed> $fila
+	 * @return array{iniciadaEn: string, finalizadaEn: ?string, lotesProcesados: int, errores: list<string>}
+	 */
+	private function filaAResumen( array $fila ): array {
 		/** @var list<string> $errores */
 		$errores = null !== $fila['errores'] ? ( json_decode( (string) $fila['errores'], true ) ?? array() ) : array();
 
 		return array(
-			'iniciadaEn'      => (string) $fila['iniciada_en'],
-			'finalizadaEn'    => null !== $fila['finalizada_en'] ? (string) $fila['finalizada_en'] : null,
+			// DATE_ATOM, no la cadena cruda de MySQL: el frontend necesita
+			// fechas parseables de forma fiable como `Date` de JavaScript,
+			// igual que el resto de repositorios de este proyecto.
+			'iniciadaEn'      => ( new DateTimeImmutable( (string) $fila['iniciada_en'] ) )->format( DATE_ATOM ),
+			'finalizadaEn'    => null !== $fila['finalizada_en'] ? ( new DateTimeImmutable( (string) $fila['finalizada_en'] ) )->format( DATE_ATOM ) : null,
 			'lotesProcesados' => (int) $fila['lotes_procesados'],
 			'errores'         => $errores,
 		);

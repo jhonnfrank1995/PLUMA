@@ -22,4 +22,13 @@ interface RepositorioBitacoraInterface {
 	 * @return array{iniciadaEn: string, finalizadaEn: ?string, lotesProcesados: int, errores: list<string>}|null
 	 */
 	public function obtenerUltima(): ?array;
+
+	/**
+	 * Las últimas `$limite` ejecuciones, más reciente primero (Sala de
+	 * Máquinas, Libro Cap. 10.2: "la bitácora del motor — ejecuciones,
+	 * duración, piezas avanzadas, errores").
+	 *
+	 * @return list<array{iniciadaEn: string, finalizadaEn: ?string, lotesProcesados: int, errores: list<string>}>
+	 */
+	public function obtenerRecientes( int $limite ): array;
 }

@@ -100,4 +100,16 @@ final class ProveedorGoogleTrendsTest extends CasoDePruebaUnitario {
 
 		( new ProveedorGoogleTrends( new RelojFijo() ) )->obtenerTendenciasCrudas();
 	}
+
+	public function test_circuito_abierto_expone_el_mismo_estado_para_la_sala_de_maquinas(): void {
+		Functions\when( 'get_option' )->justReturn( ( new RelojFijo() )->ahora()->getTimestamp() + 100 );
+
+		self::assertTrue( ( new ProveedorGoogleTrends( new RelojFijo() ) )->circuitoAbierto() );
+	}
+
+	public function test_circuito_cerrado_cuando_no_hay_enfriamiento_activo(): void {
+		Functions\when( 'get_option' )->justReturn( 0 );
+
+		self::assertFalse( ( new ProveedorGoogleTrends( new RelojFijo() ) )->circuitoAbierto() );
+	}
 }

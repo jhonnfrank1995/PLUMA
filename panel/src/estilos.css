@@ -1085,6 +1085,117 @@
     color: var(--pluma-color-retenida);
 }
 
+/* Sala de Máquinas */
+
+.pluma-maquinas__seccion {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    margin-top: var(--pluma-espaciado);
+}
+
+.pluma-maquinas__aviso {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-maquinas__vacio,
+.pluma-maquinas__cargando {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+}
+
+.pluma-maquinas__coste {
+    font-variant-numeric: tabular-nums;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.pluma-maquinas__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    max-width: 240px;
+    margin-bottom: 0.5rem;
+}
+
+.pluma-maquinas__campo input {
+    padding: 0.4rem;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+}
+
+.pluma-maquinas__apis {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pluma-maquinas__apis li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.pluma-maquinas__apis span[data-estado='ok'] {
+    color: var(--pluma-color-publicada);
+}
+
+.pluma-maquinas__apis span[data-estado='advertencia'] {
+    color: var(--pluma-color-retenida);
+    font-weight: 600;
+}
+
+.pluma-maquinas__llave-actual {
+    font-variant-numeric: tabular-nums;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-maquinas__llave-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.pluma-maquinas__boton--quitar {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-maquinas__prueba-ok {
+    color: var(--pluma-color-publicada);
+}
+
+.pluma-maquinas__prueba-error {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-maquinas__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.pluma-maquinas__tabla th,
+.pluma-maquinas__tabla td {
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--pluma-color-borde);
+}
+
+.pluma-maquinas__tabla th {
+    color: var(--pluma-color-texto-tenue);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {
