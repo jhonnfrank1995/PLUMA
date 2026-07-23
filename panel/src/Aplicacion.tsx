@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BarraEstado } from './BarraEstado';
+import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './PantallaBancoPeriodistas';
 import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalud, type DatosSalud } from './PantallaSalud';
@@ -12,13 +13,14 @@ export interface DatosPlumaPanel {
     textosPortada: TextosPortada;
     textosTendencias: TextosTendencias;
     textosMesaEditorial: TextosMesaEditorial;
+    textosBancoPeriodistas: TextosBancoPeriodistas;
 }
 
 interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
@@ -31,7 +33,11 @@ function leerRuta(): Ruta {
         return 'tendencias';
     }
 
-    return '#/mesa-editorial' === window.location.hash ? 'mesa-editorial' : 'portada';
+    if ('#/mesa-editorial' === window.location.hash) {
+        return 'mesa-editorial';
+    }
+
+    return '#/periodistas' === window.location.hash ? 'periodistas' : 'portada';
 }
 
 /**
@@ -110,6 +116,12 @@ export function Aplicacion({ datos }: Props) {
                 >
                     {datos.textosMesaEditorial.titulo}
                 </a>
+                <a
+                    href="#/periodistas"
+                    className={'periodistas' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosBancoPeriodistas.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -120,6 +132,9 @@ export function Aplicacion({ datos }: Props) {
                 {'tendencias' === ruta && <PantallaTendencias restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosTendencias} />}
                 {'mesa-editorial' === ruta && (
                     <PantallaMesaEditorial restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosMesaEditorial} />
+                )}
+                {'periodistas' === ruta && (
+                    <PantallaBancoPeriodistas restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosBancoPeriodistas} />
                 )}
                 {'salud' === ruta && <PantallaSalud datos={datos.salud} />}
             </main>

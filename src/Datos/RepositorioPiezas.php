@@ -29,6 +29,9 @@ use wpdb;
  */
 final class RepositorioPiezas implements RepositorioPiezasInterface {
 
+	private const LIMITE_MUESTRA_VERTICALES = 200;
+	private const MAXIMO_VERTICALES_TOP     = 3;
+
 	public function __construct( private readonly wpdb $wpdb ) {
 	}
 
@@ -267,6 +270,56 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
 		return (int) $this->wpdb->get_var( $sql );
+	}
+
+	public function metricasPorPeriodista( int $periodistaId ): array {
+		$sqlConteo = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE periodista_id = %d AND estado = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$periodistaId,
+			EstadoPieza::Publicada->value
+		);
+		assert( null !== $sqlConteo );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$piezasPublicadas = (int) $this->wpdb->get_var( $sqlConteo );
+
+		$sqlFichas = $this->wpdb->prepare(
+			"SELECT ficha_decision_editorial FROM {$this->tabla()} WHERE periodista_id = %d AND estado = %s ORDER BY actualizada_en DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$periodistaId,
+			EstadoPieza::Publicada->value,
+			self::LIMITE_MUESTRA_VERTICALES
+		);
+		assert( null !== $sqlFichas );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sqlFichas, ARRAY_A );
+
+		$conteoPorVertical = array();
+
+		foreach ( $filas ?? array() as $fila ) {
+			$fichaJson = $fila['ficha_decision_editorial'] ?? null;
+
+			if ( ! is_string( $fichaJson ) || '' === $fichaJson ) {
+				continue;
+			}
+
+			/** @var array{clasificacion?: array{tema?: string}} $datos */
+			$datos = json_decode( $fichaJson, true ) ?? array();
+			$tema  = $datos['clasificacion']['tema'] ?? null;
+
+			if ( null === $tema || '' === $tema ) {
+				continue;
+			}
+
+			$conteoPorVertical[ $tema ] = ( $conteoPorVertical[ $tema ] ?? 0 ) + 1;
+		}
+
+		arsort( $conteoPorVertical );
+
+		return array(
+			'piezasPublicadas' => $piezasPublicadas,
+			'verticalesTop'    => array_slice( array_keys( $conteoPorVertical ), 0, self::MAXIMO_VERTICALES_TOP ),
+		);
 	}
 
 	/**

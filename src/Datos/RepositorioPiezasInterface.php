@@ -108,4 +108,14 @@ interface RepositorioPiezasInterface {
 	 * carga — nadie firma 10 piezas seguidas el mismo día".
 	 */
 	public function contarAsignadasDesde( int $periodistaId, DateTimeImmutable $desde ): int;
+
+	/**
+	 * Métricas vivas del Banco de Periodistas (Libro Cap. 10.2: "piezas,
+	 * tráfico medio, comentarios medios, verticales donde más posiciona").
+	 * "Tráfico medio" queda fuera — sin fuente real todavía (Search Console,
+	 * Etapa 5) — cero invención, igual que en la Portada.
+	 *
+	 * @return array{piezasPublicadas: int, verticalesTop: list<string>}
+	 */
+	public function metricasPorPeriodista( int $periodistaId ): array;
 }

@@ -653,6 +653,322 @@
     cursor: pointer;
 }
 
+/* Banco de Periodistas */
+
+.pluma-banco__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--pluma-espaciado);
+}
+
+.pluma-banco__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--pluma-espaciado);
+}
+
+.pluma-banco__tarjeta {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    display: flex;
+    flex-direction: column;
+}
+
+.pluma-banco__tarjeta--jubilado {
+    opacity: 0.65;
+}
+
+.pluma-banco__abrir {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    text-align: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--pluma-espaciado);
+    color: var(--pluma-color-texto);
+}
+
+.pluma-banco__avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--pluma-color-fondo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--pluma-fuente-titular);
+    font-size: 1.4rem;
+    overflow: hidden;
+}
+
+.pluma-banco__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pluma-banco__abrir h2 {
+    margin: 0.3rem 0 0;
+    font-size: 1.05rem;
+}
+
+.pluma-banco__rol {
+    margin: 0;
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.pluma-banco__metrica {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.pluma-banco__verticales {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-banco__estado {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.pluma-banco__jubilar {
+    border: none;
+    border-top: 1px solid var(--pluma-color-borde);
+    background: none;
+    color: var(--pluma-color-retenida);
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.pluma-banco__modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+}
+
+.pluma-banco__modal-contenido {
+    background: var(--pluma-color-superficie);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    width: min(480px, 90vw);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.pluma-banco__plantillas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pluma-banco__plantilla {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    background: var(--pluma-color-fondo);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: 0.6rem;
+    cursor: pointer;
+    color: var(--pluma-color-texto);
+}
+
+.pluma-banco__plantilla--elegida {
+    border-color: var(--pluma-color-publicada);
+}
+
+.pluma-banco__modal-botones {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: var(--pluma-espaciado);
+}
+
+/* Estudio de Conducta */
+
+.pluma-estudio {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(560px, 100%);
+    background: var(--pluma-color-superficie);
+    border-left: 1px solid var(--pluma-color-borde);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    padding: var(--pluma-espaciado);
+    z-index: 20;
+}
+
+.pluma-estudio__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.pluma-estudio__seccion {
+    border-top: 1px solid var(--pluma-color-borde);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.pluma-estudio__vista-previa {
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.75rem;
+}
+
+.pluma-estudio__parrafo {
+    font-family: var(--pluma-fuente-titular);
+    font-style: italic;
+    margin: 0;
+}
+
+.pluma-estudio__generando {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+}
+
+.pluma-estudio__dial {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.pluma-estudio__dial input[type='range'] {
+    width: 100%;
+}
+
+.pluma-estudio__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+}
+
+.pluma-estudio__campo textarea,
+.pluma-estudio__campo input,
+.pluma-estudio__campo select {
+    font-family: inherit;
+    padding: 0.4rem;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+}
+
+.pluma-estudio__lista-editable {
+    margin-bottom: 0.6rem;
+}
+
+.pluma-estudio__lista-editable h4 {
+    margin: 0 0 0.2rem;
+    font-size: 0.8rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-estudio__lista-editable ul {
+    list-style: none;
+    margin: 0 0 0.3rem;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.pluma-estudio__lista-editable li {
+    background: var(--pluma-color-fondo);
+    border-radius: 999px;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.pluma-estudio__lista-editable li button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-estudio__lista-editable-agregar {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.pluma-estudio__fila-matriz {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 0.5rem;
+    align-items: end;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--pluma-color-borde);
+    font-size: 0.8rem;
+}
+
+.pluma-estudio__fila-matriz--sistema {
+    grid-template-columns: 1fr 2fr;
+    color: var(--pluma-color-texto-tenue);
+    align-items: center;
+}
+
+.pluma-estudio__memoria {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pluma-estudio__memoria li {
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem;
+    font-size: 0.82rem;
+}
+
+.pluma-estudio__memoria-tipo {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-estudio__acciones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pluma-estudio__boton--jubilar {
+    color: var(--pluma-color-retenida);
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

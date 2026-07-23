@@ -9,6 +9,7 @@ use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
+use Pluma\Admin\RestPeriodistas;
 use Pluma\Admin\RestPortada;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Admin\RestSalaTendencias;
@@ -67,6 +68,7 @@ use Pluma\Redaccion\DecisionEditorial;
 use Pluma\Redaccion\ExportadorBancoPeriodistas;
 use Pluma\Redaccion\GeneradorBloqueEditor;
 use Pluma\Redaccion\GeneradorEsqueleto;
+use Pluma\Redaccion\GeneradorVistaPrevia;
 use Pluma\Redaccion\ImportadorBancoPeriodistas;
 use Pluma\Redaccion\RedactorConFallbackMecanico;
 use Pluma\Redaccion\RedactorInterface;
@@ -476,6 +478,21 @@ final class Nucleo {
 				$c->obtener( ImportadorBancoPeriodistas::class )
 			)
 		);
+
+		$this->contenedor->registrar(
+			GeneradorVistaPrevia::class,
+			fn ( Contenedor $c ): GeneradorVistaPrevia => new GeneradorVistaPrevia( $c->obtener( LenguajeInterface::class ) )
+		);
+		$this->contenedor->registrar(
+			RestPeriodistas::class,
+			fn ( Contenedor $c ): RestPeriodistas => new RestPeriodistas(
+				$c->obtener( RepositorioPeriodistasInterface::class ),
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioMemoriaEditorialInterface::class ),
+				$c->obtener( GeneradorVistaPrevia::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin ): void {
@@ -493,5 +510,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestPortada::class )->registrar();
 		$this->contenedor->obtener( RestSalaTendencias::class )->registrar();
 		$this->contenedor->obtener( RestMesaEditorial::class )->registrar();
+		$this->contenedor->obtener( RestPeriodistas::class )->registrar();
 	}
 }

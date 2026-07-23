@@ -119,12 +119,13 @@ final class PantallaPanel {
 	 */
 	private function datosParaElPanel(): array {
 		return array(
-			'restUrl'             => esc_url_raw( rest_url() ),
-			'nonce'               => wp_create_nonce( 'wp_rest' ),
-			'salud'               => $this->datosSalud(),
-			'textosPortada'       => $this->textosPortada(),
-			'textosTendencias'    => $this->textosTendencias(),
-			'textosMesaEditorial' => $this->textosMesaEditorial(),
+			'restUrl'                => esc_url_raw( rest_url() ),
+			'nonce'                  => wp_create_nonce( 'wp_rest' ),
+			'salud'                  => $this->datosSalud(),
+			'textosPortada'          => $this->textosPortada(),
+			'textosTendencias'       => $this->textosTendencias(),
+			'textosMesaEditorial'    => $this->textosMesaEditorial(),
+			'textosBancoPeriodistas' => $this->textosBancoPeriodistas(),
 		);
 	}
 
@@ -272,6 +273,104 @@ final class PantallaPanel {
 			'aprobar'              => __( 'Forzar aprobación', 'pluma-engine' ),
 			'descartar'            => __( 'Descartar', 'pluma-engine' ),
 			'confirmarDescartar'   => __( '¿Descartar esta Pieza? Esta acción queda registrada en la auditoría y no se puede deshacer.', 'pluma-engine' ),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosBancoPeriodistas(): array {
+		return array(
+			'titulo'              => __( 'Banco de Periodistas', 'pluma-engine' ),
+			'cargando'            => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'          => __( 'No se pudo cargar el Banco de Periodistas. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'         => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'sinPeriodistas'      => __( 'todavía no hay ningún periodista en el banco', 'pluma-engine' ),
+			'piezasPublicadas'    => __( 'piezas publicadas', 'pluma-engine' ),
+			'verticalesTop'       => __( 'Verticales donde más publica', 'pluma-engine' ),
+			'sinVerticales'       => __( 'sin piezas publicadas todavía', 'pluma-engine' ),
+			'estadoActivo'        => __( 'Activo', 'pluma-engine' ),
+			'estadoJubilado'      => __( 'Jubilado', 'pluma-engine' ),
+			'crearDesdePlantilla' => __( 'Crear desde plantilla', 'pluma-engine' ),
+			'elegirPlantilla'     => __( 'Elegir plantilla', 'pluma-engine' ),
+			'nombreOpcional'      => __( 'Nombre (opcional, por defecto el de la plantilla)', 'pluma-engine' ),
+			'crear'               => __( 'Crear', 'pluma-engine' ),
+			'cancelar'            => __( 'Cancelar', 'pluma-engine' ),
+			'jubilar'             => __( 'Jubilar', 'pluma-engine' ),
+			'confirmarJubilar'    => __( '¿Jubilar a este periodista? Sus piezas quedan, pero deja de recibir asignaciones nuevas.', 'pluma-engine' ),
+			'cerrar'              => __( 'Cerrar', 'pluma-engine' ),
+			'estudioDeConducta'   => __( 'Estudio de Conducta', 'pluma-engine' ),
+			'identidad'           => __( 'Identidad', 'pluma-engine' ),
+			'diales'              => array(
+				'titulo'            => __( 'Diales de temperamento', 'pluma-engine' ),
+				'agudezaCritica'    => __( 'Agudeza crítica', 'pluma-engine' ),
+				'humor'             => __( 'Humor', 'pluma-engine' ),
+				'satira'            => __( 'Sátira', 'pluma-engine' ),
+				'formalidad'        => __( 'Formalidad', 'pluma-engine' ),
+				'vehemencia'        => __( 'Vehemencia', 'pluma-engine' ),
+				'empatia'           => __( 'Empatía', 'pluma-engine' ),
+				'densidadDatos'     => __( 'Densidad de datos', 'pluma-engine' ),
+				'longitudPreferida' => __( 'Longitud preferida', 'pluma-engine' ),
+			),
+			'reglas'              => array(
+				'titulo'               => __( 'Reglas de conducta', 'pluma-engine' ),
+				'lineaEditorial'       => __( 'Línea editorial', 'pluma-engine' ),
+				'lineasRojas'          => __( 'Líneas rojas', 'pluma-engine' ),
+				'muletillas'           => __( 'Muletillas / rasgos de voz', 'pluma-engine' ),
+				'vocabularioProhibido' => __( 'Vocabulario prohibido', 'pluma-engine' ),
+				'tratamientoLector'    => __( 'Trato al lector', 'pluma-engine' ),
+				'tratamientoTu'        => __( 'De tú', 'pluma-engine' ),
+				'tratamientoUsted'     => __( 'De usted', 'pluma-engine' ),
+				'estiloPreguntaFinal'  => __( 'Estilo de pregunta final', 'pluma-engine' ),
+				'agregar'              => __( 'Agregar', 'pluma-engine' ),
+			),
+			'matriz'              => array(
+				'titulo'        => __( 'Matriz de tonos', 'pluma-engine' ),
+				'tipoNoticia'   => array(
+					'anuncio_corporativo' => __( 'Anuncio corporativo', 'pluma-engine' ),
+					'escandalo_politico'  => __( 'Escándalo político', 'pluma-engine' ),
+					'tragedia'            => __( 'Tragedia', 'pluma-engine' ),
+					'cultura_viral'       => __( 'Cultura viral', 'pluma-engine' ),
+					'dato_economico'      => __( 'Dato económico', 'pluma-engine' ),
+				),
+				'tonoDominante' => __( 'Tono dominante', 'pluma-engine' ),
+				'tonoApoyo'     => __( 'Tono de apoyo', 'pluma-engine' ),
+				'nivelSatira'   => __( 'Sátira permitida', 'pluma-engine' ),
+				'tono'          => array(
+					'analitico'            => __( 'Analítico', 'pluma-engine' ),
+					'critico'              => __( 'Crítico', 'pluma-engine' ),
+					'informativo_empatico' => __( 'Informativo empático', 'pluma-engine' ),
+					'humoristico'          => __( 'Humorístico', 'pluma-engine' ),
+					'opinion'              => __( 'Opinión', 'pluma-engine' ),
+					'persuasivo'           => __( 'Persuasivo', 'pluma-engine' ),
+				),
+				'satira'        => array(
+					'bloqueada'      => __( 'Bloqueada', 'pluma-engine' ),
+					'no'             => __( 'No', 'pluma-engine' ),
+					'con_moderacion' => __( 'Con moderación', 'pluma-engine' ),
+					'en_remate'      => __( 'Solo en el remate', 'pluma-engine' ),
+					'pieza_completa' => __( 'Pieza completa', 'pluma-engine' ),
+				),
+				'filaSistema'   => __( 'Informativo empático / Analítico / Sátira bloqueada — regla de sistema, no editable.', 'pluma-engine' ),
+			),
+			'memoria'             => array(
+				'titulo' => __( 'Memoria editorial reciente', 'pluma-engine' ),
+				'vacia'  => __( 'sin memoria registrada todavía', 'pluma-engine' ),
+				'tipo'   => array(
+					'postura'   => __( 'Postura', 'pluma-engine' ),
+					'cobertura' => __( 'Cobertura', 'pluma-engine' ),
+					'audiencia' => __( 'Audiencia', 'pluma-engine' ),
+				),
+			),
+			'vistaPrevia'         => array(
+				'titulo'           => __( 'Vista previa en vivo', 'pluma-engine' ),
+				'generando'        => __( 'Redactando con esta conducta…', 'pluma-engine' ),
+				'errorPresupuesto' => __( 'Presupuesto diario agotado — la vista previa se pausa igual que la producción real.', 'pluma-engine' ),
+				'errorGeneral'     => __( 'No se pudo generar la vista previa. Reintenta en unos segundos.', 'pluma-engine' ),
+			),
+			'guardarCambios'      => __( 'Guardar cambios', 'pluma-engine' ),
+			'clonar'              => __( 'Clonar', 'pluma-engine' ),
+			'nombreDelClon'       => __( 'Nombre del nuevo periodista clonado', 'pluma-engine' ),
 		);
 	}
 
