@@ -45,7 +45,17 @@ final class Transicionador {
 			'programada',
 			'descartada',
 		),
-		'retenida'         => array( 'en_revision', 'descartada' ),
+		// Sala de Revisión (Libro Cap. 10.2, tres botones): "devolver con
+		// nota" reingresa a OPTIMIZADA (no a EN_REVISION — este último es un
+		// estado transitorio, atómico dentro de un único ciclo del
+		// Orquestador, que nadie vuelve a consultar por sí solo; OPTIMIZADA
+		// sí es una etapa real que `avanzarPipeline()` sondea en cada tick,
+		// así que la pieza vuelve a pasar por Compuertas de verdad, no se
+		// queda varada). "Aprobar" es la anulación humana informada de una
+		// retención (Cap. 8.2: "RETENIDA para humano" — el humano ES la
+		// autoridad final de ese caso, no un atajo automático alrededor de
+		// las Compuertas).
+		'retenida'         => array( 'optimizada', 'aprobada', 'descartada' ),
 	);
 
 	public function __construct(

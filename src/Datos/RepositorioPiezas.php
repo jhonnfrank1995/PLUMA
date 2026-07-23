@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Pluma\Datos;
 
 use DateTimeImmutable;
+use Pluma\Compuertas\ResultadoEvaluacion;
 use Pluma\Investigacion\Expediente;
 use Pluma\Pipeline\EstadoPieza;
 use Pluma\Pipeline\Pieza;
 use Pluma\Redaccion\FichaDecisionEditorial;
+use Pluma\Seo\DatosSeo;
+use Pluma\Taxonomia\ResultadoTaxonomia;
 use wpdb;
 
 /**
@@ -156,6 +159,66 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return false !== $filasAfectadas;
 	}
 
+	public function actualizarResultadoCompuertas( int $id, ResultadoEvaluacion $resultado, DateTimeImmutable $ahora ): bool {
+		$filasAfectadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'modo_efectivo'          => $resultado->modoEfectivo->value,
+				'diagnostico_compuertas' => wp_json_encode( $resultado->aArray() ),
+				'actualizada_en'         => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $filasAfectadas;
+	}
+
+	public function actualizarDatosSeo( int $id, DatosSeo $datos, DateTimeImmutable $ahora ): bool {
+		$filasAfectadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'keyword_principal' => $datos->palabrasClave->principal,
+				'datos_seo'         => wp_json_encode( $datos->aArray() ),
+				'actualizada_en'    => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $filasAfectadas;
+	}
+
+	public function existePiezaPublicadaConKeyword( string $keywordPrincipal, int $excluirPiezaId ): bool {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE keyword_principal = %s AND estado = %s AND id != %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$keywordPrincipal,
+			EstadoPieza::Publicada->value,
+			$excluirPiezaId
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		return (int) $this->wpdb->get_var( $sql ) > 0;
+	}
+
+	public function actualizarResultadoTaxonomia( int $id, ResultadoTaxonomia $resultado, DateTimeImmutable $ahora ): bool {
+		$filasAfectadas = $this->wpdb->update(
+			$this->tabla(),
+			array(
+				'resultado_taxonomia' => wp_json_encode( $resultado->aArray() ),
+				'actualizada_en'      => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( 'id' => $id ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		return false !== $filasAfectadas;
+	}
+
 	public function contarAsignadasDesde( int $periodistaId, DateTimeImmutable $desde ): int {
 		$sql = $this->wpdb->prepare(
 			"SELECT COUNT(*) FROM {$this->tabla()} WHERE periodista_id = %d AND creada_en >= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
@@ -190,6 +253,33 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			$ficha      = FichaDecisionEditorial::desdeArray( $datosFicha );
 		}
 
+		$diagnosticoJson     = $fila['diagnostico_compuertas'] ?? null;
+		$resultadoCompuertas = null;
+
+		if ( is_string( $diagnosticoJson ) && '' !== $diagnosticoJson ) {
+			/** @var array{aprobada: bool, retenida: bool, motivos: list<string>, modoEfectivo: string, calidad: array{puntuacionTotal: int, umbral: int, sustentoAprobado: bool, detalle: list<string>}, riesgo: array{implicaTragedia: bool, implicaMenores: bool, implicaSalud: bool, implicaViolencia: bool, riesgoDifamacion: bool, detalleDifamacion: string, hechosDisputadosSinSenalar: bool, temaRegulado: ?string}, originalidad: array{solapamientoConFuentes: bool, solapamientoConSitioPropio: bool, ratioGananciaInformacion: float, umbralGananciaMinima: float}} $datosResultado */
+			$datosResultado      = json_decode( $diagnosticoJson, true );
+			$resultadoCompuertas = ResultadoEvaluacion::desdeArray( $datosResultado );
+		}
+
+		$datosSeoJson = $fila['datos_seo'] ?? null;
+		$datosSeo     = null;
+
+		if ( is_string( $datosSeoJson ) && '' !== $datosSeoJson ) {
+			/** @var array{palabrasClave: array{principal: string, secundarias: list<string>}, metadatos: array{tituloSeo: string, metaDescripcion: string}, tipoEsquema: string, pluginDetectado: string, enlacesInternos: list<array{postId: int, url: string, titulo: string}>, canibalizacionDetectada: bool} $datosDecodificados */
+			$datosDecodificados = json_decode( $datosSeoJson, true );
+			$datosSeo           = DatosSeo::desdeArray( $datosDecodificados );
+		}
+
+		$resultadoTaxonomiaJson = $fila['resultado_taxonomia'] ?? null;
+		$resultadoTaxonomia     = null;
+
+		if ( is_string( $resultadoTaxonomiaJson ) && '' !== $resultadoTaxonomiaJson ) {
+			/** @var array{categoriaAsignada: ?string, etiquetas: list<array{vocabularioId: int, nombre: string, esNueva: bool, enCuarentena: bool}>} $datosTaxonomia */
+			$datosTaxonomia     = json_decode( $resultadoTaxonomiaJson, true );
+			$resultadoTaxonomia = ResultadoTaxonomia::desdeArray( $datosTaxonomia );
+		}
+
 		return new Pieza(
 			(int) $fila['id'],
 			(int) $fila['tendencia_id'],
@@ -200,7 +290,10 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			new DateTimeImmutable( (string) $fila['actualizada_en'] ),
 			null !== ( $fila['periodista_id'] ?? null ) ? (int) $fila['periodista_id'] : null,
 			null !== ( $fila['periodista_version_id'] ?? null ) ? (int) $fila['periodista_version_id'] : null,
-			$ficha
+			$ficha,
+			$resultadoCompuertas,
+			$datosSeo,
+			$resultadoTaxonomia
 		);
 	}
 }

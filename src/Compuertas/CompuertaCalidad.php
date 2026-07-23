@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Pluma\Compuertas;
+
+use Pluma\Redaccion\AnotacionCorrector;
+use Pluma\Redaccion\Borrador;
+use Pluma\Redaccion\EsqueletoPieza;
+use Pluma\Redaccion\PuntoCorrector;
+
+/**
+ * Compuerta de Calidad (Libro Cap. 8.1): puntuación compuesta 0–100 sobre
+ * proporción interpretativa, densidad de sustento, legibilidad, presencia de
+ * voz y estructura completa.
+ *
+ * Reaprovecha el juicio ya hecho por el Corrector Interno (Etapa 2, guardado
+ * en el último `Borrador` aprobado) para sustento/proporción/voz — no vuelve
+ * a llamar al proveedor de lenguaje para no duplicar coste; legibilidad y
+ * estructura se verifican aquí de forma determinista, "cinturón y tirantes"
+ * sobre el mismo texto final que de hecho se va a publicar.
+ */
+final class CompuertaCalidad {
+
+	public const OPCION_UMBRAL   = 'pluma_compuerta_calidad_umbral';
+	private const UMBRAL_DEFECTO = 70;
+
+	private const PUNTOS_SUSTENTO                  = 25;
+	private const PUNTOS_PROPORCION_INTERPRETATIVA = 20;
+	private const PUNTOS_VOZ                       = 15;
+	private const PUNTOS_ESTRUCTURA                = 20;
+	private const UMBRAL_LEGIBILIDAD_ACEPTABLE     = 10;
+
+	public function __construct( private readonly VerificadorLegibilidad $verificadorLegibilidad ) {
+	}
+
+	public function evaluar( Borrador $ultimoBorrador, EsqueletoPieza $esqueleto, string $textoFinal, bool $bloqueEditorPresente ): DiagnosticoCalidad {
+		$puntos  = 0;
+		$detalle = array();
+
+		$sustento         = $this->anotacion( $ultimoBorrador, PuntoCorrector::Hechos );
+		$sustentoAprobado = null !== $sustento && $sustento->aprobado;
+
+		if ( $sustentoAprobado ) {
+			$puntos += self::PUNTOS_SUSTENTO;
+		} else {
+			$detalle[] = 'Sustento en el expediente: ' . ( $sustento->detalle ?? 'sin evaluar' );
+		}
+
+		$proporcion = $this->anotacion( $ultimoBorrador, PuntoCorrector::ProporcionInterpretativa );
+
+		if ( null !== $proporcion && $proporcion->aprobado ) {
+			$puntos += self::PUNTOS_PROPORCION_INTERPRETATIVA;
+		} else {
+			$detalle[] = 'Proporción interpretativa: ' . ( $proporcion->detalle ?? 'sin evaluar' );
+		}
+
+		$voz = $this->anotacion( $ultimoBorrador, PuntoCorrector::Voz );
+
+		if ( null !== $voz && $voz->aprobado ) {
+			$puntos += self::PUNTOS_VOZ;
+		} else {
+			$detalle[] = 'Voz del periodista: ' . ( $voz->detalle ?? 'sin evaluar' );
+		}
+
+		$puntosLegibilidad = $this->verificadorLegibilidad->puntuar( $textoFinal );
+		$puntos           += $puntosLegibilidad;
+
+		if ( $puntosLegibilidad < self::UMBRAL_LEGIBILIDAD_ACEPTABLE ) {
+			$detalle[] = "Legibilidad: {$puntosLegibilidad}/20 (longitud de frases fuera del rango cómodo).";
+		}
+
+		if ( $this->estructuraCompleta( $esqueleto, $bloqueEditorPresente ) ) {
+			$puntos += self::PUNTOS_ESTRUCTURA;
+		} else {
+			$detalle[] = 'Estructura incompleta: falta gancho, movimientos argumentales, contraargumento, remate o Bloque del Editor.';
+		}
+
+		$umbral = $this->umbralConfigurado();
+
+		return new DiagnosticoCalidad( $puntos, $umbral, $sustentoAprobado, $detalle );
+	}
+
+	private function anotacion( Borrador $borrador, PuntoCorrector $punto ): ?AnotacionCorrector {
+		foreach ( $borrador->anotaciones as $anotacion ) {
+			if ( $punto === $anotacion->punto ) {
+				return $anotacion;
+			}
+		}
+
+		return null;
+	}
+
+	private function estructuraCompleta( EsqueletoPieza $esqueleto, bool $bloqueEditorPresente ): bool {
+		return '' !== trim( $esqueleto->gancho )
+			&& array() !== $esqueleto->movimientosArgumentales
+			&& '' !== trim( $esqueleto->contraargumentoReconocido )
+			&& '' !== trim( $esqueleto->remate )
+			&& $bloqueEditorPresente;
+	}
+
+	private function umbralConfigurado(): int {
+		$umbral = get_option( self::OPCION_UMBRAL, self::UMBRAL_DEFECTO );
+
+		return is_numeric( $umbral ) ? max( 0, min( 100, (int) $umbral ) ) : self::UMBRAL_DEFECTO;
+	}
+}

@@ -112,3 +112,25 @@ Etapa 1 cerrada (CI en verde, run 29973288960). Inventario para Etapa 2 releído
 | LG: combo completo de "módulo nuevo" (SKILLS-STACK §1) | First Principles → Product Vision → CTO Mode → Risk Radar → Critical Review → Decision Framework |
 
 Sub-agentes que se activan: **ESQUEMA** (pluma_periodistas, pluma_periodistas_versiones, pluma_memoria_editorial, pluma_borradores, ALTER pluma_piezas), **PERIODISTA** (toda la capa Redaccion), **SEGURIDAD** (llave de API cifrada, anti-inyección, endpoints REST de import), **ORQUESTADOR** (nuevas fases del tick, presupuesto de coste).
+
+## Apertura de Etapa 3 — "La capa competitiva" (2026-07-23)
+
+Etapa 2 cerrada (CI en verde, run 29981885310). Inventario para Etapa 3 releído íntegro:
+
+| Skill | Aplicación en Etapa 3 |
+|---|---|
+| `pl-compuertas` | Núcleo de la etapa: las tres compuertas (Calidad/Riesgo/Originalidad), único camino legal hacia `Publicacion`, degradación por sensibilidad en dos capas, riesgo de difamación → RETENIDA, umbrales configurables con pisos de fábrica, tasa de retención observable |
+| `pl-wp-core` §8 | Detección y escritura en campos de Yoast/Rank Math (nunca duplicar su capa SEO) — meta keys reales a verificar contra código/documentación oficial antes de escribir, nunca alucinados |
+| `pl-pipeline` | Los modos Piloto/Copiloto/Autónomo pasan de configuración latente a comportamiento real del Orquestador; ventana de veto de Copiloto; estado EN_REVISION cobra su primer uso real con cola de decisión humana |
+| `pl-proveedor-ia` | Posible uso de `PropositoLenguaje` para heurísticas de la Compuerta de Originalidad (ganancia de información) — a decidir en el plan si es determinista o vía modelo económico |
+| `pl-testing` | `tests/Invariantes` recibe ahora los ítems diferidos en la Etapa 2: §2.1 (registro en `pluma_auditoria`), §2.2 segunda capa (bloqueo de sátira en `Pluma\Compuertas`), §2.3 (RETENIDA por afirmación fáctica sin doble fuente), §2.7 (escasez honesta) |
+| Ecosistema: `seo-schema`/`schema-markup-generator`, `seo-sitemap`, `seo-technical`, `avoid-ai-writing` (compuerta de calidad) | Datos estructurados NewsArticle/OpinionNewsArticle, sitemap de noticias (protocolo Google News), auditoría de canibalización |
+| LG: combo completo de "módulo nuevo" (SKILLS-STACK §1) | First Principles → Product Vision → CTO Mode → Risk Radar → Critical Review → Decision Framework |
+
+No aplicable todavía: el bucle de retroalimentación de Search Console (Libro Cap. 6.4) es Etapa 5 explícita en PLAN-MAESTRO, no Etapa 3. El panel visual pulido de Cap. 10 (incl. Sala de Revisión con diseño premium) es Etapa 4; Etapa 3 solo necesita la superficie funcional (REST + notificación) que sostenga el criterio de salida ("una semana en Copiloto sin corrección posterior").
+
+Sub-agentes que se activan: **COMPUERTAS** (nuevo — el más crítico de la etapa), **SEO** (Motor SEO, convivencia con plugins SEO existentes), **TAXÓNOMO**, **ORQUESTADOR** (modos reales, degradación, ventana de veto), **SEGURIDAD** (ningún bypass de compuertas, capacidad `pluma_aprobar_piezas` cobra uso real en Sala de Revisión).
+
+### Hallazgo de `pl-testing` — tablas nuevas en Integración (wp-env) necesitan `set_up_before_class()`
+
+Al añadir `pluma_vocabulario` (primera tabla GENUINAMENTE nueva desde el esquema original de este entorno de pruebas) se reprodujo un fallo real contra wp-env real: la tabla existía momentáneamente tras `Activador::activar()` pero desaparecía antes del siguiente test. Causa raíz verificada: `WP_UnitTestCase::set_up()` instala un filtro (`_create_temporary_tables`) que reescribe todo `CREATE TABLE` ejecutado DESPUÉS de ese punto como `CREATE TEMPORARY TABLE` — y las tablas temporales, a diferencia de las reales, SÍ participan del `ROLLBACK` transaccional entre tests. Una `ALTER TABLE` sobre una tabla ya existente no se ve afectada (por eso las columnas nuevas en `pluma_piezas` sí persistían). Mismo patrón que usa el propio test de `dbDelta` del núcleo de WordPress (`tests/phpunit/tests/dbdelta.php`): crear la tabla en `set_up_before_class()` (antes de que el filtro exista), no dentro de un método de test normal. **Regla para toda tabla nueva futura** (p. ej. `pluma_cola_publicacion` en H3): su test de Integración dedicado debe activar el esquema en `set_up_before_class()`, no reutilizar la activación incidental de otro test.

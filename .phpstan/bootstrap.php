@@ -10,22 +10,22 @@
 
 declare(strict_types=1);
 
-if (! defined('PLUMA_ENGINE_VERSION')) {
-    define('PLUMA_ENGINE_VERSION', '0.3.0');
+if ( ! defined( 'PLUMA_ENGINE_VERSION' ) ) {
+	define( 'PLUMA_ENGINE_VERSION', '0.7.0' );
 }
 
-if (! defined('PLUMA_ENGINE_DB_VERSION_OBJETIVO')) {
-    define('PLUMA_ENGINE_DB_VERSION_OBJETIVO', '0.3.0');
+if ( ! defined( 'PLUMA_ENGINE_DB_VERSION_OBJETIVO' ) ) {
+	define( 'PLUMA_ENGINE_DB_VERSION_OBJETIVO', '0.7.0' );
 }
 
-if (! defined('PLUMA_ENGINE_ARCHIVO')) {
-    define('PLUMA_ENGINE_ARCHIVO', __DIR__ . '/../pluma-engine.php');
+if ( ! defined( 'PLUMA_ENGINE_ARCHIVO' ) ) {
+	define( 'PLUMA_ENGINE_ARCHIVO', __DIR__ . '/../pluma-engine.php' );
 }
 
-if (! defined('PLUMA_ENGINE_DIR')) {
-    define('PLUMA_ENGINE_DIR', __DIR__ . '/../');
+if ( ! defined( 'PLUMA_ENGINE_DIR' ) ) {
+	define( 'PLUMA_ENGINE_DIR', __DIR__ . '/../' );
 }
 
-if (! defined('PLUMA_ENGINE_URL')) {
-    define('PLUMA_ENGINE_URL', 'https://ejemplo.test/wp-content/plugins/pluma-engine/');
+if ( ! defined( 'PLUMA_ENGINE_URL' ) ) {
+	define( 'PLUMA_ENGINE_URL', 'https://ejemplo.test/wp-content/plugins/pluma-engine/' );
 }

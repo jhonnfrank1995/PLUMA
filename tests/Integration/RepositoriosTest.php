@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Pluma\Tests\Integration;
 
+use Pluma\Compuertas\DiagnosticoCalidad;
+use Pluma\Compuertas\DiagnosticoOriginalidad;
+use Pluma\Compuertas\DiagnosticoRiesgo;
+use Pluma\Compuertas\ModoOperacion;
+use Pluma\Compuertas\ResultadoEvaluacion;
 use Pluma\Datos\RepositorioPiezas;
 use Pluma\Datos\RepositorioTendencias;
 use Pluma\Investigacion\Expediente;
@@ -11,8 +16,16 @@ use Pluma\Investigacion\HechoFuente;
 use Pluma\Investigacion\NivelVerificacion;
 use Pluma\Kernel\RelojSistema;
 use Pluma\Pipeline\EstadoPieza;
+use Pluma\Seo\DatosSeo;
+use Pluma\Seo\EnlaceInterno;
+use Pluma\Seo\MetadatosSeo;
+use Pluma\Seo\PalabrasClave;
+use Pluma\Seo\TipoEsquemaArticulo;
+use Pluma\Seo\TipoPluginSeo;
 use Pluma\Sensores\PuntuacionOportunidad;
 use Pluma\Sensores\TendenciaDetectada;
+use Pluma\Taxonomia\EtiquetaAsignada;
+use Pluma\Taxonomia\ResultadoTaxonomia;
 use WP_UnitTestCase;
 
 /**
@@ -96,5 +109,124 @@ final class RepositoriosTest extends WP_UnitTestCase {
 
 		$enDetectada = $repoPiezas->obtenerPorEstado( EstadoPieza::Detectada, 10 );
 		self::assertNotContains( $piezaId, array_map( static fn ( $p ) => $p->id, $enDetectada ) );
+	}
+
+	public function test_persistir_y_rehidratar_el_resultado_de_compuertas(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$tendenciaId = $repoTendencias->guardar(
+			new TendenciaDetectada( 'tendencia compuertas', PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$piezaId     = $repoPiezas->crear( $tendenciaId, $reloj->ahora() );
+
+		$resultado = new ResultadoEvaluacion(
+			false,
+			true,
+			array( 'riesgoDifamacion' ),
+			ModoOperacion::Copiloto,
+			new DiagnosticoCalidad( 82, 70, true, array() ),
+			new DiagnosticoRiesgo( true, false, false, false, true, 'acusación sin atribución', false, null ),
+			new DiagnosticoOriginalidad( false, false, 0.6, 0.4 )
+		);
+
+		self::assertTrue( $repoPiezas->actualizarResultadoCompuertas( $piezaId, $resultado, $reloj->ahora() ) );
+
+		$piezaActualizada = $repoPiezas->obtenerPorId( $piezaId );
+		self::assertNotNull( $piezaActualizada->resultadoCompuertas );
+		self::assertSame( ModoOperacion::Copiloto, $piezaActualizada->resultadoCompuertas->modoEfectivo );
+		self::assertTrue( $piezaActualizada->resultadoCompuertas->retenida );
+		self::assertSame( 'acusación sin atribución', $piezaActualizada->resultadoCompuertas->riesgo->detalleDifamacion );
+		self::assertSame( 82, $piezaActualizada->resultadoCompuertas->calidad->puntuacionTotal );
+	}
+
+	public function test_persistir_y_rehidratar_datos_seo_y_auditar_canibalizacion(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$crearPieza = function () use ( $repoTendencias, $repoPiezas, $reloj ): int {
+			$tendenciaId = $repoTendencias->guardar(
+				new TendenciaDetectada( 'tendencia seo ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+				$reloj->ahora()
+			);
+
+			return $repoPiezas->crear( $tendenciaId, $reloj->ahora() );
+		};
+
+		$piezaId = $crearPieza();
+
+		$datosSeo = new DatosSeo(
+			new PalabrasClave( 'reforma pensional', array( 'gobierno', 'aportes' ) ),
+			new MetadatosSeo( 'Titulo SEO', 'Meta descripción' ),
+			TipoEsquemaArticulo::AnalysisNewsArticle,
+			TipoPluginSeo::RankMath,
+			array( new EnlaceInterno( 7, 'https://example.com/7', 'Pieza relacionada' ) ),
+			false
+		);
+
+		self::assertTrue( $repoPiezas->actualizarDatosSeo( $piezaId, $datosSeo, $reloj->ahora() ) );
+
+		$piezaActualizada = $repoPiezas->obtenerPorId( $piezaId );
+		self::assertNotNull( $piezaActualizada->datosSeo );
+		self::assertSame( 'reforma pensional', $piezaActualizada->datosSeo->palabrasClave->principal );
+		self::assertSame( TipoPluginSeo::RankMath, $piezaActualizada->datosSeo->pluginDetectado );
+		self::assertSame( 7, $piezaActualizada->datosSeo->enlacesInternos[0]->postId );
+
+		// Todavía no hay ninguna pieza PUBLICADA con esta keyword: sin canibalización.
+		self::assertFalse( $repoPiezas->existePiezaPublicadaConKeyword( 'reforma pensional', 0 ) );
+
+		// Otra pieza distinta, publicada, con la MISMA keyword principal: canibalización real.
+		$otraPiezaId = $crearPieza();
+		self::assertTrue( $repoPiezas->actualizarEstado( $otraPiezaId, EstadoPieza::Detectada, EstadoPieza::EnInvestigacion, $reloj->ahora() ) );
+		$estadosIntermedios = array(
+			EstadoPieza::Investigada,
+			EstadoPieza::EnRedaccion,
+			EstadoPieza::Redactada,
+			EstadoPieza::Optimizada,
+			EstadoPieza::EnRevision,
+			EstadoPieza::Aprobada,
+			EstadoPieza::Programada,
+			EstadoPieza::Publicada,
+		);
+		$estadoAnterior     = EstadoPieza::EnInvestigacion;
+		foreach ( $estadosIntermedios as $estadoSiguiente ) {
+			self::assertTrue( $repoPiezas->actualizarEstado( $otraPiezaId, $estadoAnterior, $estadoSiguiente, $reloj->ahora() ) );
+			$estadoAnterior = $estadoSiguiente;
+		}
+		self::assertTrue( $repoPiezas->actualizarDatosSeo( $otraPiezaId, $datosSeo, $reloj->ahora() ) );
+
+		self::assertTrue( $repoPiezas->existePiezaPublicadaConKeyword( 'reforma pensional', $piezaId ) );
+		// La propia pieza publicada se excluye de su propia auditoría.
+		self::assertFalse( $repoPiezas->existePiezaPublicadaConKeyword( 'reforma pensional', $otraPiezaId ) );
+	}
+
+	public function test_persistir_y_rehidratar_el_resultado_de_taxonomia(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$tendenciaId = $repoTendencias->guardar(
+			new TendenciaDetectada( 'tendencia taxonomia', PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$piezaId     = $repoPiezas->crear( $tendenciaId, $reloj->ahora() );
+
+		$resultadoTaxonomia = new ResultadoTaxonomia(
+			'Economía',
+			array( new EtiquetaAsignada( 1, 'Banco de la República', false, false ) )
+		);
+
+		self::assertTrue( $repoPiezas->actualizarResultadoTaxonomia( $piezaId, $resultadoTaxonomia, $reloj->ahora() ) );
+
+		$piezaActualizada = $repoPiezas->obtenerPorId( $piezaId );
+		self::assertNotNull( $piezaActualizada->resultadoTaxonomia );
+		self::assertSame( 'Economía', $piezaActualizada->resultadoTaxonomia->categoriaAsignada );
+		self::assertSame( 'Banco de la República', $piezaActualizada->resultadoTaxonomia->etiquetas[0]->nombre );
 	}
 }

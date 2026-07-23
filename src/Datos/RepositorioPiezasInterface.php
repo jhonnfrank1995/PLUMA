@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Pluma\Datos;
 
 use DateTimeImmutable;
+use Pluma\Compuertas\ResultadoEvaluacion;
 use Pluma\Investigacion\Expediente;
 use Pluma\Pipeline\EstadoPieza;
 use Pluma\Pipeline\Pieza;
 use Pluma\Redaccion\FichaDecisionEditorial;
+use Pluma\Seo\DatosSeo;
+use Pluma\Taxonomia\ResultadoTaxonomia;
 
 /**
  * Contrato del repositorio de Piezas. `Pluma\Pipeline\Transicionador` y
@@ -49,6 +52,33 @@ interface RepositorioPiezasInterface {
 	public function asignarPeriodista( int $id, int $periodistaId, int $periodistaVersionId, DateTimeImmutable $ahora ): bool;
 
 	public function actualizarFichaDecisionEditorial( int $id, FichaDecisionEditorial $ficha, DateTimeImmutable $ahora ): bool;
+
+	/**
+	 * Persiste el resultado de `Pluma\Compuertas\EvaluadorCompuertas` (Libro
+	 * Cap. 8.4): el JSON completo del diagnóstico y, denormalizado, el modo
+	 * efectivo para que el Orquestador pueda filtrar por él sin deserializar.
+	 */
+	public function actualizarResultadoCompuertas( int $id, ResultadoEvaluacion $resultado, DateTimeImmutable $ahora ): bool;
+
+	/**
+	 * Persiste el resultado de `Pluma\Seo\MotorSeo` (Libro Cap. 6.2-6.3): el
+	 * JSON completo y, denormalizada, la keyword principal (indexada) para
+	 * que `Pluma\Seo\AuditorCanibalizacion` pueda consultarla sin deserializar.
+	 */
+	public function actualizarDatosSeo( int $id, DatosSeo $datos, DateTimeImmutable $ahora ): bool;
+
+	/**
+	 * Auditoría de canibalización (Libro Cap. 6.3): ¿alguna OTRA pieza ya
+	 * PUBLICADA usa esta misma keyword principal? `$excluirPiezaId` evita que
+	 * una pieza se detecte a sí misma al re-evaluarse.
+	 */
+	public function existePiezaPublicadaConKeyword( string $keywordPrincipal, int $excluirPiezaId ): bool;
+
+	/**
+	 * Persiste el resultado de `Pluma\Taxonomia\Taxonomo` (Libro Cap. 7): la
+	 * categoría asignada y las etiquetas (nuevas o reutilizadas).
+	 */
+	public function actualizarResultadoTaxonomia( int $id, ResultadoTaxonomia $resultado, DateTimeImmutable $ahora ): bool;
 
 	/**
 	 * Piezas asignadas a `$periodistaId` desde `$desde` (inclusive). Paso 2

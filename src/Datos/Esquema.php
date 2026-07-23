@@ -45,6 +45,14 @@ final class Esquema {
 			// Etapa 2 añade periodista_id, periodista_version_id (trazabilidad de
 			// qué Conducta redactó la pieza, pl-periodistas §1) y
 			// ficha_decision_editorial (Libro Cap. 5.5) sobre la tabla de la Etapa 1.
+			// Etapa 3 añade modo_efectivo (denormalizado para consulta rápida del
+			// Orquestador, "dame piezas en modo X") y diagnostico_compuertas (JSON
+			// completo de `ResultadoEvaluacion`, Libro Cap. 8.4). También añade
+			// keyword_principal (indexada — la Auditoría de Canibalización de
+			// `Pluma\Seo` pregunta "¿alguna OTRA pieza publicada ya usa esta
+			// keyword?", Libro Cap. 6.3), datos_seo (JSON completo de
+			// `DatosSeo`) y resultado_taxonomia (JSON completo de
+			// `ResultadoTaxonomia`, Libro Cap. 7).
 			"CREATE TABLE {$prefijo}piezas (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 tendencia_id BIGINT UNSIGNED NOT NULL,
@@ -53,13 +61,19 @@ final class Esquema {
                 estado VARCHAR(30) NOT NULL,
                 expediente LONGTEXT NULL,
                 ficha_decision_editorial LONGTEXT NULL,
+                modo_efectivo VARCHAR(20) NULL,
+                diagnostico_compuertas LONGTEXT NULL,
+                keyword_principal VARCHAR(191) NULL,
+                datos_seo LONGTEXT NULL,
+                resultado_taxonomia LONGTEXT NULL,
                 post_id BIGINT UNSIGNED NULL,
                 creada_en DATETIME NOT NULL,
                 actualizada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY estado_actualizada (estado, actualizada_en),
                 KEY tendencia_id (tendencia_id),
-                KEY periodista_id (periodista_id)
+                KEY periodista_id (periodista_id),
+                KEY keyword_principal (keyword_principal(100))
             ) {$charset};",
 			"CREATE TABLE {$prefijo}periodistas (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -141,6 +155,44 @@ final class Esquema {
                 KEY pieza_id (pieza_id),
                 KEY ocurrida_en (ocurrida_en)
             ) {$charset};",
+			// Etapa 3 (Taxónomo, Libro Cap. 7): categorías fijas y etiquetas
+			// dinámicas del sitio. "tipo" distingue ambas ramas; "slug" es el
+			// nombre normalizado para reconciliación por coincidencia exacta
+			// (Cap. 7.2 punto 2); "en_cuarentena" implementa el umbral de
+			// creación (Cap. 7.2 punto 3): una etiqueta nueva no es indexable
+			// hasta acumular 3+ piezas (veces_usada).
+			"CREATE TABLE {$prefijo}vocabulario (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                tipo VARCHAR(20) NOT NULL,
+                nombre VARCHAR(191) NOT NULL,
+                slug VARCHAR(191) NOT NULL,
+                alias LONGTEXT NOT NULL,
+                en_cuarentena TINYINT(1) NOT NULL DEFAULT 0,
+                veces_usada INT UNSIGNED NOT NULL DEFAULT 0,
+                creado_en DATETIME NOT NULL,
+                actualizado_en DATETIME NOT NULL,
+                PRIMARY KEY  (id),
+                KEY tipo_slug (tipo, slug(100))
+            ) {$charset};",
+			// Etapa 3 (Publicador, Libro Cap. 9.2-9.3): ranuras programadas.
+			// "vertical" y "periodista_id" desnormalizados para los topes de
+			// cuota por vertical/periodista sin deserializar la Pieza; "estado"
+			// distingue programada/publicada/expirada (perecibilidad — Cap. 9.3
+			// punto 4: "mejor no publicar que publicar tarde").
+			"CREATE TABLE {$prefijo}cola_publicacion (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                pieza_id BIGINT UNSIGNED NOT NULL,
+                vertical VARCHAR(191) NOT NULL,
+                periodista_id BIGINT UNSIGNED NULL,
+                hora_programada DATETIME NOT NULL,
+                estado VARCHAR(20) NOT NULL,
+                creada_en DATETIME NOT NULL,
+                PRIMARY KEY  (id),
+                KEY pieza_id (pieza_id),
+                KEY estado_hora (estado, hora_programada),
+                KEY vertical (vertical(100)),
+                KEY periodista_id (periodista_id)
+            ) {$charset};",
 		);
 	}
 
@@ -160,6 +212,8 @@ final class Esquema {
 			$prefijo . 'fuentes',
 			$prefijo . 'bitacora_motor',
 			$prefijo . 'auditoria',
+			$prefijo . 'vocabulario',
+			$prefijo . 'cola_publicacion',
 		);
 	}
 

@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace Pluma\Kernel;
 
+use Pluma\Admin\NotificadorRevision;
 use Pluma\Admin\PantallaSalud;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestOrquestador;
+use Pluma\Admin\RestSalaRevision;
+use Pluma\Compuertas\CompuertaCalidad;
+use Pluma\Compuertas\CompuertaOriginalidad;
+use Pluma\Compuertas\CompuertaRiesgo;
+use Pluma\Compuertas\EvaluadorCompuertas;
+use Pluma\Compuertas\GestorDegradacion;
+use Pluma\Compuertas\VerificadorLegibilidad;
 use Pluma\Datos\CandadoGlobal;
 use Pluma\Datos\CandadoGlobalInterface;
 use Pluma\Datos\RepositorioAuditoria;
@@ -15,6 +23,8 @@ use Pluma\Datos\RepositorioBitacora;
 use Pluma\Datos\RepositorioBitacoraInterface;
 use Pluma\Datos\RepositorioBorradores;
 use Pluma\Datos\RepositorioBorradoresInterface;
+use Pluma\Datos\RepositorioColaPublicacion;
+use Pluma\Datos\RepositorioColaPublicacionInterface;
 use Pluma\Datos\RepositorioMemoriaEditorial;
 use Pluma\Datos\RepositorioMemoriaEditorialInterface;
 use Pluma\Datos\RepositorioPeriodistas;
@@ -23,9 +33,14 @@ use Pluma\Datos\RepositorioPiezas;
 use Pluma\Datos\RepositorioPiezasInterface;
 use Pluma\Datos\RepositorioTendencias;
 use Pluma\Datos\RepositorioTendenciasInterface;
+use Pluma\Datos\RepositorioVocabulario;
+use Pluma\Datos\RepositorioVocabularioInterface;
 use Pluma\Investigacion\InvestigadorInterface;
 use Pluma\Investigacion\InvestigadorMecanico;
+use Pluma\Pipeline\GestorSalaRevision;
+use Pluma\Pipeline\LectorConfiguracionCadencia;
 use Pluma\Pipeline\Orquestador;
+use Pluma\Pipeline\ProgramadorCadencia;
 use Pluma\Pipeline\Transicionador;
 use Pluma\Proveedores\EnrutadorModelos;
 use Pluma\Proveedores\LenguajeInterface;
@@ -33,8 +48,12 @@ use Pluma\Proveedores\PresupuestoLenguaje;
 use Pluma\Proveedores\ProveedorGoogleTrends;
 use Pluma\Proveedores\ProveedorOpenRouter;
 use Pluma\Proveedores\ProveedorTendenciasInterface;
+use Pluma\Publicacion\AsignadorTaxonomiaWp;
 use Pluma\Publicacion\CreadorBorrador;
 use Pluma\Publicacion\CreadorBorradorInterface;
+use Pluma\Publicacion\EscritorCamposSeo;
+use Pluma\Publicacion\Publicador;
+use Pluma\Publicacion\PublicadorInterface;
 use Pluma\Redaccion\AsignadorPeriodista;
 use Pluma\Redaccion\AvisoTransparenciaIa;
 use Pluma\Redaccion\ClasificadorNoticia;
@@ -52,8 +71,19 @@ use Pluma\Redaccion\RedactorSintetico;
 use Pluma\Redaccion\SelectorAngulo;
 use Pluma\Redaccion\VerificadorNGramas;
 use Pluma\Redaccion\VerificadorVoz;
+use Pluma\Seo\AuditorCanibalizacion;
+use Pluma\Seo\DetectorPluginSeo;
+use Pluma\Seo\EnlazadorInterno;
+use Pluma\Seo\ExtractorPalabrasClave;
+use Pluma\Seo\GeneradorMetadatosSeo;
+use Pluma\Seo\MotorSeo;
 use Pluma\Sensores\SensorGoogleTrends;
 use Pluma\Sensores\SensorInterface;
+use Pluma\Taxonomia\AsignadorCategoria;
+use Pluma\Taxonomia\ExtractorEntidades;
+use Pluma\Taxonomia\GestorEtiquetas;
+use Pluma\Taxonomia\ReconciliadorVocabulario;
+use Pluma\Taxonomia\Taxonomo;
 use wpdb;
 
 /**
@@ -126,6 +156,14 @@ final class Nucleo {
 		$this->contenedor->registrar(
 			RepositorioBorradoresInterface::class,
 			fn ( Contenedor $c ): RepositorioBorradores => new RepositorioBorradores( $c->obtener( 'wpdb' ) )
+		);
+		$this->contenedor->registrar(
+			RepositorioVocabularioInterface::class,
+			fn ( Contenedor $c ): RepositorioVocabulario => new RepositorioVocabulario( $c->obtener( 'wpdb' ) )
+		);
+		$this->contenedor->registrar(
+			RepositorioColaPublicacionInterface::class,
+			fn ( Contenedor $c ): RepositorioColaPublicacion => new RepositorioColaPublicacion( $c->obtener( 'wpdb' ) )
 		);
 
 		$this->contenedor->registrar(
@@ -232,6 +270,96 @@ final class Nucleo {
 			)
 		);
 
+		$this->contenedor->registrar( ExtractorPalabrasClave::class, static fn (): ExtractorPalabrasClave => new ExtractorPalabrasClave() );
+		$this->contenedor->registrar(
+			GeneradorMetadatosSeo::class,
+			fn ( Contenedor $c ): GeneradorMetadatosSeo => new GeneradorMetadatosSeo( $c->obtener( LenguajeInterface::class ) )
+		);
+		$this->contenedor->registrar( DetectorPluginSeo::class, static fn (): DetectorPluginSeo => new DetectorPluginSeo() );
+		$this->contenedor->registrar(
+			EnlazadorInterno::class,
+			fn ( Contenedor $c ): EnlazadorInterno => new EnlazadorInterno(
+				$c->obtener( RepositorioMemoriaEditorialInterface::class ),
+				$c->obtener( RepositorioPiezasInterface::class )
+			)
+		);
+		$this->contenedor->registrar(
+			AuditorCanibalizacion::class,
+			fn ( Contenedor $c ): AuditorCanibalizacion => new AuditorCanibalizacion( $c->obtener( RepositorioPiezasInterface::class ) )
+		);
+		$this->contenedor->registrar(
+			MotorSeo::class,
+			fn ( Contenedor $c ): MotorSeo => new MotorSeo(
+				$c->obtener( ExtractorPalabrasClave::class ),
+				$c->obtener( GeneradorMetadatosSeo::class ),
+				$c->obtener( DetectorPluginSeo::class ),
+				$c->obtener( EnlazadorInterno::class ),
+				$c->obtener( AuditorCanibalizacion::class )
+			)
+		);
+
+		$this->contenedor->registrar( ExtractorEntidades::class, static fn (): ExtractorEntidades => new ExtractorEntidades() );
+		$this->contenedor->registrar( ReconciliadorVocabulario::class, static fn (): ReconciliadorVocabulario => new ReconciliadorVocabulario() );
+		$this->contenedor->registrar(
+			AsignadorCategoria::class,
+			fn ( Contenedor $c ): AsignadorCategoria => new AsignadorCategoria(
+				$c->obtener( ReconciliadorVocabulario::class ),
+				$c->obtener( RepositorioVocabularioInterface::class )
+			)
+		);
+		$this->contenedor->registrar(
+			GestorEtiquetas::class,
+			fn ( Contenedor $c ): GestorEtiquetas => new GestorEtiquetas(
+				$c->obtener( ExtractorEntidades::class ),
+				$c->obtener( ReconciliadorVocabulario::class ),
+				$c->obtener( RepositorioVocabularioInterface::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+		$this->contenedor->registrar(
+			Taxonomo::class,
+			fn ( Contenedor $c ): Taxonomo => new Taxonomo(
+				$c->obtener( AsignadorCategoria::class ),
+				$c->obtener( GestorEtiquetas::class )
+			)
+		);
+
+		$this->contenedor->registrar( VerificadorLegibilidad::class, static fn (): VerificadorLegibilidad => new VerificadorLegibilidad() );
+		$this->contenedor->registrar(
+			CompuertaCalidad::class,
+			fn ( Contenedor $c ): CompuertaCalidad => new CompuertaCalidad( $c->obtener( VerificadorLegibilidad::class ) )
+		);
+		$this->contenedor->registrar(
+			CompuertaRiesgo::class,
+			fn ( Contenedor $c ): CompuertaRiesgo => new CompuertaRiesgo( $c->obtener( LenguajeInterface::class ) )
+		);
+		$this->contenedor->registrar( CompuertaOriginalidad::class, static fn (): CompuertaOriginalidad => new CompuertaOriginalidad() );
+		$this->contenedor->registrar( GestorDegradacion::class, static fn (): GestorDegradacion => new GestorDegradacion() );
+		$this->contenedor->registrar(
+			EvaluadorCompuertas::class,
+			fn ( Contenedor $c ): EvaluadorCompuertas => new EvaluadorCompuertas(
+				$c->obtener( CompuertaCalidad::class ),
+				$c->obtener( CompuertaRiesgo::class ),
+				$c->obtener( CompuertaOriginalidad::class ),
+				$c->obtener( GestorDegradacion::class )
+			)
+		);
+
+		$this->contenedor->registrar( LectorConfiguracionCadencia::class, static fn (): LectorConfiguracionCadencia => new LectorConfiguracionCadencia() );
+		$this->contenedor->registrar(
+			ProgramadorCadencia::class,
+			fn ( Contenedor $c ): ProgramadorCadencia => new ProgramadorCadencia( $c->obtener( AzarInterface::class ) )
+		);
+		$this->contenedor->registrar( EscritorCamposSeo::class, static fn (): EscritorCamposSeo => new EscritorCamposSeo() );
+		$this->contenedor->registrar( AsignadorTaxonomiaWp::class, static fn (): AsignadorTaxonomiaWp => new AsignadorTaxonomiaWp() );
+		$this->contenedor->registrar(
+			PublicadorInterface::class,
+			fn ( Contenedor $c ): Publicador => new Publicador(
+				$c->obtener( EscritorCamposSeo::class ),
+				$c->obtener( AsignadorTaxonomiaWp::class )
+			)
+		);
+
 		$this->contenedor->registrar(
 			Orquestador::class,
 			fn ( Contenedor $c ): Orquestador => new Orquestador(
@@ -239,11 +367,19 @@ final class Nucleo {
 				$c->obtener( RepositorioBitacoraInterface::class ),
 				$c->obtener( RepositorioPiezasInterface::class ),
 				$c->obtener( RepositorioTendenciasInterface::class ),
+				$c->obtener( RepositorioBorradoresInterface::class ),
+				$c->obtener( RepositorioColaPublicacionInterface::class ),
 				$c->obtener( Transicionador::class ),
 				$c->obtener( SensorInterface::class ),
 				$c->obtener( InvestigadorInterface::class ),
 				$c->obtener( RedactorInterface::class ),
+				$c->obtener( MotorSeo::class ),
+				$c->obtener( Taxonomo::class ),
+				$c->obtener( EvaluadorCompuertas::class ),
+				$c->obtener( LectorConfiguracionCadencia::class ),
+				$c->obtener( ProgramadorCadencia::class ),
 				$c->obtener( CreadorBorradorInterface::class ),
+				$c->obtener( PublicadorInterface::class ),
 				$c->obtener( RelojInterface::class )
 			)
 		);
@@ -252,6 +388,27 @@ final class Nucleo {
 			RestOrquestador::class,
 			fn ( Contenedor $c ): RestOrquestador => new RestOrquestador( $c->obtener( Orquestador::class ) )
 		);
+
+		$this->contenedor->registrar(
+			GestorSalaRevision::class,
+			fn ( Contenedor $c ): GestorSalaRevision => new GestorSalaRevision(
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioColaPublicacionInterface::class ),
+				$c->obtener( Transicionador::class )
+			)
+		);
+		$this->contenedor->registrar(
+			RestSalaRevision::class,
+			function ( Contenedor $c ): RestSalaRevision {
+				$ventanaVetoHoras = get_option( Orquestador::OPCION_VENTANA_VETO_HORAS, 2 );
+
+				return new RestSalaRevision(
+					$c->obtener( GestorSalaRevision::class ),
+					is_numeric( $ventanaVetoHoras ) ? (int) $ventanaVetoHoras : 2
+				);
+			}
+		);
+		$this->contenedor->registrar( NotificadorRevision::class, static fn (): NotificadorRevision => new NotificadorRevision() );
 
 		$this->contenedor->registrar(
 			ExportadorBancoPeriodistas::class,
@@ -288,5 +445,7 @@ final class Nucleo {
 		( new PantallaSalud( $this->contenedor->obtener( DetectorEntorno::class ) ) )->registrar();
 		$this->contenedor->obtener( RestOrquestador::class )->registrar();
 		$this->contenedor->obtener( RestBancoPeriodistas::class )->registrar();
+		$this->contenedor->obtener( RestSalaRevision::class )->registrar();
+		$this->contenedor->obtener( NotificadorRevision::class )->registrar();
 	}
 }
