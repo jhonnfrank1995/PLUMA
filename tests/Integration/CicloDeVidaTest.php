@@ -74,4 +74,38 @@ final class CicloDeVidaTest extends WP_UnitTestCase {
 		self::assertFalse( get_option( Migrador::OPCION_VERSION ) );
 		self::assertFalse( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
 	}
+
+	/**
+	 * Regresión: WordPress persiste `add_option()`/`update_option()` con un
+	 * booleano como texto plano ("1"/"") en `wp_options`, y `get_option()` lo
+	 * devuelve tal cual — nunca como `bool`. `uninstall.php` comparaba
+	 * `true !== $valor`, que es casi siempre verdadero contra un valor real
+	 * de base de datos y purgaba los datos del cliente por defecto (detectado
+	 * en CI: smoke de instalación desde el ZIP, run 29968141940).
+	 */
+	public function test_uninstall_conserva_datos_cuando_wp_devuelve_el_valor_como_string(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
+		update_option( Activador::OPCION_CONSERVAR_DATOS, '1' );
+
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', true );
+		}
+		require dirname( __DIR__, 2 ) . '/uninstall.php';
+
+		self::assertSame( '0.1.0', get_option( Migrador::OPCION_VERSION ) );
+		self::assertTrue( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+	}
+
+	public function test_uninstall_purga_cuando_el_cliente_eligio_no_conservar(): void {
+		Activador::activar( new RelojSistema(), '0.1.0' );
+		update_option( Activador::OPCION_CONSERVAR_DATOS, '' );
+
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', true );
+		}
+		require dirname( __DIR__, 2 ) . '/uninstall.php';
+
+		self::assertFalse( get_option( Migrador::OPCION_VERSION ) );
+		self::assertFalse( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+	}
 }

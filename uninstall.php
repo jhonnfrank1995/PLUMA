@@ -21,7 +21,13 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $pluma_conservar_datos = get_option( \Pluma\Kernel\Activador::OPCION_CONSERVAR_DATOS, true );
 
-if ( true !== $pluma_conservar_datos ) {
+// WordPress persiste `add_option()`/`update_option()` con un booleano en la
+// tabla `wp_options` como texto plano ("1" / "") y `get_option()` lo
+// devuelve tal cual, NUNCA como el tipo `bool` original. Una comparación
+// estricta `true !== $valor` es casi siempre verdadera contra un valor real
+// de base de datos y purgaría los datos del cliente por defecto — el
+// comportamiento exactamente opuesto al contrato de GOVERNANCE §5.4.
+if ( ! $pluma_conservar_datos ) {
 	\Pluma\Kernel\Desinstalador::purgar();
 }
 
