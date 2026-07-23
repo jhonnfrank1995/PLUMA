@@ -11,11 +11,11 @@
 declare(strict_types=1);
 
 if (! defined('PLUMA_ENGINE_VERSION')) {
-    define('PLUMA_ENGINE_VERSION', '0.1.0');
+    define('PLUMA_ENGINE_VERSION', '0.2.0');
 }
 
 if (! defined('PLUMA_ENGINE_DB_VERSION_OBJETIVO')) {
-    define('PLUMA_ENGINE_DB_VERSION_OBJETIVO', '0.1.0');
+    define('PLUMA_ENGINE_DB_VERSION_OBJETIVO', '0.2.0');
 }
 
 if (! defined('PLUMA_ENGINE_ARCHIVO')) {

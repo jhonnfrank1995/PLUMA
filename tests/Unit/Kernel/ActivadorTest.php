@@ -31,12 +31,19 @@ final class ActivadorTest extends CasoDePruebaUnitario {
 		$rol->expects( 'add_cap' )->times( 3 );
 		Functions\expect( 'get_role' )->once()->with( 'administrator' )->andReturn( $rol );
 
+		Functions\expect( 'dbDelta' )->times( 5 )->andReturn( array() );
 		Functions\expect( 'get_option' )->once()->with( 'pluma_db_version', '0.0.0' )->andReturn( '0.0.0' );
 		Functions\expect( 'update_option' )->once()->with( 'pluma_db_version', '0.1.0', false )->andReturn( true );
 
 		Functions\expect( 'add_option' )
 			->once()
 			->with( Activador::OPCION_CONSERVAR_DATOS, true, '', false )
+			->andReturn( true );
+
+		Functions\expect( 'wp_generate_password' )->once()->with( 43, false, false )->andReturn( 'token-de-prueba' );
+		Functions\expect( 'add_option' )
+			->once()
+			->with( Activador::OPCION_MOTOR_TOKEN, 'token-de-prueba', '', false )
 			->andReturn( true );
 
 		Functions\expect( 'update_option' )
@@ -55,8 +62,10 @@ final class ActivadorTest extends CasoDePruebaUnitario {
 		$rol = Mockery::mock( 'WP_Role' );
 		$rol->expects( 'add_cap' )->times( 3 );
 		Functions\expect( 'get_role' )->once()->andReturn( $rol );
+		Functions\expect( 'dbDelta' )->times( 5 )->andReturn( array() );
 		Functions\expect( 'get_option' )->once()->andReturn( '0.1.0' );
-		Functions\expect( 'add_option' )->once()->andReturn( true );
+		Functions\expect( 'wp_generate_password' )->once()->andReturn( 'token-de-prueba' );
+		Functions\expect( 'add_option' )->twice()->andReturn( true );
 		Functions\expect( 'update_option' )->once();
 
 		Activador::activarParaRed( false, new RelojFijo(), '0.1.0' );
@@ -73,8 +82,10 @@ final class ActivadorTest extends CasoDePruebaUnitario {
 		$rol = Mockery::mock( 'WP_Role' );
 		$rol->expects( 'add_cap' )->times( 6 ); // 3 capacidades × 2 sitios
 		Functions\expect( 'get_role' )->twice()->andReturn( $rol );
+		Functions\expect( 'dbDelta' )->times( 10 )->andReturn( array() ); // 5 tablas × 2 sitios
 		Functions\expect( 'get_option' )->twice()->andReturn( '0.1.0' );
-		Functions\expect( 'add_option' )->twice()->andReturn( true );
+		Functions\expect( 'wp_generate_password' )->twice()->andReturn( 'token-de-prueba' );
+		Functions\expect( 'add_option' )->times( 4 )->andReturn( true ); // 2 opciones × 2 sitios
 		Functions\expect( 'update_option' )->twice();
 
 		Activador::activarParaRed( true, new RelojFijo(), '0.1.0' );

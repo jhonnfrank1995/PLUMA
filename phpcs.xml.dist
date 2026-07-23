@@ -60,4 +60,24 @@
     <rule ref="WordPress.WP.GlobalVariablesOverride">
         <exclude-pattern>*/tests/*</exclude-pattern>
     </rule>
+
+    <!--
+        CLAUDE.md § Estándares WordPress: los hooks propios usan `pluma/` +
+        snake_case (p. ej. `pluma/pieza_publicada`), no el snake_case puro que
+        exige el sniff genérico de WP core. Es la convención explícita del
+        proyecto, no un hook mal nombrado.
+    -->
+    <rule ref="WordPress.NamingConventions.ValidHookName">
+        <exclude-pattern>*/src/*</exclude-pattern>
+    </rule>
+
+    <!--
+        tests/bootstrap.php declara varios dobles mínimos (wpdb, WP_Error)
+        en un solo archivo a propósito: es el único punto de arranque de la
+        suite Unit, no código de producción sujeto a la regla de una
+        clase por archivo.
+    -->
+    <rule ref="Generic.Files.OneObjectStructurePerFile">
+        <exclude-pattern>*/tests/bootstrap.php</exclude-pattern>
+    </rule>
 </ruleset>

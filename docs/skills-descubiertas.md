@@ -80,3 +80,19 @@ Aplicables a la Etapa 0 (Cimientos), leídos íntegros antes de planificar:
 | `pl-pipeline` | Solo lectura anticipatoria: el esqueleto no debe contradecir los contratos del Transicionador (Etapa 1) |
 
 No aplicables aún (se releerán en su Etapa): `pl-periodistas` (E2), `pl-compuertas` (E3), `pl-proveedor-ia` (E1–E2). Del ecosistema global, para Etapa 0 solo tocan: `test-driven-development`, `e2e-testing`/`playwright-skill` (montaje de suites) y `php-pro` (estándares PHP 8.2).
+
+## Apertura de Etapa 1 — "El esqueleto que camina" (2026-07-22)
+
+Etapa 0 cerrada (CI en verde, run 29968501162). Inventario para Etapa 1 releído íntegro:
+
+| Skill | Aplicación en Etapa 1 |
+|---|---|
+| `pl-pipeline` (+ `references/estados.md`) | Núcleo de la etapa: grafo de estados de la Pieza, Transicionador, candado global+por-Pieza, presupuestos, azar, perecibilidad |
+| `pl-proveedor-ia` (+ `references/contrato-lenguaje.md`) | `SensorInterface` para el Radar; `LenguajeInterface` SOLO si Etapa 1 decide generar contenido real (ver pregunta de alcance en el plan) |
+| `pl-wp-core` | dbDelta de tablas `pluma_*` nuevas, endpoint del cron con token+candado, creación del post WP al final del pipeline |
+| `pl-testing` | Convenciones ya usadas en E0 (RelojInterface/AzarInterface inyectables) + nuevo: doble ejecución del orquestador, muerte a mitad de lote, fixtures de proveedores sin red |
+| `lg-first-principles`, `lg-risk-radar`, `lg-cto-mode` (lente Cerebro), `lg-critical-review`, `lg-metacognition` | Ritual de apertura completo (igual que Etapa 0) |
+
+Sub-agentes de AGENTS.md que se activan: **ESQUEMA** (tablas `pluma_piezas`, `pluma_tendencias`, `pluma_fuentes`, `pluma_bitacora_motor`, `pluma_auditoria`), **ORQUESTADOR** (motor cron, candado, presupuesto de tiempo), **SEGURIDAD** (endpoint del cron con token rotable + rate limit).
+
+No aplicables aún: `pl-periodistas` (E2 — el redactor con diales no existe hasta entonces), `pl-compuertas` (E3). Hueco a decidir con el propietario antes de codificar: la Sala de Redacción completa es Etapa 2, pero el criterio de salida de Etapa 1 pide un "borrador trazable, aunque sea rudimentario" — el plan de Etapa 1 propone el alcance exacto y lo deja pendiente de aprobación.

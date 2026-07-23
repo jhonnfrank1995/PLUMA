@@ -11,11 +11,22 @@ use Pluma\Kernel\Activador;
 use Pluma\Kernel\Desactivador;
 use Pluma\Kernel\Desinstalador;
 use Pluma\Tests\Unit\CasoDePruebaUnitario;
+use wpdb;
 
 /**
  * @covers \Pluma\Kernel\Desinstalador
  */
 final class DesinstaladorTest extends CasoDePruebaUnitario {
+
+	protected function setUp(): void {
+		parent::setUp();
+		$GLOBALS['wpdb'] = new wpdb();
+	}
+
+	protected function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+		parent::tearDown();
+	}
 
 	public function test_purgar_revoca_capacidades_y_borra_solo_las_opciones_propias_del_nucleo(): void {
 		$rolEditor = Mockery::mock( 'WP_Role' );

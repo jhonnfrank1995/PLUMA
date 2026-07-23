@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pluma\Kernel;
 
+use Pluma\Datos\Esquema;
 use Pluma\Datos\Migrador;
 use wpdb;
 
@@ -18,6 +19,7 @@ final class Activador {
 
 	public const OPCION_CONSERVAR_DATOS = 'pluma_conservar_datos_al_desinstalar';
 	public const OPCION_ACTIVADO_EN     = 'pluma_activado_en';
+	public const OPCION_MOTOR_TOKEN     = 'pluma_motor_token';
 
 	public static function activarParaRed( bool $redCompleta, RelojInterface $reloj, string $versionEsquemaObjetivo ): void {
 		if ( is_multisite() && $redCompleta ) {
@@ -38,11 +40,13 @@ final class Activador {
 		assert( $wpdb instanceof wpdb );
 
 		Capacidades::instalar();
-		( new Migrador( $wpdb ) )->migrar( $versionEsquemaObjetivo );
+		( new Migrador( $wpdb ) )->migrar( $versionEsquemaObjetivo, Esquema::sentenciasCreateTable( $wpdb ) );
 
 		// `add_option` no sobrescribe un valor ya existente: reactivar el
-		// plugin nunca resetea la elección de conservación del cliente.
+		// plugin nunca resetea la elección de conservación del cliente ni
+		// rota el token del cron sin que el usuario lo pida explícitamente.
 		add_option( self::OPCION_CONSERVAR_DATOS, true, '', false );
+		add_option( self::OPCION_MOTOR_TOKEN, wp_generate_password( 43, false, false ), '', false );
 		update_option( self::OPCION_ACTIVADO_EN, $reloj->ahora()->format( DATE_ATOM ), false );
 	}
 }

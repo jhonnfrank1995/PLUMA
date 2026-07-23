@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:ht="https://trends.google.com/trending/rss" version="2.0">
+	<channel>
+		<title>Daily Search Trends</title>
+		<description>Recent searches</description>
+		<link>https://trends.google.com/trending/rss?geo=US</link>
+		<atom:link href="https://trends.google.com/trending/rss?geo=US" rel="self" type="application/rss+xml"/>
+		<item>
+			<title>houston weather</title>
+			<ht:approx_traffic>20000+</ht:approx_traffic>
+			<description/>
+			<link>https://trends.google.com/trending/rss?geo=US</link>
+			<pubDate>Wed, 22 Jul 2026 18:20:00 -0700</pubDate>
+			<ht:picture>https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxotqvBu5-KahRYPS8JSzIPdZw_rOLjIiJ5W1-mhezxIFrDaeO5EPyFOZkmUY</ht:picture>
+			<ht:picture_source>FOX Weather</ht:picture_source>
+			<ht:news_item>
+				<ht:news_item_title>Live updates: Tropical Storm Bertha makes landfall in Louisiana, flooding hits Virginia &amp; Carolinas</ht:news_item_title>
+				<ht:news_item_snippet/>
+				<ht:news_item_url>https://www.foxweather.com/live-news/live-updates-tropical-storm-bertha-targets-gulf-coast-as-dangerous-flood-threat-hits-the-carolinas</ht:news_item_url>
+				<ht:news_item_picture>https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxotqvBu5-KahRYPS8JSzIPdZw_rOLjIiJ5W1-mhezxIFrDaeO5EPyFOZkmUY</ht:news_item_picture>
+				<ht:news_item_source>FOX Weather</ht:news_item_source>
+			</ht:news_item>
+			<ht:news_item>
+				<ht:news_item_title>Tropical Storm Bertha knocks out power to more than 1,000 in Jefferson Parish</ht:news_item_title>
+				<ht:news_item_snippet/>
+				<ht:news_item_url>https://www.wwltv.com/article/news/local/infrastructure/more-than-1k-lose-power-in-jefferson-parish-due-to-bertha/289-a79f612c-a443-49eb-853a-efa49b505172</ht:news_item_url>
+				<ht:news_item_picture>https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTYHzVY77Q1yuPcXcw_VKmvQ-yD8fk_wP71pMNOhdNo3FRM6XMW_IEtBxMbFiM</ht:news_item_picture>
+				<ht:news_item_source>WWLTV.com</ht:news_item_source>
+			</ht:news_item>
+		</item>
+		<item>
+			<title>spencer torkelson</title>
+			<ht:approx_traffic>500+</ht:approx_traffic>
+			<description/>
+			<link>https://trends.google.com/trending/rss?geo=US</link>
+			<pubDate>Wed, 22 Jul 2026 18:20:00 -0700</pubDate>
+			<ht:picture>https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQsBCq2AMnluCIATZKAEti1qF32k08EK23deHFQJbOpnMvuI8GJi2nWZPr2N_c</ht:picture>
+			<ht:picture_source>MLB.com</ht:picture_source>
+			<ht:news_item>
+				<ht:news_item_title>Tigers place Spencer Torkelson on injured list</ht:news_item_title>
+				<ht:news_item_snippet/>
+				<ht:news_item_url>https://www.mlb.com/news/tigers-spencer-torkelson-injured-list</ht:news_item_url>
+				<ht:news_item_picture>https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQsBCq2AMnluCIATZKAEti1qF32k08EK23deHFQJbOpnMvuI8GJi2nWZPr2N_c</ht:news_item_picture>
+				<ht:news_item_source>MLB.com</ht:news_item_source>
+			</ht:news_item>
+		</item>
+	</channel>
+</rss>
