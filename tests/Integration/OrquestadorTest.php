@@ -67,7 +67,8 @@ final class OrquestadorTest extends WP_UnitTestCase {
 	public function test_endpoint_del_cron_rechaza_peticiones_sin_token(): void {
 		$nucleo      = new Nucleo();
 		$orquestador = $nucleo->contenedor()->obtener( Orquestador::class );
-		( new RestOrquestador( $orquestador ) )->registrarRuta();
+		( new RestOrquestador( $orquestador ) )->registrar();
+		do_action( 'rest_api_init' );
 
 		$servidor  = rest_get_server();
 		$peticion  = new WP_REST_Request( 'GET', '/pluma/v1/motor/tick' );
@@ -81,7 +82,8 @@ final class OrquestadorTest extends WP_UnitTestCase {
 
 		$nucleo      = new Nucleo();
 		$orquestador = $nucleo->contenedor()->obtener( Orquestador::class );
-		( new RestOrquestador( $orquestador ) )->registrarRuta();
+		( new RestOrquestador( $orquestador ) )->registrar();
+		do_action( 'rest_api_init' );
 
 		$servidor = rest_get_server();
 		$peticion = new WP_REST_Request( 'GET', '/pluma/v1/motor/tick' );
@@ -98,7 +100,8 @@ final class OrquestadorTest extends WP_UnitTestCase {
 
 		$nucleo      = new Nucleo();
 		$orquestador = $nucleo->contenedor()->obtener( Orquestador::class );
-		( new RestOrquestador( $orquestador ) )->registrarRuta();
+		( new RestOrquestador( $orquestador ) )->registrar();
+		do_action( 'rest_api_init' );
 
 		$servidor = rest_get_server();
 		$peticion = new WP_REST_Request( 'GET', '/pluma/v1/motor/tick' );

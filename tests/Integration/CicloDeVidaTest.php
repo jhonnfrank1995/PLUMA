@@ -41,7 +41,7 @@ final class CicloDeVidaTest extends WP_UnitTestCase {
 	public function test_activar_conserva_datos_por_defecto(): void {
 		Activador::activar( new RelojSistema(), '0.1.0' );
 
-		self::assertTrue( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
+		self::assertEquals( true, get_option( Activador::OPCION_CONSERVAR_DATOS ) );
 	}
 
 	public function test_activar_dos_veces_es_idempotente(): void {
@@ -61,7 +61,7 @@ final class CicloDeVidaTest extends WP_UnitTestCase {
 		Desactivador::desactivar( new RelojSistema() );
 
 		self::assertSame( '0.1.0', get_option( Migrador::OPCION_VERSION ) );
-		self::assertTrue( get_option( Activador::OPCION_CONSERVAR_DATOS ) );
+		self::assertEquals( true, get_option( Activador::OPCION_CONSERVAR_DATOS ) );
 		self::assertTrue( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
 	}
 
