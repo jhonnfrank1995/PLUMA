@@ -85,4 +85,23 @@ final class ReconciliadorVocabularioTest extends CasoDePruebaUnitario {
 	public function test_sin_candidatos_no_hay_nada_que_reconciliar(): void {
 		self::assertNull( ( new ReconciliadorVocabulario() )->reconciliar( 'Cualquier Cosa', array() ) );
 	}
+
+	/**
+	 * `similitud()` es público (Estudio SEO y Taxonomía, Libro Cap. 10.2:
+	 * "propuestas de fusión") para que el panel detecte pares casi-duplicados
+	 * sin duplicar la función de comparación que ya usa `reconciliar()`.
+	 */
+	public function test_similitud_es_publica_y_usa_el_mismo_umbral_que_reconciliar(): void {
+		$reconciliador = new ReconciliadorVocabulario();
+
+		self::assertGreaterThanOrEqual(
+			ReconciliadorVocabulario::UMBRAL_SIMILITUD_PORCENTAJE,
+			$reconciliador->similitud( 'elecciones 2026', 'eleccion 2026' )
+		);
+
+		self::assertLessThan(
+			ReconciliadorVocabulario::UMBRAL_SIMILITUD_PORCENTAJE,
+			$reconciliador->similitud( 'Banco de la Republica', 'Ministerio de Hacienda' )
+		);
+	}
 }

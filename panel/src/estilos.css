@@ -1196,6 +1196,71 @@
     text-transform: uppercase;
 }
 
+/* Estudio SEO y Taxonomía */
+
+.pluma-seo__seccion {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    margin-top: var(--pluma-espaciado);
+}
+
+.pluma-seo__aviso {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-seo__vacio,
+.pluma-seo__cargando {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+}
+
+.pluma-seo__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.pluma-seo__tabla th,
+.pluma-seo__tabla td {
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--pluma-color-borde);
+    vertical-align: top;
+}
+
+.pluma-seo__tabla th {
+    color: var(--pluma-color-texto-tenue);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.pluma-seo__lista-piezas {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.pluma-seo__lista-cuarentena,
+.pluma-seo__lista-fusion {
+    list-style: none;
+    margin: 0 0 var(--pluma-espaciado) 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.pluma-seo__lista-cuarentena li,
+.pluma-seo__lista-fusion li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

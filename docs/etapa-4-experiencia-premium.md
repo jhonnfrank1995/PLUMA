@@ -100,9 +100,20 @@ Las 7 pantallas del Cap. 10.2 del Libro de Arquitectura son: **Portada, Sala de 
 
 **Honestidad de alcance (cero invención), tal como se acordó al abrir la porción:** "coste por pieza" no se construyó — `pluma_bitacora_motor` no atribuye gasto a una Pieza individual, solo hay agregado diario. "Reintentos" tampoco — no existe backoff automático todavía (`PLUMA-E3-7`, sigue abierta). Se muestra el gasto agregado real y los errores tal como se registraron, sin inventar una atribución o un mecanismo que no existen.
 
+## Porción 7 — Estudio SEO y Taxonomía (commit pendiente)
+
+**Qué se agregó:**
+- **Auditoría de canibalización**: todos los grupos de Piezas ya PUBLICADAS que comparten la misma keyword principal, con el título real y el permalink de cada post — a diferencia de `AuditorCanibalizacion`/`existePiezaPublicadaConKeyword()` (Etapa 3), que solo responden "¿esta pieza colisiona con otra?" para UNA pieza en el momento de optimizarla, este endpoint lista el panorama agregado completo para el panel.
+- **Salud taxonómica**: categorías/etiquetas en cuarentena (nombre, veces usada) y **propuestas de fusión** — pares de etiquetas NO en cuarentena con ≥85% de similitud que no comparten slug exacto (si lo compartieran, la reconciliación automática del Cap. 7.2 ya las habría fusionado). La pantalla es de **solo lectura**: muestra las propuestas pero no las ejecuta — fusionar de verdad implica reasignar términos en posts ya publicados, una operación de mayor riesgo que merece su propio diseño y no se decidió incluir en esta porción.
+- `Pluma\Datos\RepositorioPiezas::obtenerCanibalizacion()` (nuevo, `GROUP BY keyword_principal HAVING COUNT(*) > 1` sobre piezas publicadas, solo lectura, sin cambio de esquema).
+- `Pluma\Taxonomia\ReconciliadorVocabulario::similitud()` pasa de `private` a `public` (igual que `UMBRAL_SIMILITUD_PORCENTAJE`) para que el panel reutilice exactamente la misma comparación (`similar_text()` al 85%) que ya usa `reconciliar()` — cero duplicación de la función de similitud.
+- `Pluma\Admin\RestEstudioSeo` (`GET /seo/canibalizacion`, `GET /seo/vocabulario`), capacidad `pluma_configurar_motor` — mismo criterio que la Sala de Máquinas: visibilidad técnica del motor SEO/Taxónomo, no aprobación editorial.
+
+**Honestidad de alcance (cero invención), decidida antes de abrir esta porción:** "estado de indexación por pieza" y "keywords en el umbral 5-15" (posiciones 5–15, con botón "crear pieza de refuerzo") del Cap. 10.2 quedan fuera — dependen de Google Search Console, que no existe todavía (`PLUMA-E3-5`, Etapa 5), mismo criterio ya aplicado a "resultados de ayer" (Portada) y "tráfico medio" (Banco de Periodistas).
+
 ## Pendiente dentro de esta Etapa
 
-Pantallas del Cap. 10.2 sin construir todavía: **Estudio SEO y Taxonomía**, y el **onboarding de 5 actos** (Cap. 10.3).
+Pantallas del Cap. 10.2 sin construir todavía: el **onboarding de 5 actos** (Cap. 10.3) — la última pieza de esta Etapa.
 
 Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 
@@ -127,6 +138,8 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 - **`RestSalaRevision` demuestra el patrón correcto para "enriquecer sin reescribir"**: la porción 5 le agregó tres dependencias nuevas y una función privada compartida (`piezaComoArray()`) reutilizada entre `retenidas()` y `colaDeVeto()`, sin tocar `GestorSalaRevision` ni el grafo del Transicionador — cuando una pantalla ya tiene REST funcional de una etapa anterior, la porción visual casi siempre debe ser "enriquecer la serialización", no "reescribir el backend".
 - **El registro DI del Contenedor no memoiza por interfaz**: `ProveedorOpenRouter`/`ProveedorGoogleTrends` ya estaban registrados detrás de `LenguajeInterface::class`/`ProveedorTendenciasInterface::class` respectivamente; la porción 6 tuvo que añadir un registro ADICIONAL del tipo concreto (`ProveedorOpenRouter::class`, `ProveedorGoogleTrends::class`) para poder inyectar métodos propios (`circuitoAbierto()`, `probarLlave()`) que no pertenecen al contrato de la interfaz. Cualquier clase futura que necesite un método propio de una implementación concreta debe seguir este mismo patrón de doble registro, sin tocar el contrato de la interfaz.
 - **Toda fecha que un repositorio expone a un endpoint REST debe ser `DATE_ATOM`**, nunca la cadena cruda de MySQL — la porción 6 encontró y corrigió un caso donde esto no se cumplía (`RepositorioBitacora`) precisamente porque nadie había necesitado parsear esa fecha como `Date` hasta ahora. Vale la pena revisar los demás repositorios si alguna porción futura empieza a mostrar fechas sin parsearlas correctamente.
+- **Un método `private` de una clase de dominio puede pasar a `public` sin duplicar lógica cuando el panel necesita EXACTAMENTE la misma comparación** (porción 7, `ReconciliadorVocabulario::similitud()`) — más seguro que copiar la llamada a `similar_text()` en el controlador REST, porque un cambio futuro al umbral o al algoritmo de similitud se propaga automáticamente a ambos consumidores. Antes de exponer un método así, verificar que no tenga efectos secundarios ni dependa de estado interno que no deba ser público.
+- **Una pantalla del panel no tiene por qué incluir acciones de escritura solo porque las otras las tienen**: la porción 7 (Estudio SEO y Taxonomía) es deliberadamente de solo lectura — "fusionar etiquetas de verdad" tocaría posts ya publicados y merece su propio diseño de riesgo/autorización, no una casilla más en esta porción. Cuando el Libro describe una pantalla en términos de "auditoría"/"salud" sin nombrar acciones concretas, no inventar una acción de escritura solo para uniformar el patrón de las porciones anteriores.
 
 ## Evidencia de gates
 
@@ -138,5 +151,6 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 | 4 — Banco de Periodistas | 304/304 | 21/21 | 70/70 | 42/42 | 2/2 | limpio | commiteado, sin push todavía |
 | 5 — Sala de Revisión | 304/304 | 21/21 | 71/71 | 48/48 | 2/2 | limpio | commiteado, sin push todavía |
 | 6 — Sala de Máquinas | 311/311 | 21/21 | 80/80 | 51/51 | 2/2 | limpio | commiteado, sin push todavía |
+| 7 — Estudio SEO y Taxonomía | 312/312 | 21/21 | 84/84 | 55/55 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin llave de API filtrada en ningún commit (verificado explícitamente antes de cada uno).

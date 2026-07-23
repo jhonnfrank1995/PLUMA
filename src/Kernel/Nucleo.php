@@ -7,6 +7,7 @@ namespace Pluma\Kernel;
 use Pluma\Admin\NotificadorRevision;
 use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
+use Pluma\Admin\RestEstudioSeo;
 use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
 use Pluma\Admin\RestPeriodistas;
@@ -524,6 +525,14 @@ final class Nucleo {
 				$c->obtener( ProveedorGoogleTrends::class )
 			)
 		);
+		$this->contenedor->registrar(
+			RestEstudioSeo::class,
+			fn ( Contenedor $c ): RestEstudioSeo => new RestEstudioSeo(
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioVocabularioInterface::class ),
+				$c->obtener( ReconciliadorVocabulario::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin ): void {
@@ -543,5 +552,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestMesaEditorial::class )->registrar();
 		$this->contenedor->obtener( RestPeriodistas::class )->registrar();
 		$this->contenedor->obtener( RestSalaMaquinas::class )->registrar();
+		$this->contenedor->obtener( RestEstudioSeo::class )->registrar();
 	}
 }

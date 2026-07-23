@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarraEstado } from './BarraEstado';
 import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './PantallaBancoPeriodistas';
+import { PantallaEstudioSeo, type TextosEstudioSeo } from './PantallaEstudioSeo';
 import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalaRevision, type TextosSalaRevision } from './PantallaSalaRevision';
@@ -17,13 +18,14 @@ export interface DatosPlumaPanel {
     textosBancoPeriodistas: TextosBancoPeriodistas;
     textosSalaRevision: TextosSalaRevision;
     textosSalaMaquinas: TextosSalaMaquinas;
+    textosEstudioSeo: TextosEstudioSeo;
 }
 
 interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'revision' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'revision' | 'estudio-seo' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
@@ -44,7 +46,11 @@ function leerRuta(): Ruta {
         return 'periodistas';
     }
 
-    return '#/revision' === window.location.hash ? 'revision' : 'portada';
+    if ('#/revision' === window.location.hash) {
+        return 'revision';
+    }
+
+    return '#/estudio-seo' === window.location.hash ? 'estudio-seo' : 'portada';
 }
 
 /**
@@ -135,6 +141,12 @@ export function Aplicacion({ datos }: Props) {
                 >
                     {datos.textosSalaRevision.titulo}
                 </a>
+                <a
+                    href="#/estudio-seo"
+                    className={'estudio-seo' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosEstudioSeo.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -151,6 +163,9 @@ export function Aplicacion({ datos }: Props) {
                 )}
                 {'revision' === ruta && (
                     <PantallaSalaRevision restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaRevision} />
+                )}
+                {'estudio-seo' === ruta && (
+                    <PantallaEstudioSeo restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosEstudioSeo} />
                 )}
                 {'salud' === ruta && (
                     <PantallaSalaMaquinas datos={datos.salud} restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaMaquinas} />

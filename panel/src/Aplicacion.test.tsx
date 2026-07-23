@@ -242,6 +242,27 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
                 confirmarQuitar: '¿Quitar la llave?',
             },
         },
+        textosEstudioSeo: {
+            titulo: 'Estudio SEO y Taxonomía',
+            cargando: 'Cargando…',
+            errorCarga: 'No se pudo cargar el Estudio SEO y Taxonomía.',
+            canibalizacion: {
+                titulo: 'Auditoría de canibalización',
+                vacio: 'ninguna keyword compartida',
+                keyword: 'Keyword principal',
+                piezas: 'Piezas publicadas',
+            },
+            taxonomia: {
+                titulo: 'Salud taxonómica',
+                cuarentenaTitulo: 'En cuarentena',
+                cuarentenaVacio: 'sin cuarentena',
+                vecesUsada: 'veces usada',
+                fusionTitulo: 'Propuestas de fusión',
+                fusionVacio: 'sin propuestas',
+                similitud: 'similitud',
+            },
+            tipo: { categoria: 'categoría', etiqueta: 'etiqueta' },
+        },
         textosMesaEditorial: {
             titulo: 'Mesa Editorial',
             cargando: 'Cargando…',

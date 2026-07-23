@@ -322,6 +322,25 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		);
 	}
 
+	public function obtenerCanibalizacion(): array {
+		$sql = $this->wpdb->prepare(
+			"SELECT keyword_principal, GROUP_CONCAT(id ORDER BY id) AS ids FROM {$this->tabla()} WHERE estado = %s AND keyword_principal IS NOT NULL AND keyword_principal != '' GROUP BY keyword_principal HAVING COUNT(*) > 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			EstadoPieza::Publicada->value
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		return array_map(
+			static fn ( array $fila ): array => array(
+				'keywordPrincipal' => (string) $fila['keyword_principal'],
+				'piezaIds'         => array_map( static fn ( string $id ): int => (int) $id, explode( ',', (string) $fila['ids'] ) ),
+			),
+			$filas ?? array()
+		);
+	}
+
 	/**
 	 * @param array<string, mixed> $fila
 	 */

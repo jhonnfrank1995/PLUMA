@@ -118,4 +118,15 @@ interface RepositorioPiezasInterface {
 	 * @return array{piezasPublicadas: int, verticalesTop: list<string>}
 	 */
 	public function metricasPorPeriodista( int $periodistaId ): array;
+
+	/**
+	 * Auditoría de canibalización agregada (Estudio SEO y Taxonomía, Libro
+	 * Cap. 10.2): TODOS los grupos de Piezas ya PUBLICADAS que comparten la
+	 * misma keyword principal — a diferencia de
+	 * `existePiezaPublicadaConKeyword()`, que solo responde por una Pieza
+	 * concreta, esto lista el panorama completo para el panel.
+	 *
+	 * @return list<array{keywordPrincipal: string, piezaIds: list<int>}>
+	 */
+	public function obtenerCanibalizacion(): array;
 }

@@ -128,6 +128,7 @@ final class PantallaPanel {
 			'textosBancoPeriodistas' => $this->textosBancoPeriodistas(),
 			'textosSalaRevision'     => $this->textosSalaRevision(),
 			'textosSalaMaquinas'     => $this->textosSalaMaquinas(),
+			'textosEstudioSeo'       => $this->textosEstudioSeo(),
 		);
 	}
 
@@ -454,6 +455,36 @@ final class PantallaPanel {
 				'cambiar'         => __( 'Cambiar llave', 'pluma-engine' ),
 				'quitar'          => __( 'Quitar llave', 'pluma-engine' ),
 				'confirmarQuitar' => __( '¿Quitar la llave? Sin ella, la redacción vuelve al modo mecánico de respaldo.', 'pluma-engine' ),
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosEstudioSeo(): array {
+		return array(
+			'titulo'         => __( 'Estudio SEO y Taxonomía', 'pluma-engine' ),
+			'cargando'       => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'     => __( 'No se pudo cargar el Estudio SEO y Taxonomía. Reintenta en unos segundos.', 'pluma-engine' ),
+			'canibalizacion' => array(
+				'titulo'  => __( 'Auditoría de canibalización', 'pluma-engine' ),
+				'vacio'   => __( 'ninguna keyword compartida entre piezas publicadas', 'pluma-engine' ),
+				'keyword' => __( 'Keyword principal', 'pluma-engine' ),
+				'piezas'  => __( 'Piezas publicadas', 'pluma-engine' ),
+			),
+			'taxonomia'      => array(
+				'titulo'           => __( 'Salud taxonómica', 'pluma-engine' ),
+				'cuarentenaTitulo' => __( 'En cuarentena', 'pluma-engine' ),
+				'cuarentenaVacio'  => __( 'sin categorías ni etiquetas en cuarentena', 'pluma-engine' ),
+				'vecesUsada'       => __( 'veces usada', 'pluma-engine' ),
+				'fusionTitulo'     => __( 'Propuestas de fusión', 'pluma-engine' ),
+				'fusionVacio'      => __( 'sin pares casi-duplicados detectados', 'pluma-engine' ),
+				'similitud'        => __( 'similitud', 'pluma-engine' ),
+			),
+			'tipo'           => array(
+				'categoria' => __( 'categoría', 'pluma-engine' ),
+				'etiqueta'  => __( 'etiqueta', 'pluma-engine' ),
 			),
 		);
 	}

@@ -15,7 +15,7 @@ namespace Pluma\Taxonomia;
  */
 final class ReconciliadorVocabulario {
 
-	private const UMBRAL_SIMILITUD_PORCENTAJE = 85.0;
+	public const UMBRAL_SIMILITUD_PORCENTAJE = 85.0;
 
 	/**
 	 * @param list<EntradaVocabulario> $candidatos
@@ -46,7 +46,14 @@ final class ReconciliadorVocabulario {
 		return null;
 	}
 
-	private function similitud( string $a, string $b ): float {
+	/**
+	 * Expuesto (Estudio SEO y Taxonomía, Libro Cap. 10.2: "propuestas de
+	 * fusión") para que el panel detecte pares de etiquetas casi-duplicadas
+	 * que la reconciliación automática no fusionó (porque no comparten slug
+	 * ni alias exacto) — misma función y mismo umbral que `reconciliar()`,
+	 * sin duplicar la lógica de similitud.
+	 */
+	public function similitud( string $a, string $b ): float {
 		similar_text( mb_strtolower( $a ), mb_strtolower( $b ), $porcentaje );
 
 		return $porcentaje;
