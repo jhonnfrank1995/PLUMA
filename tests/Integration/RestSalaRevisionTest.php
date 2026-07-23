@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pluma\Tests\Integration;
 
 use Pluma\Admin\RestSalaRevision;
+use Pluma\Datos\RepositorioBorradores;
 use Pluma\Datos\RepositorioPiezas;
 use Pluma\Datos\RepositorioTendencias;
 use Pluma\Kernel\Activador;
@@ -119,6 +120,30 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 		self::assertSame( EstadoPieza::Optimizada, $pieza->estado );
 	}
 
+	public function test_las_retenidas_incluyen_tendencia_diagnostico_y_lectura_del_borrador(): void {
+		Activador::activar( new RelojSistema(), '0.9.0' );
+		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $adminId );
+
+		$this->registrarRutas();
+
+		$piezaId = $this->crearPiezaEnEstado( EstadoPieza::Retenida );
+
+		global $wpdb;
+		( new RepositorioBorradores( $wpdb ) )->crear( $piezaId, 1, '<p>Texto del borrador retenido.</p>', array(), true, ( new RelojSistema() )->ahora() );
+
+		$peticion  = new WP_REST_Request( 'GET', '/pluma/v1/revision/retenidas' );
+		$respuesta = rest_get_server()->dispatch( $peticion );
+
+		self::assertSame( 200, $respuesta->get_status() );
+
+		$pieza = $this->piezaDe( $respuesta->get_data(), $piezaId );
+		self::assertNotNull( $pieza );
+		self::assertStringContainsString( 'tendencia revision', $pieza['tendenciaTermino'] );
+		self::assertSame( '<p>Texto del borrador retenido.</p>', $pieza['contenido'] );
+		self::assertNull( $pieza['periodista'] );
+	}
+
 	public function test_descartar_una_pieza_inexistente_devuelve_404(): void {
 		Activador::activar( new RelojSistema(), '0.9.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -130,5 +155,19 @@ final class RestSalaRevisionTest extends WP_UnitTestCase {
 		$respuesta = rest_get_server()->dispatch( $peticion );
 
 		self::assertSame( 404, $respuesta->get_status() );
+	}
+
+	/**
+	 * @param list<array<string, mixed>> $piezas
+	 * @return array<string, mixed>|null
+	 */
+	private function piezaDe( array $piezas, int $piezaId ): ?array {
+		foreach ( $piezas as $pieza ) {
+			if ( $pieza['id'] === $piezaId ) {
+				return $pieza;
+			}
+		}
+
+		return null;
 	}
 }

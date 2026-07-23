@@ -969,6 +969,122 @@
     color: var(--pluma-color-retenida);
 }
 
+/* Sala de Revisión */
+
+.pluma-revision__seccion {
+    margin-bottom: calc(var(--pluma-espaciado) * 1.5);
+}
+
+.pluma-revision__vacio {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+}
+
+.pluma-revision__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--pluma-espaciado);
+}
+
+.pluma-revision__tarjeta {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-retenida);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.pluma-revision__contenido-tarjeta header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.pluma-revision__periodista {
+    font-size: 0.8rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-revision__diagnostico h3 {
+    margin: 0 0 0.2rem;
+    font-size: 0.8rem;
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-revision__diagnostico ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.pluma-revision__lectura summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-revision__lectura div {
+    margin-top: 0.4rem;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 0.85rem;
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem;
+}
+
+.pluma-revision__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.pluma-revision__devolver {
+    display: flex;
+    gap: 0.3rem;
+    flex: 1;
+}
+
+.pluma-revision__devolver input {
+    flex: 1;
+    min-width: 0;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+    padding: 0.4rem;
+}
+
+.pluma-revision__boton--descartar {
+    color: var(--pluma-color-retenida);
+    border: 1px solid var(--pluma-color-retenida);
+    background: transparent;
+    border-radius: var(--pluma-radio);
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+}
+
+.pluma-revision__cuenta-regresiva {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--pluma-color-en-revision);
+    margin: 0;
+}
+
+.pluma-revision__cuenta-regresiva--agotada {
+    color: var(--pluma-color-retenida);
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

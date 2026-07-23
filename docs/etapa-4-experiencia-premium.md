@@ -75,9 +75,18 @@ Las 7 pantallas del Cap. 10.2 del Libro de Arquitectura son: **Portada, Sala de 
 
 **Nota de verificación en integración:** en el entorno de pruebas `wp-env` no hay ninguna llave de OpenRouter configurada, así que `POST /periodistas/vista-previa` sigue un camino determinista y sin red real: `ProveedorOpenRouter::completar()` lanza "sin credenciales" antes de cualquier llamada HTTP, y el test de integración verifica exactamente ese 503 — el camino de éxito con red real está cubierto por los tests Unit con un doble de `LenguajeInterface`, no por Integration.
 
+## Porción 5 — Sala de Revisión visual (commit pendiente)
+
+**Qué se agregó:**
+- La bandeja de piezas RETENIDAS con **lectura limpia** (el HTML del último borrador, en un `<details>` desplegable) y **diagnóstico arriba** (motivos + el desglose completo de Compuertas — calidad/riesgo/originalidad), más la **cola de veto** del modo Copiloto con **cuenta regresiva en vivo** (se actualiza cada segundo hasta la hora límite de veto).
+- Tres botones sobre RETENIDAS: **Aprobar**, **Devolver con nota** (con campo de texto), **Descartar** (con confirmación). Un botón **Vetar** sobre la cola de veto que llama al mismo endpoint `descartar` — `GestorSalaRevision::descartar()` ya expiraba la ranura de `pluma_cola_publicacion` cuando hacía falta desde la Etapa 3, sin cambios.
+- `Pluma\Admin\RestSalaRevision` (existente desde la Etapa 3) **enriquecido**, no reescrito: `/revision/retenidas` y `/revision/veto` ahora incluyen `tendenciaTermino`, `periodista`, el `resultadoCompuertas` completo (antes solo `motivos`/`modoEfectivo`) y el `contenido` del último borrador — nuevas dependencias inyectadas (`RepositorioTendenciasInterface`, `RepositorioPeriodistasInterface`, `RepositorioBorradoresInterface`), sin cambio de esquema.
+
+**Decisión de diseño relevante:** las notificaciones por Telegram/Slack con "enlaces de acción directa" (Cap. 10.2) NO se construyeron en esta porción — ya eran una decisión tomada en la Etapa 3 (documentada en el propio código de `NotificadorRevision`: "solo correo por ahora"), pero **nunca había quedado registrada formalmente como deuda** hasta ahora. Registrada como `PLUMA-E3-9` en `docs/deuda.md` al abrir esta porción. Motivo adicional para no abordarla junto con el rediseño visual: un enlace de acción directa clicable desde un correo/Telegram/Slack sin pasar por el login de wp-admin exige diseñar un mecanismo de autenticación de un solo uso que no exista todavía — no es una simple cuestión de formato de mensaje.
+
 ## Pendiente dentro de esta Etapa
 
-Pantallas del Cap. 10.2 sin construir todavía: **Sala de Revisión visual** (la superficie funcional/REST ya existe desde la Etapa 3 — falta el diseño premium del Cap. 10.2 y las notificaciones con enlaces de acción directa vía Telegram/Slack, hoy solo hay correo), **Estudio SEO y Taxonomía**, **Sala de Máquinas completa** (bitácora de ejecuciones, coste por pieza/día, estado de cada API, configuración técnica — hoy solo tiene versiones + estado del cron), y el **onboarding de 5 actos** (Cap. 10.3).
+Pantallas del Cap. 10.2 sin construir todavía: **Estudio SEO y Taxonomía**, **Sala de Máquinas completa** (bitácora de ejecuciones, coste por pieza/día, estado de cada API, configuración técnica — hoy solo tiene versiones + estado del cron), y el **onboarding de 5 actos** (Cap. 10.3).
 
 Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía sin resolver por ninguna de las tres porciones**:
 
@@ -88,6 +97,7 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 | PLUMA-E3-6 | Modo pausa / modo respeto (toggle en el panel) | Sin priorizar todavía |
 | PLUMA-E3-8 | Detección activa de WP-Cron real + guía de instalación por hosting | Portada ya muestra si el cron está configurado (heredado de Etapa 0), pero falta la guía activa |
 | PLUMA-E3-4 (ver `docs/etapa-3-capa-competitiva.md`) | JSON-LD nunca se emite en el frontend — verificado como no pagado pese a que `docs/deuda.md` lo daba por hecho en H3 de la Etapa 3 | Descubierto durante la redacción de este documento, no durante código de la Etapa 4 |
+| PLUMA-E3-9 | Notificaciones por Telegram/Slack con enlaces de acción directa — solo hay correo | Registrada al abrir la porción 5 (Sala de Revisión); exige además diseñar autenticación de un solo uso para los enlaces de acción, no solo el envío del mensaje |
 
 ## A tener en cuenta para otras fases
 
@@ -98,6 +108,7 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 - **Cualquier endpoint REST nuevo que agregue una pantalla del panel a wp-env debe correr también Playwright E2E localmente antes de cerrar la porción** — la porción 1 renombró el slug/id del shell (`pluma-engine-salud`→`pluma-engine-panel`) y esto rompió el smoke E2E de la Etapa 0 en CI (run [30025921402](https://github.com/jhonnfrank1995/PLUMA/actions/runs/30025921402)) porque Playwright no se había corrido en ninguna de las tres primeras porciones, solo PHPUnit/PHPCS/PHPStan/Vitest/Integration wp-env. Corregido en `c45494b`; a partir de la porción 4 el Delivery Guardian de esta etapa incluye `npx playwright test` antes de cerrar.
 - **`PropositoLenguaje::VistaPrevia` es un propósito nuevo, deliberadamente NO premium** — cualquier ajuste futuro al enrutamiento de modelos (`EnrutadorModelos`) debe mantenerlo en la rama económica; moverlo a premium encarecería cada movimiento de un dial en el Estudio de Conducta.
 - **`GeneradorVistaPrevia` construye un `Periodista`/`ConductaVersion` sintéticos en memoria** (id de versión `0`, nunca persistido) solo para reutilizar `CompiladorDirectrices::compilar()` — si `CompiladorDirectrices` cambia su firma o dependencias en el futuro, este generador debe actualizarse en paralelo.
+- **`RestSalaRevision` demuestra el patrón correcto para "enriquecer sin reescribir"**: la porción 5 le agregó tres dependencias nuevas y una función privada compartida (`piezaComoArray()`) reutilizada entre `retenidas()` y `colaDeVeto()`, sin tocar `GestorSalaRevision` ni el grafo del Transicionador — cuando una pantalla ya tiene REST funcional de una etapa anterior, la porción visual casi siempre debe ser "enriquecer la serialización", no "reescribir el backend".
 
 ## Evidencia de gates
 
@@ -107,5 +118,6 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4 y **todavía si
 | 2 — Sala de Tendencias | 299/299 | 21/21 | 52/52 | 24/24 | no corrido | limpio | ✅ verde |
 | 3 — Mesa Editorial | 301/301 | 21/21 | 60/60 | 32/32 | no corrido | limpio | ✅ verde |
 | 4 — Banco de Periodistas | 304/304 | 21/21 | 70/70 | 42/42 | 2/2 | limpio | commiteado, sin push todavía |
+| 5 — Sala de Revisión | 304/304 | 21/21 | 71/71 | 48/48 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin llave de API filtrada en ningún commit (verificado explícitamente antes de cada uno).

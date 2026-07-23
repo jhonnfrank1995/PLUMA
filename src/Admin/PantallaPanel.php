@@ -126,6 +126,7 @@ final class PantallaPanel {
 			'textosTendencias'       => $this->textosTendencias(),
 			'textosMesaEditorial'    => $this->textosMesaEditorial(),
 			'textosBancoPeriodistas' => $this->textosBancoPeriodistas(),
+			'textosSalaRevision'     => $this->textosSalaRevision(),
 		);
 	}
 
@@ -371,6 +372,38 @@ final class PantallaPanel {
 			'guardarCambios'      => __( 'Guardar cambios', 'pluma-engine' ),
 			'clonar'              => __( 'Clonar', 'pluma-engine' ),
 			'nombreDelClon'       => __( 'Nombre del nuevo periodista clonado', 'pluma-engine' ),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosSalaRevision(): array {
+		return array(
+			'titulo'             => __( 'Sala de Revisión', 'pluma-engine' ),
+			'cargando'           => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'         => __( 'No se pudo cargar la Sala de Revisión. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'        => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'retenidas'          => __( 'Retenidas esperando decisión', 'pluma-engine' ),
+			'sinRetenidas'       => __( 'ninguna pieza retenida', 'pluma-engine' ),
+			'colaDeVeto'         => __( 'Cola de veto (modo Copiloto)', 'pluma-engine' ),
+			'sinColaDeVeto'      => __( 'ninguna pieza esperando la ventana de veto', 'pluma-engine' ),
+			'diagnostico'        => __( 'Diagnóstico', 'pluma-engine' ),
+			'sinDiagnostico'     => __( 'sin diagnóstico de compuertas todavía', 'pluma-engine' ),
+			'calidad'            => __( 'Calidad', 'pluma-engine' ),
+			'riesgo'             => __( 'Riesgo', 'pluma-engine' ),
+			'originalidad'       => __( 'Originalidad', 'pluma-engine' ),
+			'sinDetalle'         => __( 'sin motivos registrados', 'pluma-engine' ),
+			'lectura'            => __( 'Leer la pieza', 'pluma-engine' ),
+			'sinContenido'       => __( 'sin borrador todavía', 'pluma-engine' ),
+			'aprobar'            => __( 'Aprobar', 'pluma-engine' ),
+			'devolver'           => __( 'Devolver con nota', 'pluma-engine' ),
+			'notaOpcional'       => __( 'Nota (opcional)', 'pluma-engine' ),
+			'descartar'          => __( 'Descartar', 'pluma-engine' ),
+			'vetar'              => __( 'Vetar (descartar antes de publicar)', 'pluma-engine' ),
+			'tiempoRestante'     => __( 'Tiempo restante para vetar', 'pluma-engine' ),
+			'tiempoAgotado'      => __( 'La ventana de veto ya expiró — se publicará en el próximo tick del motor', 'pluma-engine' ),
+			'confirmarDescartar' => __( '¿Descartar esta Pieza? Esta acción queda registrada en la auditoría y no se puede deshacer.', 'pluma-engine' ),
 		);
 	}
 

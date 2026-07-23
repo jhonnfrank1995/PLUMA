@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Pluma\Admin;
 
+use Pluma\Datos\RepositorioBorradoresInterface;
+use Pluma\Datos\RepositorioPeriodistasInterface;
+use Pluma\Datos\RepositorioTendenciasInterface;
 use Pluma\Kernel\Capacidades;
 use Pluma\Pipeline\EntradaColaDeVeto;
 use Pluma\Pipeline\GestorSalaRevision;
@@ -16,11 +19,10 @@ use WP_REST_Response;
 
 /**
  * Sala de Revisión (Libro Cap. 10.2): "la bandeja de lo que espera decisión
- * humana". Protegido con la capacidad propia `pluma_aprobar_piezas`
- * (CLAUDE.md § Estándares WordPress) — nunca `manage_options`.
- *
- * El panel visual pulido (Cap. 10) es Etapa 4; esta es la superficie
- * funcional (REST) que sostiene el criterio de salida de la Etapa 3.
+ * humana... diseñada para decidir rápido: lectura limpia, diagnóstico
+ * arriba, tres botones". Protegido con la capacidad propia
+ * `pluma_aprobar_piezas` (CLAUDE.md § Estándares WordPress) — nunca
+ * `manage_options`.
  */
 final class RestSalaRevision {
 
@@ -32,6 +34,9 @@ final class RestSalaRevision {
 
 	public function __construct(
 		private readonly GestorSalaRevision $gestor,
+		private readonly RepositorioTendenciasInterface $tendencias,
+		private readonly RepositorioPeriodistasInterface $periodistas,
+		private readonly RepositorioBorradoresInterface $borradores,
 		private readonly int $ventanaVetoHoras,
 	) {
 	}
@@ -125,10 +130,12 @@ final class RestSalaRevision {
 
 	public function colaDeVeto(): WP_REST_Response {
 		$entradas = array_map(
-			static fn ( EntradaColaDeVeto $entrada ): array => array(
-				'piezaId'        => $entrada->pieza->id,
-				'horaProgramada' => $entrada->ranura->horaProgramada->format( DATE_ATOM ),
-				'horaLimiteVeto' => $entrada->horaLimiteVeto->format( DATE_ATOM ),
+			fn ( EntradaColaDeVeto $entrada ): array => array_merge(
+				$this->piezaComoArray( $entrada->pieza ),
+				array(
+					'horaProgramada' => $entrada->ranura->horaProgramada->format( DATE_ATOM ),
+					'horaLimiteVeto' => $entrada->horaLimiteVeto->format( DATE_ATOM ),
+				)
 			),
 			$this->gestor->obtenerColaDeVeto( $this->ventanaVetoHoras )
 		);
@@ -188,12 +195,22 @@ final class RestSalaRevision {
 	 * @return array<string, mixed>
 	 */
 	private function piezaComoArray( Pieza $pieza ): array {
+		$periodista = null !== $pieza->periodistaId ? $this->periodistas->obtenerPorId( $pieza->periodistaId ) : null;
+		$borrador   = $this->borradores->obtenerUltimo( $pieza->id );
+
 		return array(
-			'id'            => $pieza->id,
-			'tendenciaId'   => $pieza->tendenciaId,
-			'actualizadaEn' => $pieza->actualizadaEn->format( DATE_ATOM ),
-			'motivos'       => $pieza->resultadoCompuertas->motivos ?? array(),
-			'modoEfectivo'  => $pieza->resultadoCompuertas->modoEfectivo->value ?? null,
+			'id'                  => $pieza->id,
+			'tendenciaId'         => $pieza->tendenciaId,
+			'tendenciaTermino'    => $this->tendencias->obtenerPorId( $pieza->tendenciaId )['termino'] ?? null,
+			'periodista'          => null !== $periodista ? array(
+				'id'     => $periodista->id,
+				'nombre' => $periodista->nombre,
+			) : null,
+			'actualizadaEn'       => $pieza->actualizadaEn->format( DATE_ATOM ),
+			'motivos'             => $pieza->resultadoCompuertas->motivos ?? array(),
+			'modoEfectivo'        => $pieza->resultadoCompuertas->modoEfectivo->value ?? null,
+			'resultadoCompuertas' => $pieza->resultadoCompuertas?->aArray(),
+			'contenido'           => $borrador?->contenido,
 		);
 	}
 }

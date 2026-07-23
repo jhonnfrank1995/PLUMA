@@ -410,6 +410,9 @@ final class Nucleo {
 
 				return new RestSalaRevision(
 					$c->obtener( GestorSalaRevision::class ),
+					$c->obtener( RepositorioTendenciasInterface::class ),
+					$c->obtener( RepositorioPeriodistasInterface::class ),
+					$c->obtener( RepositorioBorradoresInterface::class ),
 					is_numeric( $ventanaVetoHoras ) ? (int) $ventanaVetoHoras : 2
 				);
 			}

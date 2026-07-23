@@ -3,6 +3,7 @@ import { BarraEstado } from './BarraEstado';
 import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './PantallaBancoPeriodistas';
 import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
+import { PantallaSalaRevision, type TextosSalaRevision } from './PantallaSalaRevision';
 import { PantallaSalud, type DatosSalud } from './PantallaSalud';
 import { PantallaTendencias, type TextosTendencias } from './PantallaTendencias';
 
@@ -14,13 +15,14 @@ export interface DatosPlumaPanel {
     textosTendencias: TextosTendencias;
     textosMesaEditorial: TextosMesaEditorial;
     textosBancoPeriodistas: TextosBancoPeriodistas;
+    textosSalaRevision: TextosSalaRevision;
 }
 
 interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'revision' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
@@ -37,7 +39,11 @@ function leerRuta(): Ruta {
         return 'mesa-editorial';
     }
 
-    return '#/periodistas' === window.location.hash ? 'periodistas' : 'portada';
+    if ('#/periodistas' === window.location.hash) {
+        return 'periodistas';
+    }
+
+    return '#/revision' === window.location.hash ? 'revision' : 'portada';
 }
 
 /**
@@ -122,6 +128,12 @@ export function Aplicacion({ datos }: Props) {
                 >
                     {datos.textosBancoPeriodistas.titulo}
                 </a>
+                <a
+                    href="#/revision"
+                    className={'revision' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosSalaRevision.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -135,6 +147,9 @@ export function Aplicacion({ datos }: Props) {
                 )}
                 {'periodistas' === ruta && (
                     <PantallaBancoPeriodistas restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosBancoPeriodistas} />
+                )}
+                {'revision' === ruta && (
+                    <PantallaSalaRevision restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaRevision} />
                 )}
                 {'salud' === ruta && <PantallaSalud datos={datos.salud} />}
             </main>
