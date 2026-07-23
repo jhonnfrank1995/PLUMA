@@ -71,7 +71,7 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 	}
 
 	public function test_administrador_ve_las_tarjetas_con_desglose_y_cobertura(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		[$tendenciaId] = $this->crearTendenciaConPieza();
@@ -91,7 +91,7 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 	}
 
 	public function test_vigilar_descarta_la_pieza_y_la_tarjeta_queda_vigilada(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		[$tendenciaId, $piezaId] = $this->crearTendenciaConPieza();
@@ -110,7 +110,7 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 	}
 
 	public function test_cubrir_una_tendencia_vigilada_crea_una_pieza_nueva_prioritaria(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		[$tendenciaId, $piezaOriginalId] = $this->crearTendenciaConPieza();
@@ -140,7 +140,7 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 	}
 
 	public function test_ignorar_saca_la_tarjeta_de_la_sala(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		[$tendenciaId] = $this->crearTendenciaConPieza();
@@ -155,7 +155,7 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 	}
 
 	public function test_una_tendencia_inexistente_devuelve_404(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$this->registrarRutas();

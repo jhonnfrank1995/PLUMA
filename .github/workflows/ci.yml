@@ -181,7 +181,7 @@ jobs:
 
       - name: bin/build-zip (GOVERNANCE §5.2 — build reproducible)
         working-directory: ${{ env.PLUGIN_DIR }}
-        run: bash bin/build-zip "0.8.0-ci.${{ github.run_number }}"
+        run: bash bin/build-zip "0.9.0-ci.${{ github.run_number }}"
 
       - name: Descomprimir el ZIP construido (fidelidad al artefacto real, no a la carpeta pre-zip)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -209,7 +209,7 @@ jobs:
         working-directory: ${{ env.PLUGIN_DIR }}
         run: |
           npx wp-env run cli -- wp eval 'var_dump( get_role( "administrator" )->has_cap( "pluma_configurar_motor" ) );' | grep -q 'bool(true)'
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.8.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
 
       - name: Instalar Playwright (navegadores)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -223,7 +223,7 @@ jobs:
         working-directory: ${{ env.PLUGIN_DIR }}
         run: |
           npx wp-env run cli -- wp plugin deactivate pluma-engine
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.8.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
 
       - name: Smoke — desinstalar conserva datos por defecto (uninstall.php)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -233,7 +233,7 @@ jobs:
           # (WP_Filesystem en modo 'direct' es un problema de permisos del
           # entorno, no del plugin).
           npx wp-env run cli -- wp plugin uninstall pluma-engine --skip-delete
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.8.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
 
       - name: Subir reporte de Playwright si algo falló
         if: failure()

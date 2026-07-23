@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BarraEstado } from './BarraEstado';
+import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalud, type DatosSalud } from './PantallaSalud';
 import { PantallaTendencias, type TextosTendencias } from './PantallaTendencias';
@@ -10,13 +11,14 @@ export interface DatosPlumaPanel {
     salud: DatosSalud;
     textosPortada: TextosPortada;
     textosTendencias: TextosTendencias;
+    textosMesaEditorial: TextosMesaEditorial;
 }
 
 interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'tendencias' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
@@ -25,7 +27,11 @@ function leerRuta(): Ruta {
         return 'salud';
     }
 
-    return '#/tendencias' === window.location.hash ? 'tendencias' : 'portada';
+    if ('#/tendencias' === window.location.hash) {
+        return 'tendencias';
+    }
+
+    return '#/mesa-editorial' === window.location.hash ? 'mesa-editorial' : 'portada';
 }
 
 /**
@@ -98,6 +104,12 @@ export function Aplicacion({ datos }: Props) {
                 >
                     {datos.textosTendencias.titulo}
                 </a>
+                <a
+                    href="#/mesa-editorial"
+                    className={'mesa-editorial' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosMesaEditorial.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -106,6 +118,9 @@ export function Aplicacion({ datos }: Props) {
             <main className="pluma-panel__contenido">
                 {'portada' === ruta && <PantallaPortada datos={portada} error={error} textos={datos.textosPortada} />}
                 {'tendencias' === ruta && <PantallaTendencias restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosTendencias} />}
+                {'mesa-editorial' === ruta && (
+                    <PantallaMesaEditorial restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosMesaEditorial} />
+                )}
                 {'salud' === ruta && <PantallaSalud datos={datos.salud} />}
             </main>
         </div>

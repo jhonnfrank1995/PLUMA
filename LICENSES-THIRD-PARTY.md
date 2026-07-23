@@ -10,17 +10,18 @@ Se regenera con `composer licenses --no-dev` (PHP) y `npm ls --omit=dev`
 (JS) en cada release, como parte del checklist del sub-agente RELEASE
 (AGENTS.md).
 
-## Estado — Etapa 0 (Cimientos)
+## Estado — Etapa 4 (La experiencia premium)
 
-A la fecha de este commit, PLUMA Engine **no tiene ninguna dependencia de
-producción PHP ni JS**: el Kernel, el ciclo de vida y la pantalla de Salud
-están escritos exclusivamente sobre la API de WordPress y la librería
-estándar de PHP/React. `vendor/` en el ZIP distribuido no contiene paquetes
-de terceros.
+PLUMA Engine sigue sin dependencias de producción PHP: `vendor/` en el ZIP
+distribuido no contiene paquetes de terceros para la lógica del plugin.
 
-Esta tabla se completará en cuanto una Etapa futura (Investigador, Proveedor
-de Lenguaje, Motor SEO, etc.) introduzca una dependencia real de producción.
+El panel React (`build/panel/`, el único bundle JS que se distribuye — se
+carga solo en la pantalla propia del plugin, GOVERNANCE §pl-wp-core) sí
+empaqueta una dependencia real desde la Mesa Editorial (Cap. 10.2, vista de
+diff entre ciclos de borrador):
 
 | Paquete | Versión | Licencia | Uso |
 |---|---|---|---|
-| — | — | — | (ninguna dependencia de producción todavía) |
+| `react` | ^18.3.1 | MIT | Motor de la interfaz del panel. |
+| `react-dom` | ^18.3.1 | MIT | Renderizado de React sobre el DOM del panel. |
+| `diff` (jsdiff) | ^9.0.0 | BSD-3-Clause | Diff línea a línea entre ciclos de un borrador en la Mesa Editorial. |

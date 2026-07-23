@@ -439,6 +439,220 @@
     color: var(--pluma-color-texto-tenue);
 }
 
+/* Mesa Editorial */
+
+.pluma-mesa__kanban {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.pluma-mesa__columna {
+    flex: 0 0 220px;
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: 0.6rem;
+}
+
+.pluma-mesa__columna h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--pluma-color-texto-tenue);
+    margin: 0 0 0.5rem;
+}
+
+.pluma-mesa__columna ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pluma-mesa__tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 100%;
+    text-align: left;
+    background: var(--pluma-color-fondo);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--pluma-color-texto);
+}
+
+.pluma-mesa__tarjeta-periodista,
+.pluma-mesa__tarjeta-tesis {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.75rem;
+}
+
+.pluma-mesa__vacio {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.8rem;
+}
+
+.pluma-mesa__panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(560px, 100%);
+    background: var(--pluma-color-superficie);
+    border-left: 1px solid var(--pluma-color-borde);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    padding: var(--pluma-espaciado);
+    z-index: 20;
+}
+
+.pluma-mesa__panel-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+}
+
+.pluma-mesa__seccion {
+    border-top: 1px solid var(--pluma-color-borde);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.pluma-mesa__seccion dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.pluma-mesa__seccion dt {
+    font-size: 0.75rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-mesa__seccion dd {
+    margin: 0;
+}
+
+.pluma-mesa__hechos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pluma-mesa__hecho {
+    border-left: 3px solid var(--pluma-color-neutro);
+    padding-left: 0.6rem;
+    font-size: 0.85rem;
+}
+
+.pluma-mesa__hecho--verificado {
+    border-left-color: var(--pluma-color-publicada);
+}
+
+.pluma-mesa__hecho--disputado {
+    border-left-color: var(--pluma-color-retenida);
+}
+
+.pluma-mesa__hecho-nivel {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-mesa__compuertas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.6rem;
+}
+
+.pluma-mesa__compuertas h4 {
+    margin: 0 0 0.15rem;
+    font-size: 0.78rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-mesa__compuertas p {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.pluma-mesa__motivos {
+    grid-column: 1 / -1;
+}
+
+.pluma-mesa__contenido,
+.pluma-mesa__diff {
+    white-space: pre-wrap;
+    font-family: var(--pluma-fuente-datos);
+    font-size: 0.85rem;
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.6rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.pluma-mesa__diff-anadido {
+    background: color-mix(in srgb, var(--pluma-color-publicada) 20%, transparent);
+}
+
+.pluma-mesa__diff-quitado {
+    background: color-mix(in srgb, var(--pluma-color-retenida) 20%, transparent);
+    text-decoration: line-through;
+}
+
+.pluma-mesa__edicion textarea {
+    width: 100%;
+    font-family: var(--pluma-fuente-datos);
+    font-size: 0.85rem;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+    padding: 0.5rem;
+}
+
+.pluma-mesa__edicion-botones {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+}
+
+.pluma-mesa__acciones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.pluma-mesa__boton--aprobar {
+    background: var(--pluma-color-publicada);
+    color: #fff;
+    border: none;
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.pluma-mesa__boton--descartar {
+    background: transparent;
+    border: 1px solid var(--pluma-color-retenida);
+    color: var(--pluma-color-retenida);
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

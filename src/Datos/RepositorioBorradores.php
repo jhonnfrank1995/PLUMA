@@ -29,7 +29,8 @@ final class RepositorioBorradores implements RepositorioBorradoresInterface {
 		string $contenido,
 		array $anotaciones,
 		bool $aprobadoPorCorrector,
-		DateTimeImmutable $ahora
+		DateTimeImmutable $ahora,
+		bool $editadoManualmente = false
 	): int {
 		$this->wpdb->insert(
 			$this->tabla(),
@@ -39,9 +40,10 @@ final class RepositorioBorradores implements RepositorioBorradoresInterface {
 				'contenido'              => $contenido,
 				'anotaciones_corrector'  => wp_json_encode( array_map( static fn ( AnotacionCorrector $a ): array => $a->aArray(), $anotaciones ) ),
 				'aprobado_por_corrector' => $aprobadoPorCorrector ? 1 : 0,
+				'editado_manualmente'    => $editadoManualmente ? 1 : 0,
 				'creado_en'              => $ahora->format( 'Y-m-d H:i:s' ),
 			),
-			array( '%d', '%d', '%s', '%s', '%d', '%s' )
+			array( '%d', '%d', '%s', '%s', '%d', '%d', '%s' )
 		);
 
 		return (int) $this->wpdb->insert_id;
@@ -81,7 +83,8 @@ final class RepositorioBorradores implements RepositorioBorradoresInterface {
 			(string) $fila['contenido'],
 			array_map( static fn ( array $a ): AnotacionCorrector => AnotacionCorrector::desdeArray( $a ), $anotacionesJson ),
 			(bool) $fila['aprobado_por_corrector'],
-			new DateTimeImmutable( (string) $fila['creado_en'] )
+			new DateTimeImmutable( (string) $fila['creado_en'] ),
+			(bool) ( $fila['editado_manualmente'] ?? false )
 		);
 	}
 }

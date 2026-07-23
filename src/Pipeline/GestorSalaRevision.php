@@ -62,11 +62,17 @@ final class GestorSalaRevision {
 	 * humano" — el humano es la autoridad final de este caso, no un atajo
 	 * automático alrededor de las Compuertas).
 	 *
+	 * `$origen` identifica la pantalla que disparó la acción en la
+	 * auditoría (Sala de Revisión o Mesa Editorial, Cap. 10.2: "forzar
+	 * aprobación" ahí es literalmente este mismo botón, limitado a
+	 * RETENIDA — el grafo del Transicionador ya rechaza cualquier otro
+	 * origen con `TransicionInvalidaException`).
+	 *
 	 * @throws PiezaNoEncontradaException
 	 * @throws TransicionInvalidaException
 	 */
-	public function aprobar( int $piezaId ): void {
-		$this->transicionador->transitar( $piezaId, EstadoPieza::Aprobada, 'Aprobada manualmente en la Sala de Revisión.', 'editor' );
+	public function aprobar( int $piezaId, string $origen = 'la Sala de Revisión' ): void {
+		$this->transicionador->transitar( $piezaId, EstadoPieza::Aprobada, "Aprobada manualmente desde {$origen}.", 'editor' );
 	}
 
 	/**
@@ -93,7 +99,7 @@ final class GestorSalaRevision {
 	 * @throws PiezaNoEncontradaException
 	 * @throws TransicionInvalidaException
 	 */
-	public function descartar( int $piezaId ): void {
+	public function descartar( int $piezaId, string $origen = 'la Sala de Revisión' ): void {
 		$pieza = $this->piezas->obtenerPorId( $piezaId );
 
 		if ( null === $pieza ) {
@@ -103,7 +109,7 @@ final class GestorSalaRevision {
 
 		$estabaProgramada = EstadoPieza::Programada === $pieza->estado;
 
-		$this->transicionador->transitar( $piezaId, EstadoPieza::Descartada, 'Descartada manualmente en la Sala de Revisión.', 'editor' );
+		$this->transicionador->transitar( $piezaId, EstadoPieza::Descartada, "Descartada manualmente desde {$origen}.", 'editor' );
 
 		if ( $estabaProgramada ) {
 			$ranura = $this->colaPublicacion->obtenerProgramadaPorPieza( $piezaId );

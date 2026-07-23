@@ -23,6 +23,13 @@ final readonly class Borrador {
 		public array $anotaciones,
 		public bool $aprobadoPorCorrector,
 		public DateTimeImmutable $creadoEn,
+		/**
+		 * Ciclo escrito a mano por un editor desde la Mesa Editorial (Libro
+		 * Cap. 10.2), no por el Corrector Interno — distinción de auditoría:
+		 * `aprobadoPorCorrector` en un ciclo manual significa "un humano lo
+		 * dio por bueno", no que la IA lo revisó.
+		 */
+		public bool $editadoManualmente = false,
 	) {
 	}
 

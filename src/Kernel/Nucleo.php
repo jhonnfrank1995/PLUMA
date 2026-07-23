@@ -8,6 +8,7 @@ use Pluma\Admin\NotificadorRevision;
 use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestOrquestador;
+use Pluma\Admin\RestMesaEditorial;
 use Pluma\Admin\RestPortada;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Admin\RestSalaTendencias;
@@ -428,6 +429,18 @@ final class Nucleo {
 		);
 
 		$this->contenedor->registrar(
+			RestMesaEditorial::class,
+			fn ( Contenedor $c ): RestMesaEditorial => new RestMesaEditorial(
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioTendenciasInterface::class ),
+				$c->obtener( RepositorioPeriodistasInterface::class ),
+				$c->obtener( RepositorioBorradoresInterface::class ),
+				$c->obtener( GestorSalaRevision::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+
+		$this->contenedor->registrar(
 			RestPortada::class,
 			fn ( Contenedor $c ): RestPortada => new RestPortada(
 				$c->obtener( RepositorioPiezasInterface::class ),
@@ -479,5 +492,6 @@ final class Nucleo {
 		$this->contenedor->obtener( NotificadorRevision::class )->registrar();
 		$this->contenedor->obtener( RestPortada::class )->registrar();
 		$this->contenedor->obtener( RestSalaTendencias::class )->registrar();
+		$this->contenedor->obtener( RestMesaEditorial::class )->registrar();
 	}
 }

@@ -119,11 +119,12 @@ final class PantallaPanel {
 	 */
 	private function datosParaElPanel(): array {
 		return array(
-			'restUrl'          => esc_url_raw( rest_url() ),
-			'nonce'            => wp_create_nonce( 'wp_rest' ),
-			'salud'            => $this->datosSalud(),
-			'textosPortada'    => $this->textosPortada(),
-			'textosTendencias' => $this->textosTendencias(),
+			'restUrl'             => esc_url_raw( rest_url() ),
+			'nonce'               => wp_create_nonce( 'wp_rest' ),
+			'salud'               => $this->datosSalud(),
+			'textosPortada'       => $this->textosPortada(),
+			'textosTendencias'    => $this->textosTendencias(),
+			'textosMesaEditorial' => $this->textosMesaEditorial(),
 		);
 	}
 
@@ -224,6 +225,53 @@ final class PantallaPanel {
 			'cubrirAhora'     => __( 'Cubrir ahora', 'pluma-engine' ),
 			'ignorar'         => __( 'Ignorar', 'pluma-engine' ),
 			'vigilar'         => __( 'Vigilar', 'pluma-engine' ),
+		);
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function textosMesaEditorial(): array {
+		return array(
+			'titulo'               => __( 'Mesa Editorial', 'pluma-engine' ),
+			'cargando'             => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'           => __( 'No se pudo cargar la Mesa Editorial. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'          => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'columnaVacia'         => __( 'sin piezas en este estado', 'pluma-engine' ),
+			'sinPeriodista'        => __( 'sin periodista asignado', 'pluma-engine' ),
+			'sinTesis'             => __( 'sin tesis todavía', 'pluma-engine' ),
+			'cerrar'               => __( 'Cerrar', 'pluma-engine' ),
+			'expediente'           => __( 'Expediente', 'pluma-engine' ),
+			'sinExpediente'        => __( 'sin expediente todavía', 'pluma-engine' ),
+			'nivelVerificado'      => __( 'Verificado', 'pluma-engine' ),
+			'nivelAtribuido'       => __( 'Atribuido', 'pluma-engine' ),
+			'nivelDisputado'       => __( 'Disputado', 'pluma-engine' ),
+			'ficha'                => __( 'Ficha de Decisión Editorial', 'pluma-engine' ),
+			'sinFicha'             => __( 'sin ficha de decisión editorial todavía', 'pluma-engine' ),
+			'tesisElegida'         => __( 'Tesis elegida', 'pluma-engine' ),
+			'tonoDominante'        => __( 'Tono dominante', 'pluma-engine' ),
+			'tonoApoyo'            => __( 'Tono de apoyo', 'pluma-engine' ),
+			'compuertas'           => __( 'Compuertas', 'pluma-engine' ),
+			'sinCompuertas'        => __( 'sin evaluación de compuertas todavía', 'pluma-engine' ),
+			'calidad'              => __( 'Calidad', 'pluma-engine' ),
+			'riesgo'               => __( 'Riesgo', 'pluma-engine' ),
+			'originalidad'         => __( 'Originalidad', 'pluma-engine' ),
+			'motivos'              => __( 'Motivos', 'pluma-engine' ),
+			'borradores'           => __( 'Borradores', 'pluma-engine' ),
+			'sinBorradores'        => __( 'sin borradores todavía', 'pluma-engine' ),
+			'cicloAnterior'        => __( 'Ciclo anterior', 'pluma-engine' ),
+			'cicloActual'          => __( 'Ciclo', 'pluma-engine' ),
+			'editadoManualmente'   => __( 'editado manualmente por un editor', 'pluma-engine' ),
+			'aprobadoPorCorrector' => __( 'aprobado por el Corrector Interno', 'pluma-engine' ),
+			'editar'               => __( 'Editar', 'pluma-engine' ),
+			'guardarEdicion'       => __( 'Guardar edición', 'pluma-engine' ),
+			'cancelar'             => __( 'Cancelar', 'pluma-engine' ),
+			'contenidoVacio'       => __( 'El contenido no puede estar vacío.', 'pluma-engine' ),
+			'reasignar'            => __( 'Periodista asignado', 'pluma-engine' ),
+			'reasignarBoton'       => __( 'Reasignar', 'pluma-engine' ),
+			'aprobar'              => __( 'Forzar aprobación', 'pluma-engine' ),
+			'descartar'            => __( 'Descartar', 'pluma-engine' ),
+			'confirmarDescartar'   => __( '¿Descartar esta Pieza? Esta acción queda registrada en la auditoría y no se puede deshacer.', 'pluma-engine' ),
 		);
 	}
 

@@ -78,7 +78,7 @@ final class OrquestadorTest extends WP_UnitTestCase {
 	}
 
 	public function test_endpoint_del_cron_rechaza_token_invalido(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 
 		$nucleo      = new Nucleo();
 		$orquestador = $nucleo->contenedor()->obtener( Orquestador::class );
@@ -94,7 +94,7 @@ final class OrquestadorTest extends WP_UnitTestCase {
 	}
 
 	public function test_endpoint_del_cron_acepta_el_token_correcto_y_ejecuta_un_tick(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		$token = get_option( Activador::OPCION_MOTOR_TOKEN );
 		self::assertIsString( $token );
 

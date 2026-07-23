@@ -22,6 +22,7 @@ use Pluma\Pipeline\Pieza;
 use Pluma\Pipeline\PiezaNoEncontradaException;
 use Pluma\Pipeline\RanuraPublicacion;
 use Pluma\Pipeline\Transicionador;
+use Pluma\Pipeline\TransicionInvalidaException;
 use Pluma\Tests\Unit\CasoDePruebaUnitario;
 use Pluma\Tests\Unit\Dobles\RelojFijo;
 
@@ -108,6 +109,40 @@ final class GestorSalaRevisionTest extends CasoDePruebaUnitario {
 		$gestor->aprobar( 4 );
 
 		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_aprobar_desde_la_mesa_editorial_deja_el_origen_en_el_motivo_de_auditoria(): void {
+		Functions\when( 'do_action' )->justReturn( null );
+
+		$pieza = $this->pieza( 41, EstadoPieza::Retenida );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+		$piezas->allows( 'obtenerPorId' )->with( 41 )->andReturn( $pieza );
+		$piezas->expects( 'actualizarEstado' )->with( 41, EstadoPieza::Retenida, EstadoPieza::Aprobada, Mockery::any() )->andReturn( true );
+
+		$auditoria = Mockery::mock( RepositorioAuditoriaInterface::class );
+		$auditoria->expects( 'registrar' )
+			->with( 41, EstadoPieza::Retenida, EstadoPieza::Aprobada, Mockery::any(), Mockery::on( static fn ( string $motivo ): bool => str_contains( $motivo, 'la Mesa Editorial' ) ), Mockery::any() );
+
+		$gestor = new GestorSalaRevision( $piezas, Mockery::mock( RepositorioColaPublicacionInterface::class ), new Transicionador( $piezas, $auditoria, new RelojFijo() ) );
+
+		$gestor->aprobar( 41, 'la Mesa Editorial' );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_aprobar_una_pieza_no_retenida_lanza_transicion_invalida_sin_importar_el_origen(): void {
+		$pieza = $this->pieza( 42, EstadoPieza::Detectada );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+		$piezas->allows( 'obtenerPorId' )->with( 42 )->andReturn( $pieza );
+		$piezas->expects( 'actualizarEstado' )->never();
+
+		$gestor = new GestorSalaRevision( $piezas, Mockery::mock( RepositorioColaPublicacionInterface::class ), new Transicionador( $piezas, Mockery::mock( RepositorioAuditoriaInterface::class ), new RelojFijo() ) );
+
+		$this->expectException( TransicionInvalidaException::class );
+
+		$gestor->aprobar( 42, 'la Mesa Editorial' );
 	}
 
 	public function test_devolver_transiciona_de_retenida_a_optimizada_con_la_nota_en_el_motivo(): void {

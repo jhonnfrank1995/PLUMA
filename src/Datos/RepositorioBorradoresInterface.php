@@ -24,7 +24,8 @@ interface RepositorioBorradoresInterface {
 		string $contenido,
 		array $anotaciones,
 		bool $aprobadoPorCorrector,
-		DateTimeImmutable $ahora
+		DateTimeImmutable $ahora,
+		bool $editadoManualmente = false
 	): int;
 
 	/**

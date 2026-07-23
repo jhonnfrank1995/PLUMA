@@ -121,6 +121,8 @@ final class Esquema {
                 KEY periodista_tema (periodista_id, tema(100)),
                 KEY pieza_id (pieza_id)
             ) {$charset};",
+			// Etapa 4 añade editado_manualmente (Mesa Editorial, Cap. 10.2:
+			// distingue un ciclo del Corrector Interno de una edición humana).
 			"CREATE TABLE {$prefijo}borradores (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 pieza_id BIGINT UNSIGNED NOT NULL,
@@ -128,6 +130,7 @@ final class Esquema {
                 contenido LONGTEXT NOT NULL,
                 anotaciones_corrector LONGTEXT NULL,
                 aprobado_por_corrector TINYINT(1) NOT NULL DEFAULT 0,
+                editado_manualmente TINYINT(1) NOT NULL DEFAULT 0,
                 creado_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY pieza_id (pieza_id)

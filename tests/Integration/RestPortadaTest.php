@@ -41,7 +41,7 @@ final class RestPortadaTest extends WP_UnitTestCase {
 	}
 
 	public function test_administrador_obtiene_la_foto_del_dia(): void {
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 		$adminId = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $adminId );
 

@@ -31,7 +31,7 @@ final class RepositorioVocabularioTest extends WP_UnitTestCase {
 
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
-		Activador::activar( new RelojSistema(), '0.8.0' );
+		Activador::activar( new RelojSistema(), '0.9.0' );
 	}
 
 	public function test_crear_y_obtener_por_tipo_y_slug(): void {
