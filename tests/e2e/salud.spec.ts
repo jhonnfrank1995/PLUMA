@@ -4,6 +4,10 @@ import { expect, test } from '@playwright/test';
  * Smoke E2E de la Etapa 0 (PLAN-MAESTRO): el ZIP recién instalado y activado
  * expone la Sala de Máquinas — Salud del sistema, y un administrador
  * autenticado la ve con datos reales, no un placeholder.
+ *
+ * Desde la Etapa 4 (porción 1) la página única del panel es `PantallaPanel`
+ * (antes `PantallaSalud`): arranca en la Portada por defecto y la Sala de
+ * Máquinas vive en la ruta por hash `#/salud` del shell React.
  */
 
 async function iniciarSesionComoAdministrador(page: import('@playwright/test').Page): Promise<void> {
@@ -18,9 +22,9 @@ test.describe('Sala de Máquinas — Salud del sistema', () => {
     test('un administrador ve el estado real del entorno tras activar el plugin', async ({ page }) => {
         await iniciarSesionComoAdministrador(page);
 
-        await page.goto('/wp-admin/admin.php?page=pluma-engine-salud');
+        await page.goto('/wp-admin/admin.php?page=pluma-engine-panel#/salud');
 
-        const raiz = page.locator('#pluma-salud-root');
+        const raiz = page.locator('#pluma-panel-root');
         await expect(raiz).toBeVisible();
 
         // Acotado al contenedor de la pantalla: "WordPress"/"PHP" también
@@ -35,7 +39,7 @@ test.describe('Sala de Máquinas — Salud del sistema', () => {
     test('un usuario sin la capacidad pluma_configurar_motor no ve la pantalla', async ({ page, request }) => {
         // Verificación de la compuerta de capacidad (AGENTS.md § SUB-AGENTE SEGURIDAD):
         // la pantalla nunca cuelga de manage_options ni queda accesible a cualquier rol.
-        const respuesta = await request.get('/wp-admin/admin.php?page=pluma-engine-salud');
+        const respuesta = await request.get('/wp-admin/admin.php?page=pluma-engine-panel');
 
         // Sin sesión autenticada, WordPress redirige a wp-login.php (302) en
         // vez de renderizar la pantalla — la capacidad protege el endpoint.
