@@ -228,8 +228,19 @@ final class RestPeriodistas {
 			return new WP_Error( 'pluma_plantilla_invalida', __( 'Plantilla desconocida.', 'pluma-engine' ), array( 'status' => 400 ) );
 		}
 
-		$plantilla = call_user_func( self::PLANTILLAS[ $slug ] );
-		$nombre    = $request->get_param( 'nombre' );
+		$plantilla      = call_user_func( self::PLANTILLAS[ $slug ] );
+		$nombre         = $request->get_param( 'nombre' );
+		$lineaEditorial = $request->get_param( 'lineaEditorial' );
+		$reglas         = is_string( $lineaEditorial ) && '' !== trim( $lineaEditorial )
+			? new ReglasConducta(
+				sanitize_textarea_field( $lineaEditorial ),
+				$plantilla->reglas->lineasRojas,
+				$plantilla->reglas->muletillas,
+				$plantilla->reglas->vocabularioProhibido,
+				$plantilla->reglas->tratamientoLector,
+				$plantilla->reglas->estiloPreguntaFinal
+			)
+			: $plantilla->reglas;
 
 		$id = $this->periodistas->crear(
 			is_string( $nombre ) && '' !== trim( $nombre ) ? sanitize_text_field( $nombre ) : $plantilla->nombre,
@@ -239,7 +250,7 @@ final class RestPeriodistas {
 			$plantilla->especialidades,
 			$plantilla->estado,
 			$plantilla->diales,
-			$plantilla->reglas,
+			$reglas,
 			$plantilla->matrizTonos,
 			$this->reloj->ahora()
 		);

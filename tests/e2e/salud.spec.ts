@@ -8,6 +8,12 @@ import { expect, test } from '@playwright/test';
  * Desde la Etapa 4 (porción 1) la página única del panel es `PantallaPanel`
  * (antes `PantallaSalud`): arranca en la Portada por defecto y la Sala de
  * Máquinas vive en la ruta por hash `#/salud` del shell React.
+ *
+ * Desde la porción 8 (onboarding de 5 actos), una instalación recién
+ * activada muestra el asistente ANTES que cualquier pantalla del shell
+ * (`pluma_onboarding_completado` nace en `false`) — este smoke lo salta
+ * explícitamente con "Saltar por ahora" para llegar a la Sala de Máquinas,
+ * reflejando el flujo real de un administrador que ya conoce el sistema.
  */
 
 async function iniciarSesionComoAdministrador(page: import('@playwright/test').Page): Promise<void> {
@@ -26,6 +32,11 @@ test.describe('Sala de Máquinas — Salud del sistema', () => {
 
         const raiz = page.locator('#pluma-panel-root');
         await expect(raiz).toBeVisible();
+
+        const saltarOnboarding = raiz.getByRole('button', { name: 'Saltar por ahora' });
+        if (await saltarOnboarding.isVisible()) {
+            await saltarOnboarding.click();
+        }
 
         // Acotado al contenedor de la pantalla: "WordPress"/"PHP" también
         // aparecen en el pie de página nativo de wp-admin (strict mode

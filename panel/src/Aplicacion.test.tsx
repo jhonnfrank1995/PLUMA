@@ -28,11 +28,71 @@ function saludDeEjemplo(): DatosSalud {
     };
 }
 
+function textosOnboardingDeEjemplo(): DatosPlumaPanel['textosOnboarding'] {
+    return {
+        titulo: 'Bienvenido a PLUMA Engine',
+        saltar: 'Saltar por ahora',
+        continuar: 'Continuar',
+        atras: 'Atrás',
+        finalizar: 'Finalizar',
+        errorCarga: 'No se pudo cargar.',
+        acto1: {
+            titulo: 'Verificación técnica y cron real',
+            etiquetaPhp: 'PHP',
+            etiquetaWordPress: 'WordPress',
+            etiquetaBaseDatos: 'Base de datos',
+            cronOk: 'WP-Cron ya está desactivado.',
+            cronAdvertencia: 'WP-Cron sigue activo.',
+            cronDatosTitulo: 'Datos del cron real',
+            cronUrl: 'URL',
+            cronCabecera: 'Cabecera',
+            cronComandoTitulo: 'Comando de ejemplo',
+            recetaCpanelTitulo: 'Receta cPanel',
+            recetaCpanelTexto: 'Añade una tarea cron en cPanel.',
+            recetaSistemaTitulo: 'Receta de sistema',
+            recetaSistemaTexto: 'Añade una línea a tu crontab.',
+            avisoGenerico: 'Recetas genéricas.',
+        },
+        acto2: {
+            titulo: 'Conecta tus llaves de API',
+            googleTrendsInfo: 'Google Trends no necesita llave.',
+        },
+        acto3: {
+            titulo: 'Línea editorial y categorías',
+            lineaEditorialLabel: 'Línea editorial',
+            lineaEditorialPlaceholder: 'Ej: escepticismo informado.',
+            importarCategorias: 'Importar categorías existentes del sitio',
+            importando: 'Importando…',
+            resultadoImportadas: 'Categorías importadas',
+            resultadoYaExistian: 'Ya existían',
+            sinCategorias: 'Sin categorías.',
+        },
+        acto4: {
+            titulo: 'Tu primer periodista sintético',
+            elegirPlantilla: 'Elige una plantilla',
+            crear: 'Crear periodista',
+            creando: 'Creando…',
+            ajusteFino: 'Ajuste fino opcional',
+        },
+        acto5: {
+            titulo: 'Elige el modo y ejecuta el primer ciclo',
+            modoTitulo: 'Modo de operación',
+            modoPilotoDescripcion: 'Empieza en Piloto.',
+            primerCiclo: 'Ejecutar el primer ciclo ahora',
+            ejecutando: 'Ejecutando…',
+            resultadoTitulo: 'Resultado',
+            sinLotes: 'Nada que procesar todavía.',
+        },
+    };
+}
+
 function datosPanelDeEjemplo(): DatosPlumaPanel {
     return {
         restUrl: 'https://ejemplo.test/wp-json/',
         nonce: 'nonce-de-prueba',
         salud: saludDeEjemplo(),
+        onboardingCompletado: true,
+        textosOnboarding: textosOnboardingDeEjemplo(),
         textosPortada: {
             titulo: 'Portada',
             navPortada: 'Portada',

@@ -129,6 +129,8 @@ final class PantallaPanel {
 			'textosSalaRevision'     => $this->textosSalaRevision(),
 			'textosSalaMaquinas'     => $this->textosSalaMaquinas(),
 			'textosEstudioSeo'       => $this->textosEstudioSeo(),
+			'onboardingCompletado'   => (bool) get_option( RestOnboarding::OPCION_COMPLETADO, false ),
+			'textosOnboarding'       => $this->textosOnboarding(),
 		);
 	}
 
@@ -485,6 +487,67 @@ final class PantallaPanel {
 			'tipo'           => array(
 				'categoria' => __( 'categoría', 'pluma-engine' ),
 				'etiqueta'  => __( 'etiqueta', 'pluma-engine' ),
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosOnboarding(): array {
+		return array(
+			'titulo'     => __( 'Bienvenido a PLUMA Engine', 'pluma-engine' ),
+			'saltar'     => __( 'Saltar por ahora', 'pluma-engine' ),
+			'continuar'  => __( 'Continuar', 'pluma-engine' ),
+			'atras'      => __( 'Atrás', 'pluma-engine' ),
+			'finalizar'  => __( 'Finalizar', 'pluma-engine' ),
+			'errorCarga' => __( 'No se pudo cargar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'acto1'      => array(
+				'titulo'              => __( 'Verificación técnica y cron real', 'pluma-engine' ),
+				'etiquetaPhp'         => __( 'PHP', 'pluma-engine' ),
+				'etiquetaWordPress'   => __( 'WordPress', 'pluma-engine' ),
+				'etiquetaBaseDatos'   => __( 'Base de datos', 'pluma-engine' ),
+				'cronOk'              => __( 'WP-Cron ya está desactivado — falta solo configurar el cron real de tu hosting.', 'pluma-engine' ),
+				'cronAdvertencia'     => __( 'WP-Cron sigue activo. Desactívalo en wp-config.php y configura un cron real con los datos de abajo.', 'pluma-engine' ),
+				'cronDatosTitulo'     => __( 'Datos del cron real', 'pluma-engine' ),
+				'cronUrl'             => __( 'URL', 'pluma-engine' ),
+				'cronCabecera'        => __( 'Cabecera', 'pluma-engine' ),
+				'cronComandoTitulo'   => __( 'Comando de ejemplo (curl)', 'pluma-engine' ),
+				'recetaCpanelTitulo'  => __( 'Receta genérica: cron de cPanel', 'pluma-engine' ),
+				'recetaCpanelTexto'   => __( 'En cPanel → Cron Jobs, añade una tarea cada 5-15 minutos que ejecute el comando curl de arriba. Ajusta el intervalo a la cadencia de publicación que necesites.', 'pluma-engine' ),
+				'recetaSistemaTitulo' => __( 'Receta genérica: cron de sistema (Linux)', 'pluma-engine' ),
+				'recetaSistemaTexto'  => __( 'Añade una línea a tu crontab (*/10 * * * * seguido del comando curl de arriba) para ejecutarlo cada 10 minutos.', 'pluma-engine' ),
+				'avisoGenerico'       => __( 'Estas son recetas genéricas, no instrucciones específicas de tu proveedor de hosting — verifica el panel de control de tu propio hosting si tu caso difiere.', 'pluma-engine' ),
+			),
+			'acto2'      => array(
+				'titulo'           => __( 'Conecta tus llaves de API', 'pluma-engine' ),
+				'googleTrendsInfo' => __( 'Google Trends no necesita ninguna llave — es un feed público, ya está listo.', 'pluma-engine' ),
+			),
+			'acto3'      => array(
+				'titulo'                    => __( 'Línea editorial y categorías', 'pluma-engine' ),
+				'lineaEditorialLabel'       => __( 'Línea editorial', 'pluma-engine' ),
+				'lineaEditorialPlaceholder' => __( 'Ej: escepticismo informado, siempre citando fuentes primarias, sin sensacionalismo.', 'pluma-engine' ),
+				'importarCategorias'        => __( 'Importar categorías existentes del sitio', 'pluma-engine' ),
+				'importando'                => __( 'Importando…', 'pluma-engine' ),
+				'resultadoImportadas'       => __( 'Categorías importadas', 'pluma-engine' ),
+				'resultadoYaExistian'       => __( 'Ya existían', 'pluma-engine' ),
+				'sinCategorias'             => __( 'Este sitio todavía no tiene categorías propias.', 'pluma-engine' ),
+			),
+			'acto4'      => array(
+				'titulo'          => __( 'Tu primer periodista sintético', 'pluma-engine' ),
+				'elegirPlantilla' => __( 'Elige una plantilla', 'pluma-engine' ),
+				'crear'           => __( 'Crear periodista', 'pluma-engine' ),
+				'creando'         => __( 'Creando…', 'pluma-engine' ),
+				'ajusteFino'      => __( 'Ajuste fino opcional de su conducta', 'pluma-engine' ),
+			),
+			'acto5'      => array(
+				'titulo'                => __( 'Elige el modo y ejecuta el primer ciclo', 'pluma-engine' ),
+				'modoTitulo'            => __( 'Modo de operación', 'pluma-engine' ),
+				'modoPilotoDescripcion' => __( 'Empieza en Piloto: cada pieza queda como borrador para tu revisión — nada se publica solo. Es la forma honesta de ver qué produce el sistema antes de automatizar.', 'pluma-engine' ),
+				'primerCiclo'           => __( 'Ejecutar el primer ciclo ahora', 'pluma-engine' ),
+				'ejecutando'            => __( 'Ejecutando…', 'pluma-engine' ),
+				'resultadoTitulo'       => __( 'Resultado', 'pluma-engine' ),
+				'sinLotes'              => __( 'El motor corrió pero todavía no había nada que procesar — es normal en un sitio recién instalado.', 'pluma-engine' ),
 			),
 		);
 	}

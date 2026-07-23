@@ -8,6 +8,7 @@ use Pluma\Admin\NotificadorRevision;
 use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestEstudioSeo;
+use Pluma\Admin\RestOnboarding;
 use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
 use Pluma\Admin\RestPeriodistas;
@@ -533,6 +534,15 @@ final class Nucleo {
 				$c->obtener( ReconciliadorVocabulario::class )
 			)
 		);
+		$this->contenedor->registrar(
+			RestOnboarding::class,
+			fn ( Contenedor $c ): RestOnboarding => new RestOnboarding(
+				$c->obtener( DetectorEntorno::class ),
+				$c->obtener( Orquestador::class ),
+				$c->obtener( RepositorioVocabularioInterface::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin, string $versionEsquemaObjetivo ): void {
@@ -555,5 +565,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestPeriodistas::class )->registrar();
 		$this->contenedor->obtener( RestSalaMaquinas::class )->registrar();
 		$this->contenedor->obtener( RestEstudioSeo::class )->registrar();
+		$this->contenedor->obtener( RestOnboarding::class )->registrar();
 	}
 }

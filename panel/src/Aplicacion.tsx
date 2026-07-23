@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AsistenteOnboarding, type TextosOnboarding } from './AsistenteOnboarding';
 import { BarraEstado } from './BarraEstado';
 import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './PantallaBancoPeriodistas';
 import { PantallaEstudioSeo, type TextosEstudioSeo } from './PantallaEstudioSeo';
@@ -19,6 +20,8 @@ export interface DatosPlumaPanel {
     textosSalaRevision: TextosSalaRevision;
     textosSalaMaquinas: TextosSalaMaquinas;
     textosEstudioSeo: TextosEstudioSeo;
+    onboardingCompletado: boolean;
+    textosOnboarding: TextosOnboarding;
 }
 
 interface Props {
@@ -67,6 +70,7 @@ export function Aplicacion({ datos }: Props) {
     const [ruta, setRuta] = useState<Ruta>(leerRuta);
     const [portada, setPortada] = useState<DatosPortada | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [onboardingCompletado, setOnboardingCompletado] = useState(datos.onboardingCompletado);
 
     useEffect(() => {
         const escuchar = () => setRuta(leerRuta());
@@ -108,6 +112,20 @@ export function Aplicacion({ datos }: Props) {
             window.clearInterval(intervalo);
         };
     }, [datos.restUrl, datos.nonce, datos.textosPortada.errorCarga]);
+
+    if (!onboardingCompletado) {
+        return (
+            <AsistenteOnboarding
+                restUrl={datos.restUrl}
+                nonce={datos.nonce}
+                textos={datos.textosOnboarding}
+                textosModo={datos.textosPortada.modo}
+                textosLlave={datos.textosSalaMaquinas.llave}
+                textosBancoPeriodistas={datos.textosBancoPeriodistas}
+                alTerminar={() => setOnboardingCompletado(true)}
+            />
+        );
+    }
 
     return (
         <div className="pluma-panel">

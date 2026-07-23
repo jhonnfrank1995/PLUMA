@@ -1298,6 +1298,100 @@
     font-weight: 600;
 }
 
+/* Asistente de instalación (Libro Cap. 10.3) */
+
+.pluma-onboarding {
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: var(--pluma-espaciado);
+}
+
+.pluma-onboarding__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.pluma-onboarding__saltar {
+    background: none;
+    border: none;
+    color: var(--pluma-color-texto-tenue);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.pluma-onboarding__pasos {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+}
+
+.pluma-onboarding__paso {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--pluma-color-borde);
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+}
+
+.pluma-onboarding__paso--activo {
+    background: var(--pluma-color-texto);
+    color: var(--pluma-color-superficie);
+    border-color: var(--pluma-color-texto);
+}
+
+.pluma-onboarding__error {
+    color: var(--pluma-color-retenida);
+}
+
+.pluma-onboarding__acto {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+}
+
+.pluma-onboarding__acto pre {
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.75rem;
+    overflow-x: auto;
+}
+
+.pluma-onboarding__aviso {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.pluma-onboarding__campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0.75rem 0;
+}
+
+.pluma-onboarding__campo textarea {
+    min-height: 4rem;
+    padding: 0.5rem;
+    border-radius: var(--pluma-radio);
+    border: 1px solid var(--pluma-color-borde);
+    background: var(--pluma-color-fondo);
+    color: var(--pluma-color-texto);
+}
+
+.pluma-onboarding__nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--pluma-espaciado);
+}
+
 /* Responsivo: la ventana de veto se usa desde el teléfono (Cap. 10.1) */
 
 @media (max-width: 640px) {

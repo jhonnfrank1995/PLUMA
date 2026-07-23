@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { BloqueLlaveOpenRouter } from './BloqueLlaveOpenRouter';
 
 export interface DatosSalud {
     versionPhp: string;
@@ -155,8 +156,6 @@ function SeccionesMotor({ restUrl, nonce, textos }: { restUrl: string; nonce: st
     const [estado, setEstado] = useState<EstadoMotor | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [limiteEditado, setLimiteEditado] = useState('');
-    const [llaveNueva, setLlaveNueva] = useState('');
-    const [pruebaLlave, setPruebaLlave] = useState<'sin_probar' | 'probando' | 'valida' | 'invalida'>('sin_probar');
     const [enCurso, setEnCurso] = useState(false);
 
     const cabeceras = { 'X-WP-Nonce': nonce };
@@ -201,61 +200,6 @@ function SeccionesMotor({ restUrl, nonce, textos }: { restUrl: string; nonce: st
             })
             .catch(() => setError(textos.errorAccion))
             .finally(() => setEnCurso(false));
-    };
-
-    const probarLlave = () => {
-        if ('' === llaveNueva.trim()) {
-            return;
-        }
-
-        setPruebaLlave('probando');
-        fetch(`${restUrl}pluma/v1/motor/llave-openrouter/probar`, {
-            method: 'POST',
-            headers: { ...cabeceras, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ llave: llaveNueva }),
-        })
-            .then((respuesta) => respuesta.json() as Promise<{ valida: boolean }>)
-            .then((json) => setPruebaLlave(json.valida ? 'valida' : 'invalida'))
-            .catch(() => setPruebaLlave('invalida'));
-    };
-
-    const guardarLlave = () => {
-        if ('' === llaveNueva.trim()) {
-            return;
-        }
-
-        setEnCurso(true);
-        fetch(`${restUrl}pluma/v1/motor/llave-openrouter`, {
-            method: 'POST',
-            headers: { ...cabeceras, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ llave: llaveNueva }),
-        })
-            .then((respuesta) => {
-                if (!respuesta.ok) {
-                    throw new Error('respuesta no OK');
-                }
-                setLlaveNueva('');
-                setPruebaLlave('sin_probar');
-                cargar();
-            })
-            .catch(() => setError(textos.errorAccion))
-            .finally(() => setEnCurso(false));
-    };
-
-    const quitarLlave = () => {
-        // eslint-disable-next-line no-alert -- confirmación de una acción real: sin llave, el redactor vuelve al fallback mecánico.
-        if (!window.confirm(textos.llave.confirmarQuitar)) {
-            return;
-        }
-
-        fetch(`${restUrl}pluma/v1/motor/llave-openrouter`, { method: 'DELETE', headers: cabeceras })
-            .then((respuesta) => {
-                if (!respuesta.ok) {
-                    throw new Error('respuesta no OK');
-                }
-                cargar();
-            })
-            .catch(() => setError(textos.errorAccion));
     };
 
     if (null !== error) {
@@ -305,44 +249,15 @@ function SeccionesMotor({ restUrl, nonce, textos }: { restUrl: string; nonce: st
                 </ul>
             </section>
 
-            <section className="pluma-maquinas__seccion">
-                <h2>{textos.llave.titulo}</h2>
-                {estado.openRouter.configurada && (
-                    <p className="pluma-maquinas__llave-actual">
-                        {textos.llave.actual}: sk-…{estado.openRouter.ultimosCuatro}
-                    </p>
-                )}
-                <label className="pluma-maquinas__campo">
-                    {textos.llave.campoNueva}
-                    <input
-                        type="password"
-                        value={llaveNueva}
-                        onChange={(evento) => {
-                            setLlaveNueva(evento.target.value);
-                            setPruebaLlave('sin_probar');
-                        }}
-                    />
-                </label>
-                <div className="pluma-maquinas__llave-acciones">
-                    <button type="button" disabled={'' === llaveNueva.trim() || 'probando' === pruebaLlave} onClick={probarLlave}>
-                        {'probando' === pruebaLlave ? textos.llave.probando : textos.llave.probar}
-                    </button>
-                    <button type="button" disabled={enCurso || '' === llaveNueva.trim()} onClick={guardarLlave}>
-                        {estado.openRouter.configurada ? textos.llave.cambiar : textos.llave.guardar}
-                    </button>
-                    {estado.openRouter.configurada && (
-                        <button type="button" className="pluma-maquinas__boton--quitar" onClick={quitarLlave}>
-                            {textos.llave.quitar}
-                        </button>
-                    )}
-                </div>
-                {'valida' === pruebaLlave && <p className="pluma-maquinas__prueba-ok">{textos.llave.valida}</p>}
-                {'invalida' === pruebaLlave && (
-                    <p className="pluma-maquinas__prueba-error" role="alert">
-                        {textos.llave.invalida}
-                    </p>
-                )}
-            </section>
+            <BloqueLlaveOpenRouter
+                restUrl={restUrl}
+                nonce={nonce}
+                configurada={estado.openRouter.configurada}
+                ultimosCuatro={estado.openRouter.ultimosCuatro}
+                textos={textos.llave}
+                alGuardar={cargar}
+                alError={() => setError(textos.errorAccion)}
+            />
 
             <section className="pluma-maquinas__seccion">
                 <h2>{textos.bitacora.titulo}</h2>
