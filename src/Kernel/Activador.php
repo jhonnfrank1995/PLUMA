@@ -49,4 +49,26 @@ final class Activador {
 		add_option( self::OPCION_MOTOR_TOKEN, wp_generate_password( 43, false, false ), '', false );
 		update_option( self::OPCION_ACTIVADO_EN, $reloj->ahora()->format( DATE_ATOM ), false );
 	}
+
+	/**
+	 * Auto-actualización de esquema en `plugins_loaded` (no solo en
+	 * activación manual): una actualización normal de WordPress reemplaza
+	 * los archivos del plugin SIN disparar `register_activation_hook` — sin
+	 * este chequeo, una instalación real de cliente que reciba una
+	 * actualización con una migración de esquema nueva quedaría corriendo
+	 * código nuevo contra tablas viejas (columnas/tablas faltantes) hasta
+	 * que alguien desactive y reactive el plugin a mano. `dbDelta` es
+	 * idempotente, así que reejecutar `activar()` cuando la versión
+	 * instalada ya coincide sería inofensivo pero innecesario en cada carga
+	 * de página — por eso el chequeo de versión evita el trabajo cuando no
+	 * hace falta.
+	 */
+	public static function actualizarEsquemaSiHaceFalta( RelojInterface $reloj, string $versionEsquemaObjetivo ): void {
+		global $wpdb;
+		assert( $wpdb instanceof wpdb );
+
+		if ( ( new Migrador( $wpdb ) )->versionInstalada() !== $versionEsquemaObjetivo ) {
+			self::activar( $reloj, $versionEsquemaObjetivo );
+		}
+	}
 }

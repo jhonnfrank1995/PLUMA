@@ -9,6 +9,7 @@ use Pluma\Kernel\Activador;
 use Pluma\Kernel\Desactivador;
 use Pluma\Kernel\Desinstalador;
 use Pluma\Kernel\RelojSistema;
+use Pluma\Tests\Unit\Dobles\RelojFijo;
 use WP_UnitTestCase;
 
 /**
@@ -107,5 +108,33 @@ final class CicloDeVidaTest extends WP_UnitTestCase {
 
 		self::assertFalse( get_option( Migrador::OPCION_VERSION ) );
 		self::assertFalse( get_role( 'administrator' )->has_cap( 'pluma_configurar_motor' ) );
+	}
+
+	/**
+	 * Regresión real (encontrada probando manualmente en `wp-env` durante la
+	 * Etapa 4, porción 7): una actualización normal de WordPress reemplaza
+	 * los archivos del plugin SIN disparar `register_activation_hook` — el
+	 * esquema instalado se quedaba congelado en la última versión activada a
+	 * mano mientras el código corría migraciones más nuevas, produciendo
+	 * errores reales de SQL por columnas/tablas faltantes.
+	 * `Activador::actualizarEsquemaSiHaceFalta()` (invocado en cada
+	 * `plugins_loaded`) cierra ese hueco.
+	 */
+	public function test_actualizar_esquema_si_hace_falta_migra_cuando_la_version_esta_desactualizada(): void {
+		Activador::activar( new RelojFijo( '2026-01-01T00:00:00+00:00' ), '0.1.0' );
+
+		Activador::actualizarEsquemaSiHaceFalta( new RelojFijo( '2030-01-01T00:00:00+00:00' ), '0.2.0' );
+
+		self::assertSame( '0.2.0', get_option( Migrador::OPCION_VERSION ) );
+		self::assertSame( '2030-01-01T00:00:00+00:00', get_option( Activador::OPCION_ACTIVADO_EN ) );
+	}
+
+	public function test_actualizar_esquema_si_hace_falta_no_toca_nada_si_ya_esta_al_dia(): void {
+		Activador::activar( new RelojFijo( '2026-01-01T00:00:00+00:00' ), '0.1.0' );
+
+		Activador::actualizarEsquemaSiHaceFalta( new RelojFijo( '2030-01-01T00:00:00+00:00' ), '0.1.0' );
+
+		self::assertSame( '0.1.0', get_option( Migrador::OPCION_VERSION ) );
+		self::assertSame( '2026-01-01T00:00:00+00:00', get_option( Activador::OPCION_ACTIVADO_EN ) );
 	}
 }

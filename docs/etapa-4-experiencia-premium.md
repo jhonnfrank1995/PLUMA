@@ -111,6 +111,14 @@ Las 7 pantallas del Cap. 10.2 del Libro de Arquitectura son: **Portada, Sala de 
 
 **Honestidad de alcance (cero invención), decidida antes de abrir esta porción:** "estado de indexación por pieza" y "keywords en el umbral 5-15" (posiciones 5–15, con botón "crear pieza de refuerzo") del Cap. 10.2 quedan fuera — dependen de Google Search Console, que no existe todavía (`PLUMA-E3-5`, Etapa 5), mismo criterio ya aplicado a "resultados de ayer" (Portada) y "tráfico medio" (Banco de Periodistas).
 
+### Hallazgo real durante pruebas manuales: el esquema no se auto-actualizaba
+
+Al verificar la porción con el propietario en un `wp-env` local que llevaba activo desde la Etapa 2 (nunca reactivado desde entonces), un tick manual del motor devolvió errores reales de MySQL: `Unknown column 'prioridad' in 'ORDER BY'` y `Table 'wp_pluma_cola_publicacion' doesn't exist`. Diagnóstico: `pluma_db_version` seguía en `0.3.0` mientras el código del plugin ya iba en `0.9.0` — cinco migraciones de esquema (porción 2 de esta etapa en adelante) nunca se aplicaron porque **`register_activation_hook` solo corre en una activación manual**, y ese `wp-env` nunca se había desactivado/reactivado tras el `git pull`.
+
+Esto no era solo un problema del entorno de pruebas: es un hueco real de producción. Una actualización normal de WordPress (incluidas las automáticas, comunes en clientes no técnicos) reemplaza los archivos del plugin **sin** disparar `register_activation_hook` — así que la primera vez que distribuyamos una actualización con una migración de esquema nueva, el sitio de un cliente real habría quedado exactamente en el mismo estado roto, sin que nadie lo supiera hasta que algo fallara.
+
+**Corregido en la misma porción** (decisión del propietario: arreglarlo de inmediato en vez de solo registrarlo como deuda, dado el riesgo de romper producción en la próxima actualización real): `Pluma\Kernel\Activador::actualizarEsquemaSiHaceFalta()`, invocado ahora al inicio de `Nucleo::arrancar()` (cada `plugins_loaded`), compara `Migrador::versionInstalada()` contra la versión objetivo del código y solo vuelve a llamar `activar()` (capacidades + `dbDelta` + opciones, todo ya idempotente) cuando de verdad hace falta — sin repetir el trabajo en cada carga de página cuando el esquema ya está al día. Cubierto con Unit (Brain\Monkey, verificando que NO se toca nada cuando la versión ya coincide) e Integration contra WordPress real (reproduce el escenario exacto: activa en una versión vieja, simula el paso del tiempo con un reloj fijo distinto, verifica que la migración y el sello de tiempo se actualizan solo cuando la versión estaba desactualizada).
+
 ## Pendiente dentro de esta Etapa
 
 Pantallas del Cap. 10.2 sin construir todavía: el **onboarding de 5 actos** (Cap. 10.3) — la última pieza de esta Etapa.
@@ -140,6 +148,7 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 - **Toda fecha que un repositorio expone a un endpoint REST debe ser `DATE_ATOM`**, nunca la cadena cruda de MySQL — la porción 6 encontró y corrigió un caso donde esto no se cumplía (`RepositorioBitacora`) precisamente porque nadie había necesitado parsear esa fecha como `Date` hasta ahora. Vale la pena revisar los demás repositorios si alguna porción futura empieza a mostrar fechas sin parsearlas correctamente.
 - **Un método `private` de una clase de dominio puede pasar a `public` sin duplicar lógica cuando el panel necesita EXACTAMENTE la misma comparación** (porción 7, `ReconciliadorVocabulario::similitud()`) — más seguro que copiar la llamada a `similar_text()` en el controlador REST, porque un cambio futuro al umbral o al algoritmo de similitud se propaga automáticamente a ambos consumidores. Antes de exponer un método así, verificar que no tenga efectos secundarios ni dependa de estado interno que no deba ser público.
 - **Una pantalla del panel no tiene por qué incluir acciones de escritura solo porque las otras las tienen**: la porción 7 (Estudio SEO y Taxonomía) es deliberadamente de solo lectura — "fusionar etiquetas de verdad" tocaría posts ya publicados y merece su propio diseño de riesgo/autorización, no una casilla más en esta porción. Cuando el Libro describe una pantalla en términos de "auditoría"/"salud" sin nombrar acciones concretas, no inventar una acción de escritura solo para uniformar el patrón de las porciones anteriores.
+- **`register_activation_hook` NUNCA es suficiente por sí solo para mantener el esquema al día en un plugin comercial que se actualiza en producción** — solo corre en una activación manual, no en una actualización normal de archivos (ni siquiera en las actualizaciones automáticas de WordPress). Cualquier instalación de cliente real habría quedado con el esquema congelado en la última versión activada a mano mientras el código seguía migrando. Ahora `Activador::actualizarEsquemaSiHaceFalta()` se invoca en cada `plugins_loaded` (dentro de `Nucleo::arrancar()`) y se auto-cura sola. Cualquier módulo futuro que añada una migración de esquema puede confiar en que ya no hace falta pedirle al cliente que desactive/reactive el plugin — pero si alguna vez se reemplaza `Nucleo::arrancar()` o se cambia su firma, hay que preservar esta llamada al principio.
 
 ## Evidencia de gates
 
@@ -151,6 +160,6 @@ Deuda de etapas anteriores explícitamente asignada a la Etapa 4:
 | 4 — Banco de Periodistas | 304/304 | 21/21 | 70/70 | 42/42 | 2/2 | limpio | commiteado, sin push todavía |
 | 5 — Sala de Revisión | 304/304 | 21/21 | 71/71 | 48/48 | 2/2 | limpio | commiteado, sin push todavía |
 | 6 — Sala de Máquinas | 311/311 | 21/21 | 80/80 | 51/51 | 2/2 | limpio | commiteado, sin push todavía |
-| 7 — Estudio SEO y Taxonomía | 312/312 | 21/21 | 84/84 | 55/55 | 2/2 | limpio | commiteado, sin push todavía |
+| 7 — Estudio SEO y Taxonomía (+ fix de auto-migración) | 314/314 | 21/21 | 86/86 | 55/55 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin llave de API filtrada en ningún commit (verificado explícitamente antes de cada uno).

@@ -92,4 +92,43 @@ final class ActivadorTest extends CasoDePruebaUnitario {
 
 		$this->expectNotToPerformAssertions();
 	}
+
+	/**
+	 * Regresión: una actualización normal de WordPress reemplaza los
+	 * archivos del plugin SIN disparar `register_activation_hook` — sin este
+	 * chequeo en `plugins_loaded`, el esquema de un cliente real se quedaría
+	 * congelado en la versión con la que activó por última vez, mientras el
+	 * código corre migraciones más nuevas (reproducido localmente: esquema
+	 * atascado en 0.3.0 contra código en 0.9.0, con errores reales de SQL
+	 * por columnas/tablas faltantes).
+	 */
+	public function test_actualizar_esquema_no_hace_nada_si_la_version_ya_coincide(): void {
+		Functions\expect( 'get_option' )->once()->with( 'pluma_db_version', '0.0.0' )->andReturn( '0.9.0' );
+
+		Activador::actualizarEsquemaSiHaceFalta( new RelojFijo(), '0.9.0' );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_actualizar_esquema_migra_cuando_la_version_instalada_esta_desactualizada(): void {
+		Functions\expect( 'get_option' )->twice()->with( 'pluma_db_version', '0.0.0' )->andReturn( '0.3.0' );
+
+		$rol = Mockery::mock( 'WP_Role' );
+		$rol->expects( 'add_cap' )->times( 3 );
+		Functions\expect( 'get_role' )->once()->with( 'administrator' )->andReturn( $rol );
+
+		Functions\expect( 'dbDelta' )->times( 11 )->andReturn( array() );
+		Functions\expect( 'update_option' )->once()->with( 'pluma_db_version', '0.9.0', false )->andReturn( true );
+
+		Functions\expect( 'add_option' )->twice()->andReturn( true );
+		Functions\expect( 'wp_generate_password' )->once()->andReturn( 'token-de-prueba' );
+		Functions\expect( 'update_option' )
+			->once()
+			->with( Activador::OPCION_ACTIVADO_EN, '2026-07-22T12:00:00+00:00', false )
+			->andReturn( true );
+
+		Activador::actualizarEsquemaSiHaceFalta( new RelojFijo(), '0.9.0' );
+
+		$this->expectNotToPerformAssertions();
+	}
 }

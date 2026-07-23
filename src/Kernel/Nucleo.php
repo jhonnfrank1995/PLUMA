@@ -535,7 +535,9 @@ final class Nucleo {
 		);
 	}
 
-	public function arrancar( string $archivoPrincipalPlugin ): void {
+	public function arrancar( string $archivoPrincipalPlugin, string $versionEsquemaObjetivo ): void {
+		Activador::actualizarEsquemaSiHaceFalta( $this->contenedor->obtener( RelojInterface::class ), $versionEsquemaObjetivo );
+
 		load_plugin_textdomain(
 			'pluma-engine',
 			false,

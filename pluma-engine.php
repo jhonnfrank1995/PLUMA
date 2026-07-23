@@ -73,6 +73,6 @@ register_deactivation_hook(
 add_action(
 	'plugins_loaded',
 	static function (): void {
-		( new \Pluma\Kernel\Nucleo() )->arrancar( PLUMA_ENGINE_ARCHIVO );
+		( new \Pluma\Kernel\Nucleo() )->arrancar( PLUMA_ENGINE_ARCHIVO, PLUMA_ENGINE_DB_VERSION_OBJETIVO );
 	}
 );
