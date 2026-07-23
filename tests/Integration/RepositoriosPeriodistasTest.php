@@ -113,7 +113,11 @@ final class RepositoriosPeriodistasTest extends WP_UnitTestCase {
 			'La fila de Tragedia debe imponerse aunque nunca se haya configurado explícitamente.'
 		);
 
-		self::assertContains( $periodista, $repo->obtenerActivos() );
+		self::assertContains(
+			$periodista->id,
+			array_map( static fn ( $p ) => $p->id, $repo->obtenerActivos() ),
+			'El periodista recién creado debe aparecer en la lista de activos.'
+		);
 	}
 
 	public function test_nueva_version_de_conducta_no_sobrescribe_la_anterior(): void {
