@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'PLUMA_ENGINE_VERSION', '0.12.0' );
+define( 'PLUMA_ENGINE_VERSION', '0.13.0' );
 define( 'PLUMA_ENGINE_DB_VERSION_OBJETIVO', '0.12.0' );
 define( 'PLUMA_ENGINE_ARCHIVO', __FILE__ );
 define( 'PLUMA_ENGINE_DIR', plugin_dir_path( __FILE__ ) );

@@ -153,6 +153,12 @@ jobs:
         with:
           path: ${{ env.PLUGIN_DIR }}
 
+      - name: Leer la versión de esquema objetivo real (nunca hardcodeada)
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: |
+          DB_VERSION=$(grep -oP "PLUMA_ENGINE_DB_VERSION_OBJETIVO', '\K[0-9.]+" pluma-engine.php)
+          echo "DB_VERSION=$DB_VERSION" >> "$GITHUB_ENV"
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
@@ -181,7 +187,9 @@ jobs:
 
       - name: bin/build-zip (GOVERNANCE §5.2 — build reproducible)
         working-directory: ${{ env.PLUGIN_DIR }}
-        run: bash bin/build-zip "0.9.0-ci.${{ github.run_number }}"
+        run: |
+          PLUGIN_VERSION=$(grep -oP "PLUMA_ENGINE_VERSION', '\K[0-9.]+" pluma-engine.php)
+          bash bin/build-zip "${PLUGIN_VERSION}-ci.${{ github.run_number }}"
 
       - name: Descomprimir el ZIP construido (fidelidad al artefacto real, no a la carpeta pre-zip)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -209,7 +217,7 @@ jobs:
         working-directory: ${{ env.PLUGIN_DIR }}
         run: |
           npx wp-env run cli -- wp eval 'var_dump( get_role( "administrator" )->has_cap( "pluma_configurar_motor" ) );' | grep -q 'bool(true)'
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -qF "$DB_VERSION"
 
       - name: Instalar Playwright (navegadores)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -223,7 +231,7 @@ jobs:
         working-directory: ${{ env.PLUGIN_DIR }}
         run: |
           npx wp-env run cli -- wp plugin deactivate pluma-engine
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -qF "$DB_VERSION"
 
       - name: Smoke — desinstalar conserva datos por defecto (uninstall.php)
         working-directory: ${{ env.PLUGIN_DIR }}
@@ -233,7 +241,7 @@ jobs:
           # (WP_Filesystem en modo 'direct' es un problema de permisos del
           # entorno, no del plugin).
           npx wp-env run cli -- wp plugin uninstall pluma-engine --skip-delete
-          npx wp-env run cli -- wp option get pluma_db_version | grep -q '0.9.0'
+          npx wp-env run cli -- wp option get pluma_db_version | grep -qF "$DB_VERSION"
 
       - name: Subir reporte de Playwright si algo falló
         if: failure()
