@@ -13,6 +13,7 @@ use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
 use Pluma\Admin\RestPeriodistas;
 use Pluma\Admin\RestPortada;
+use Pluma\Admin\RestRespuestasComentarios;
 use Pluma\Admin\RestSalaMaquinas;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Admin\RestSalaTendencias;
@@ -41,12 +42,15 @@ use Pluma\Datos\RepositorioPeriodistas;
 use Pluma\Datos\RepositorioPeriodistasInterface;
 use Pluma\Datos\RepositorioPiezas;
 use Pluma\Datos\RepositorioPiezasInterface;
+use Pluma\Datos\RepositorioRespuestasComentarios;
+use Pluma\Datos\RepositorioRespuestasComentariosInterface;
 use Pluma\Datos\RepositorioTendencias;
 use Pluma\Datos\RepositorioTendenciasInterface;
 use Pluma\Datos\RepositorioVocabulario;
 use Pluma\Datos\RepositorioVocabularioInterface;
 use Pluma\Investigacion\InvestigadorInterface;
 use Pluma\Investigacion\InvestigadorMecanico;
+use Pluma\Pipeline\GestorRespuestasComentarios;
 use Pluma\Pipeline\GestorSalaRevision;
 use Pluma\Pipeline\GestorSalaTendencias;
 use Pluma\Pipeline\LectorConfiguracionCadencia;
@@ -65,8 +69,13 @@ use Pluma\Publicacion\AsignadorTaxonomiaWp;
 use Pluma\Publicacion\CreadorBorrador;
 use Pluma\Publicacion\CreadorBorradorInterface;
 use Pluma\Publicacion\EscritorCamposSeo;
+use Pluma\Publicacion\LectorComentarios;
+use Pluma\Publicacion\LectorComentariosInterface;
 use Pluma\Publicacion\Publicador;
+use Pluma\Publicacion\PublicadorComentario;
+use Pluma\Publicacion\PublicadorComentarioInterface;
 use Pluma\Publicacion\PublicadorInterface;
+use Pluma\Redaccion\AnalizadorAudiencia;
 use Pluma\Redaccion\AsignadorPeriodista;
 use Pluma\Redaccion\AvisoTransparenciaIa;
 use Pluma\Redaccion\ClasificadorNoticia;
@@ -76,6 +85,7 @@ use Pluma\Redaccion\DecisionEditorial;
 use Pluma\Redaccion\ExportadorBancoPeriodistas;
 use Pluma\Redaccion\GeneradorBloqueEditor;
 use Pluma\Redaccion\GeneradorEsqueleto;
+use Pluma\Redaccion\GeneradorRespuestaComentario;
 use Pluma\Redaccion\GeneradorVistaPrevia;
 use Pluma\Redaccion\ImportadorBancoPeriodistas;
 use Pluma\Redaccion\RedactorConFallbackMecanico;
@@ -83,6 +93,7 @@ use Pluma\Redaccion\RedactorInterface;
 use Pluma\Redaccion\RedactorMecanico;
 use Pluma\Redaccion\RedactorSintetico;
 use Pluma\Redaccion\SelectorAngulo;
+use Pluma\Redaccion\VerificadorComentarioSustantivo;
 use Pluma\Redaccion\VerificadorNGramas;
 use Pluma\Redaccion\VerificadorVoz;
 use Pluma\Seo\AuditorCanibalizacion;
@@ -186,6 +197,10 @@ final class Nucleo {
 				$c->obtener( 'wpdb' ),
 				$c->obtener( RepositorioPiezasInterface::class )
 			)
+		);
+		$this->contenedor->registrar(
+			RepositorioRespuestasComentariosInterface::class,
+			fn ( Contenedor $c ): RepositorioRespuestasComentarios => new RepositorioRespuestasComentarios( $c->obtener( 'wpdb' ) )
 		);
 
 		$this->contenedor->registrar(
@@ -411,6 +426,20 @@ final class Nucleo {
 				$c->obtener( PresupuestoLenguaje::class )
 			)
 		);
+		$this->contenedor->registrar( LectorComentariosInterface::class, static fn (): LectorComentarios => new LectorComentarios() );
+		$this->contenedor->registrar( PublicadorComentarioInterface::class, static fn (): PublicadorComentario => new PublicadorComentario() );
+		$this->contenedor->registrar( VerificadorComentarioSustantivo::class, static fn (): VerificadorComentarioSustantivo => new VerificadorComentarioSustantivo() );
+		$this->contenedor->registrar(
+			AnalizadorAudiencia::class,
+			fn ( Contenedor $c ): AnalizadorAudiencia => new AnalizadorAudiencia(
+				$c->obtener( LenguajeInterface::class ),
+				$c->obtener( PresupuestoLenguaje::class )
+			)
+		);
+		$this->contenedor->registrar(
+			GeneradorRespuestaComentario::class,
+			fn ( Contenedor $c ): GeneradorRespuestaComentario => new GeneradorRespuestaComentario( $c->obtener( LenguajeInterface::class ) )
+		);
 		$this->contenedor->registrar(
 			Orquestador::class,
 			fn ( Contenedor $c ): Orquestador => new Orquestador(
@@ -432,6 +461,13 @@ final class Nucleo {
 				$c->obtener( CreadorBorradorInterface::class ),
 				$c->obtener( PublicadorInterface::class ),
 				$c->obtener( ComparadorHistorias::class ),
+				$c->obtener( LectorComentariosInterface::class ),
+				$c->obtener( AnalizadorAudiencia::class ),
+				$c->obtener( GeneradorRespuestaComentario::class ),
+				$c->obtener( VerificadorComentarioSustantivo::class ),
+				$c->obtener( RepositorioMemoriaEditorialInterface::class ),
+				$c->obtener( RepositorioRespuestasComentariosInterface::class ),
+				$c->obtener( RepositorioPeriodistasInterface::class ),
 				$c->obtener( RelojInterface::class )
 			)
 		);
@@ -480,6 +516,21 @@ final class Nucleo {
 		);
 
 		$this->contenedor->registrar(
+			GestorRespuestasComentarios::class,
+			fn ( Contenedor $c ): GestorRespuestasComentarios => new GestorRespuestasComentarios(
+				$c->obtener( RepositorioRespuestasComentariosInterface::class ),
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioPeriodistasInterface::class ),
+				$c->obtener( PublicadorComentarioInterface::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
+		$this->contenedor->registrar(
+			RestRespuestasComentarios::class,
+			fn ( Contenedor $c ): RestRespuestasComentarios => new RestRespuestasComentarios( $c->obtener( GestorRespuestasComentarios::class ) )
+		);
+
+		$this->contenedor->registrar(
 			RestMesaEditorial::class,
 			fn ( Contenedor $c ): RestMesaEditorial => new RestMesaEditorial(
 				$c->obtener( RepositorioPiezasInterface::class ),
@@ -498,6 +549,7 @@ final class Nucleo {
 				$c->obtener( RepositorioTendenciasInterface::class ),
 				$c->obtener( RepositorioColaPublicacionInterface::class ),
 				$c->obtener( RepositorioBitacoraInterface::class ),
+				$c->obtener( RepositorioRespuestasComentariosInterface::class ),
 				$c->obtener( LectorConfiguracionCadencia::class ),
 				$c->obtener( PresupuestoLenguaje::class ),
 				$c->obtener( RelojInterface::class )
@@ -600,5 +652,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestEstudioSeo::class )->registrar();
 		$this->contenedor->obtener( RestOnboarding::class )->registrar();
 		$this->contenedor->obtener( RestSearchConsole::class )->registrar();
+		$this->contenedor->obtener( RestRespuestasComentarios::class )->registrar();
 	}
 }

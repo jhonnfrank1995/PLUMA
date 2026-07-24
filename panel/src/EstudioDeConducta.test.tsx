@@ -92,6 +92,7 @@ function textosDeEjemplo(): TextosBancoPeriodistas {
         guardarCambios: 'Guardar cambios',
         clonar: 'Clonar',
         nombreDelClon: 'Nombre del nuevo periodista clonado',
+        respuestasHabilitadas: 'Responder comentarios automáticamente',
     };
 }
 
@@ -129,6 +130,7 @@ function detalleDeEjemplo(): DetallePeriodista {
             cultura_viral: { tipoNoticia: 'cultura_viral', tonoDominante: 'humoristico', tonoApoyo: 'opinion', nivelSatira: 'pieza_completa' },
             dato_economico: { tipoNoticia: 'dato_economico', tonoDominante: 'analitico', tonoApoyo: 'persuasivo', nivelSatira: 'no' },
         },
+        respuestasHabilitadas: false,
         metricas: { piezasPublicadas: 12, verticalesTop: ['economia'] },
         memoriaReciente: [],
     };
@@ -217,6 +219,27 @@ describe('EstudioDeConducta', () => {
             )
         );
         await waitFor(() => expect(onCambio).toHaveBeenCalled());
+    });
+
+    it('guarda el estado del interruptor de respuestas habilitadas', async () => {
+        const fetchSimulado = stubFetchDetalle(detalleDeEjemplo());
+
+        render(<EstudioDeConducta restUrl="https://ejemplo.test/wp-json/" nonce="n" periodistaId={7} textos={textosDeEjemplo()} onCerrar={() => {}} onCambio={() => {}} />);
+
+        const interruptor = await screen.findByLabelText('Responder comentarios automáticamente');
+        expect(interruptor).not.toBeChecked();
+
+        await userEvent.click(interruptor);
+        expect(interruptor).toBeChecked();
+
+        await userEvent.click(await screen.findByRole('button', { name: 'Guardar cambios' }));
+
+        await waitFor(() =>
+            expect(fetchSimulado).toHaveBeenCalledWith(
+                'https://ejemplo.test/wp-json/pluma/v1/periodistas/7/conducta',
+                expect.objectContaining({ method: 'POST', body: expect.stringContaining('"respuestasHabilitadas":true') })
+            )
+        );
     });
 
     it('clona pidiendo un nombre nuevo', async () => {

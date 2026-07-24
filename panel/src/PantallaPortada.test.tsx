@@ -53,6 +53,7 @@ function textosDeEjemplo(): TextosPortada {
             sinFallidas: 'ninguna pieza fallida',
         },
         tendencias: { titulo: 'Tendencias calientes ahora', vacio: 'todavía no se ha detectado ninguna tendencia' },
+        borradoresRespuestaPendientes: 'Borradores de respuesta esperando aprobación',
     };
 }
 
@@ -78,6 +79,7 @@ function portadaDeEjemplo(sobrescribir: Partial<DatosPortada> = {}): DatosPortad
         },
         alertas: { retenidas: [], fallidas: [] },
         tendenciasCalientes: [],
+        borradoresRespuestaPendientes: 0,
         ...sobrescribir,
     };
 }
@@ -144,5 +146,19 @@ describe('PantallaPortada', () => {
         render(<PantallaPortada datos={portadaDeEjemplo()} error={null} textos={textosDeEjemplo()} />);
 
         expect(screen.getByText('todavía no se ha detectado ninguna tendencia')).toBeInTheDocument();
+    });
+
+    it('avisa con un enlace a la Sala de Comentarios cuando hay borradores pendientes', () => {
+        render(<PantallaPortada datos={portadaDeEjemplo({ borradoresRespuestaPendientes: 2 })} error={null} textos={textosDeEjemplo()} />);
+
+        const enlace = screen.getByRole('link', { name: /Borradores de respuesta esperando aprobación/ });
+        expect(enlace).toHaveAttribute('href', '#/comentarios');
+        expect(enlace).toHaveTextContent('(2)');
+    });
+
+    it('no muestra el aviso de borradores pendientes cuando no hay ninguno', () => {
+        render(<PantallaPortada datos={portadaDeEjemplo({ borradoresRespuestaPendientes: 0 })} error={null} textos={textosDeEjemplo()} />);
+
+        expect(screen.queryByRole('link', { name: /Borradores de respuesta esperando aprobación/ })).not.toBeInTheDocument();
     });
 });

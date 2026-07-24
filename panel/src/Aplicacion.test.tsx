@@ -126,6 +126,7 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
                 sinFallidas: 'ninguna pieza fallida',
             },
             tendencias: { titulo: 'Tendencias calientes ahora', vacio: 'todavía no se ha detectado ninguna tendencia' },
+            borradoresRespuestaPendientes: 'Borradores de respuesta esperando aprobación',
         },
         textosTendencias: {
             titulo: 'Sala de Tendencias',
@@ -233,6 +234,7 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             guardarCambios: 'Guardar cambios',
             clonar: 'Clonar',
             nombreDelClon: 'Nombre del nuevo periodista clonado',
+            respuestasHabilitadas: 'Responder comentarios automáticamente',
         },
         textosSalaRevision: {
             titulo: 'Sala de Revisión',
@@ -399,6 +401,16 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             confirmarDescartar: '¿Descartar esta Pieza?',
             actualizacionDe: 'Actualización de la pieza',
         },
+        textosComentarios: {
+            titulo: 'Sala de Comentarios',
+            cargando: 'Cargando…',
+            errorCarga: 'No se pudo cargar la Sala de Comentarios.',
+            errorAccion: 'La acción no se pudo completar.',
+            vacio: 'no hay borradores de respuesta pendientes de aprobación',
+            borrador: 'Borrador de respuesta',
+            aprobar: 'Aprobar',
+            descartar: 'Descartar',
+        },
     };
 }
 
@@ -410,6 +422,7 @@ function portadaDeEjemplo(): DatosPortada {
         piezasPorEstado: {},
         alertas: { retenidas: [], fallidas: [] },
         tendenciasCalientes: [],
+        borradoresRespuestaPendientes: 0,
     };
 }
 

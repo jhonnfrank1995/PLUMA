@@ -68,6 +68,7 @@ export interface DetallePeriodista {
     diales: Diales;
     reglasConducta: ReglasConducta;
     matrizTonos: MatrizTonos;
+    respuestasHabilitadas: boolean;
     metricas: MetricasPeriodista;
     memoriaReciente: EntradaMemoria[];
 }
@@ -137,6 +138,7 @@ export interface TextosBancoPeriodistas {
     guardarCambios: string;
     clonar: string;
     nombreDelClon: string;
+    respuestasHabilitadas: string;
 }
 
 interface Props {

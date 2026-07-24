@@ -112,12 +112,17 @@ final class Esquema {
                 PRIMARY KEY  (id),
                 KEY estado (estado)
             ) {$charset};",
+			// Etapa 5 (respuestas asistidas a comentarios, Libro Cap. 5.7) añade
+			// respuestas_habilitadas: interruptor "modo configurable" por
+			// periodista — decisión del propietario, 2026-07-23: vive en la
+			// Conducta, no como opción global del motor.
 			"CREATE TABLE {$prefijo}periodistas_conducta_versiones (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 periodista_id BIGINT UNSIGNED NOT NULL,
                 diales LONGTEXT NOT NULL,
                 reglas_conducta LONGTEXT NOT NULL,
                 matriz_tonos LONGTEXT NOT NULL,
+                respuestas_habilitadas TINYINT(1) NOT NULL DEFAULT 0,
                 creada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY periodista_id (periodista_id)
@@ -237,6 +242,28 @@ final class Esquema {
                 UNIQUE KEY post_id_consulta (post_id, consulta(100)),
                 KEY pieza_id (pieza_id)
             ) {$charset};",
+			// Etapa 5 (memoria de audiencia + respuestas asistidas, Libro Cap.
+			// 5.7): un comentario real de WordPress procesado como mucho una
+			// vez (UNIQUE comentario_id). "borrador"/"periodista_id" nulos
+			// cuando la Pieza no tiene periodista o tiene las respuestas
+			// deshabilitadas — solo alimenta memoria, sin borrador de
+			// respuesta. "comentario_respuesta_id" queda poblado tras
+			// aprobar (Libro Cap. 5.7: "el editor aprueba con un clic").
+			"CREATE TABLE {$prefijo}respuestas_comentarios (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                pieza_id BIGINT UNSIGNED NOT NULL,
+                comentario_id BIGINT UNSIGNED NOT NULL,
+                periodista_id BIGINT UNSIGNED NULL,
+                borrador LONGTEXT NULL,
+                estado VARCHAR(30) NOT NULL,
+                comentario_respuesta_id BIGINT UNSIGNED NULL,
+                creada_en DATETIME NOT NULL,
+                resuelta_en DATETIME NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY comentario_id (comentario_id),
+                KEY pieza_id (pieza_id),
+                KEY estado (estado)
+            ) {$charset};",
 		);
 	}
 
@@ -259,6 +286,7 @@ final class Esquema {
 			$prefijo . 'vocabulario',
 			$prefijo . 'cola_publicacion',
 			$prefijo . 'metricas_search_console',
+			$prefijo . 'respuestas_comentarios',
 		);
 	}
 

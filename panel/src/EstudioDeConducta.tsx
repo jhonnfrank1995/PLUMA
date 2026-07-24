@@ -42,6 +42,7 @@ export function EstudioDeConducta({ restUrl, nonce, periodistaId, textos, onCerr
     const [diales, setDiales] = useState<Diales | null>(null);
     const [reglas, setReglas] = useState<ReglasConducta | null>(null);
     const [matriz, setMatriz] = useState<MatrizTonos | null>(null);
+    const [respuestasHabilitadas, setRespuestasHabilitadas] = useState(false);
 
     const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
     const [vistaPreviaError, setVistaPreviaError] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export function EstudioDeConducta({ restUrl, nonce, periodistaId, textos, onCerr
                 setDiales(json.diales);
                 setReglas(json.reglasConducta);
                 setMatriz(json.matrizTonos);
+                setRespuestasHabilitadas(json.respuestasHabilitadas);
                 setError(null);
             })
             .catch(() => setError(textos.errorCarga));
@@ -119,7 +121,7 @@ export function EstudioDeConducta({ restUrl, nonce, periodistaId, textos, onCerr
         fetch(`${restUrl}pluma/v1/periodistas/${periodistaId}/conducta`, {
             method: 'POST',
             headers: cabeceras,
-            body: JSON.stringify({ diales, reglasConducta: reglas, matrizTonos: matriz }),
+            body: JSON.stringify({ diales, reglasConducta: reglas, matrizTonos: matriz, respuestasHabilitadas }),
         })
             .then((respuesta) => {
                 if (!respuesta.ok) {
@@ -284,6 +286,15 @@ export function EstudioDeConducta({ restUrl, nonce, periodistaId, textos, onCerr
                         value={reglas.estiloPreguntaFinal}
                         onChange={(evento) => setReglas({ ...reglas, estiloPreguntaFinal: evento.target.value })}
                     />
+                </label>
+
+                <label className="pluma-estudio__campo pluma-estudio__campo--checkbox">
+                    <input
+                        type="checkbox"
+                        checked={respuestasHabilitadas}
+                        onChange={(evento) => setRespuestasHabilitadas(evento.target.checked)}
+                    />
+                    {textos.respuestasHabilitadas}
                 </label>
             </section>
 

@@ -31,12 +31,25 @@ enum PropositoLenguaje: string {
 	 * estructurada, no redacción.
 	 */
 	case CompararHistorias = 'comparar_historias';
+	/**
+	 * Memoria de audiencia (Libro Cap. 5.7, Etapa 5): extrae un aprendizaje
+	 * breve de un comentario sustantivo real. Económico y determinista,
+	 * mismo criterio que `CompararHistorias` — es análisis, no creación.
+	 */
+	case AnalizarAudiencia = 'analizar_audiencia';
+	/**
+	 * Respuestas asistidas a comentarios (Libro Cap. 5.7, Etapa 5): borrador
+	 * de respuesta del periodista a un comentario real, en su propia voz.
+	 * Premium, mismo criterio que `BloqueEditor` — es voz pública del
+	 * periodista, no una clasificación interna.
+	 */
+	case RespuestaComentario = 'respuesta_comentario';
 
 	public function esPremium(): bool {
 		// phpcs:ignore PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext -- falso positivo: $this en un método de enum (PHP 8.1) es válido; el sniff aún no reconoce enums.
 		return match ( $this ) {
-			self::Redactar, self::Corregir, self::BloqueEditor => true,
-			self::Clasificar, self::Angulos, self::Titulares, self::VistaPrevia, self::CompararHistorias => false,
+			self::Redactar, self::Corregir, self::BloqueEditor, self::RespuestaComentario => true,
+			self::Clasificar, self::Angulos, self::Titulares, self::VistaPrevia, self::CompararHistorias, self::AnalizarAudiencia => false,
 		};
 	}
 
@@ -48,10 +61,10 @@ enum PropositoLenguaje: string {
 	public function temperatura(): float {
 		// phpcs:ignore PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext -- falso positivo: $this en un método de enum (PHP 8.1) es válido; el sniff aún no reconoce enums.
 		return match ( $this ) {
-			self::Clasificar, self::CompararHistorias => 0.0,
+			self::Clasificar, self::CompararHistorias, self::AnalizarAudiencia => 0.0,
 			self::Corregir => 0.2,
 			self::Angulos, self::Titulares => 0.8,
-			self::Redactar, self::BloqueEditor, self::VistaPrevia => 0.7,
+			self::Redactar, self::BloqueEditor, self::VistaPrevia, self::RespuestaComentario => 0.7,
 		};
 	}
 }

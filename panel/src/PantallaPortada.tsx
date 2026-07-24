@@ -45,6 +45,7 @@ export interface DatosPortada {
         fallidas: PiezaResumen[];
     };
     tendenciasCalientes: TendenciaCaliente[];
+    borradoresRespuestaPendientes: number;
 }
 
 export interface TextosPortada {
@@ -86,6 +87,7 @@ export interface TextosPortada {
         sinRetenidas: string;
         sinFallidas: string;
     };
+    borradoresRespuestaPendientes: string;
     tendencias: {
         titulo: string;
         vacio: string;
@@ -144,6 +146,14 @@ export function PantallaPortada({ datos, error, textos }: Props) {
             {datos.cuota.deficit && (
                 <p className="pluma-portada__aviso" role="alert">
                     {textos.cuota.deficit}
+                </p>
+            )}
+
+            {datos.borradoresRespuestaPendientes > 0 && (
+                <p className="pluma-portada__aviso" role="alert">
+                    <a href="#/comentarios">
+                        {textos.borradoresRespuestaPendientes} ({datos.borradoresRespuestaPendientes})
+                    </a>
                 </p>
             )}
 

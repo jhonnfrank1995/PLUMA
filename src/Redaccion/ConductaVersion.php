@@ -19,6 +19,7 @@ final readonly class ConductaVersion {
 		public Diales $diales,
 		public ReglasConducta $reglas,
 		public MatrizTonos $matrizTonos,
+		public bool $respuestasHabilitadas,
 		public DateTimeImmutable $creadaEn,
 	) {
 	}

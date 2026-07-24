@@ -10,14 +10,24 @@ use Pluma\Datos\CandadoGlobalInterface;
 use Pluma\Datos\RepositorioBitacoraInterface;
 use Pluma\Datos\RepositorioBorradoresInterface;
 use Pluma\Datos\RepositorioColaPublicacionInterface;
+use Pluma\Datos\RepositorioMemoriaEditorialInterface;
+use Pluma\Datos\RepositorioPeriodistasInterface;
 use Pluma\Datos\RepositorioPiezasInterface;
+use Pluma\Datos\RepositorioRespuestasComentariosInterface;
 use Pluma\Datos\RepositorioTendenciasInterface;
 use Pluma\Investigacion\InvestigadorInterface;
 use Pluma\Kernel\RelojInterface;
 use Pluma\Proveedores\ProveedorTendenciasException;
+use Pluma\Publicacion\ComentarioWordPress;
 use Pluma\Publicacion\CreadorBorradorInterface;
+use Pluma\Publicacion\LectorComentariosInterface;
 use Pluma\Publicacion\PublicadorInterface;
+use Pluma\Redaccion\AnalizadorAudiencia;
+use Pluma\Redaccion\EstadoRespuestaComentario;
+use Pluma\Redaccion\GeneradorRespuestaComentario;
 use Pluma\Redaccion\RedactorInterface;
+use Pluma\Redaccion\TipoMemoria;
+use Pluma\Redaccion\VerificadorComentarioSustantivo;
 use Pluma\Sensores\ComparadorHistorias;
 use Pluma\Sensores\RelacionHistoria;
 use Pluma\Sensores\SensorInterface;
@@ -42,6 +52,9 @@ final class Orquestador {
 	private const LIMITE_POR_LOTE                    = 5;
 	private const DIAS_VENTANA_COMPARACION_HISTORIAS = 14;
 	private const LIMITE_CANDIDATAS_COMPARACION      = 20;
+	private const LIMITE_PIEZAS_COMENTARIOS          = 5;
+	private const DIAS_VENTANA_COMENTARIOS           = 30;
+	private const LIMITE_COMENTARIOS_POR_LOTE        = 10;
 
 	public const OPCION_MODO_OPERACION     = 'pluma_modo_operacion';
 	public const OPCION_VENTANA_VETO_HORAS = 'pluma_ventana_veto_horas';
@@ -69,6 +82,13 @@ final class Orquestador {
 		private readonly CreadorBorradorInterface $creadorBorrador,
 		private readonly PublicadorInterface $publicador,
 		private readonly ComparadorHistorias $comparadorHistorias,
+		private readonly LectorComentariosInterface $lectorComentarios,
+		private readonly AnalizadorAudiencia $analizadorAudiencia,
+		private readonly GeneradorRespuestaComentario $generadorRespuestaComentario,
+		private readonly VerificadorComentarioSustantivo $verificadorComentarioSustantivo,
+		private readonly RepositorioMemoriaEditorialInterface $memoriaEditorial,
+		private readonly RepositorioRespuestasComentariosInterface $respuestasComentarios,
+		private readonly RepositorioPeriodistasInterface $periodistas,
 		private readonly RelojInterface $reloj,
 	) {
 	}
@@ -100,6 +120,7 @@ final class Orquestador {
 			$errores                       = array( ...$errores, ...$erroresPipeline );
 
 			$this->procesarPublicacionesVencidas( $errores );
+			$this->procesarComentarios( $errores );
 			$this->verificarEscasezHonesta( $errores );
 		} finally {
 			$this->bitacora->finalizarEjecucion( $bitacoraId, $this->reloj->ahora(), $lotesProcesados, $errores );
@@ -471,6 +492,118 @@ final class Orquestador {
 				$config->cuotaObjetivo
 			);
 		}
+	}
+
+	/**
+	 * Memoria de audiencia + respuestas asistidas (Libro Cap. 5.7, Etapa 5):
+	 * por cada Pieza Publicada reciente, lee sus comentarios reales,
+	 * descarta los ya procesados y los no sustantivos, y por cada uno nuevo
+	 * extrae un aprendizaje de audiencia y — si el periodista tiene las
+	 * respuestas habilitadas — un borrador de respuesta pendiente de
+	 * aprobación humana. Lotes pequeños (CLAUDE.md § Orquestador): tope
+	 * `LIMITE_COMENTARIOS_POR_LOTE` por tick, nunca bloquea el resto del pipeline.
+	 *
+	 * @param list<string> $errores
+	 */
+	private function procesarComentarios( array &$errores ): void {
+		$procesados = 0;
+
+		$piezas = $this->piezas->obtenerPublicadasParaSincronizarComentarios(
+			self::DIAS_VENTANA_COMENTARIOS,
+			self::LIMITE_PIEZAS_COMENTARIOS,
+			$this->reloj->ahora()
+		);
+
+		foreach ( $piezas as $pieza ) {
+			if ( $procesados >= self::LIMITE_COMENTARIOS_POR_LOTE ) {
+				return;
+			}
+
+			if ( null === $pieza->postId ) {
+				continue;
+			}
+
+			$tema = $this->temaDePieza( $pieza );
+
+			foreach ( $this->lectorComentarios->obtenerAprobadosDe( $pieza->postId ) as $comentario ) {
+				if ( $procesados >= self::LIMITE_COMENTARIOS_POR_LOTE ) {
+					return;
+				}
+
+				if (
+					$this->respuestasComentarios->yaProcesado( $comentario->id )
+					|| ! $this->verificadorComentarioSustantivo->esSustantivo( $comentario->contenidoTexto )
+				) {
+					continue;
+				}
+
+				$this->procesarComentario( $pieza, $tema, $comentario, $errores );
+				++$procesados;
+			}
+		}
+	}
+
+	private function temaDePieza( Pieza $pieza ): string {
+		if ( null !== $pieza->fichaDecisionEditorial ) {
+			return $pieza->fichaDecisionEditorial->clasificacion->tema;
+		}
+
+		$tendencia = $this->tendencias->obtenerPorId( $pieza->tendenciaId );
+
+		return null !== $tendencia ? $tendencia['termino'] : '';
+	}
+
+	/**
+	 * @param list<string> $errores
+	 */
+	private function procesarComentario( Pieza $pieza, string $tema, ComentarioWordPress $comentario, array &$errores ): void {
+		if ( null !== $pieza->periodistaId ) {
+			$aprendizaje = $this->analizadorAudiencia->analizar( $tema, $comentario->contenidoTexto );
+
+			if ( null !== $aprendizaje ) {
+				$this->memoriaEditorial->registrar(
+					$pieza->periodistaId,
+					TipoMemoria::Audiencia,
+					$tema,
+					array(
+						'resumen'      => $aprendizaje->resumen,
+						'sentimiento'  => $aprendizaje->sentimiento->value,
+						'comentarioId' => $comentario->id,
+					),
+					$pieza->id,
+					$this->reloj->ahora()
+				);
+			}
+		}
+
+		$periodista = null !== $pieza->periodistaId ? $this->periodistas->obtenerPorId( $pieza->periodistaId ) : null;
+
+		if ( null !== $periodista && $periodista->conductaActual->respuestasHabilitadas ) {
+			try {
+				$borrador = $this->generadorRespuestaComentario->generar( $periodista, $tema, $comentario->contenidoTexto );
+				$this->respuestasComentarios->registrar(
+					$pieza->id,
+					$comentario->id,
+					$periodista->id,
+					$borrador,
+					EstadoRespuestaComentario::PendienteAprobacion,
+					$this->reloj->ahora()
+				);
+
+				return;
+			} catch ( Throwable $e ) {
+				$errores[] = "comentario {$comentario->id} (borrador de respuesta): " . $e->getMessage();
+			}
+		}
+
+		$this->respuestasComentarios->registrar(
+			$pieza->id,
+			$comentario->id,
+			$pieza->periodistaId,
+			null,
+			EstadoRespuestaComentario::Procesado,
+			$this->reloj->ahora()
+		);
 	}
 
 	private function modoGlobalConfigurado(): ModoOperacion {

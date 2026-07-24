@@ -1,6 +1,6 @@
 # Etapa 5 — La máquina que aprende
 
-**Estado: EN CURSO.** Porción 1 (Bucle de Search Console) y Porción 2 (Piezas de refuerzo y "dos golpes") completas y commiteadas localmente, pendientes de push y verificación de CI.
+**Estado: EN CURSO.** Porción 1 (Bucle de Search Console), Porción 2 (Piezas de refuerzo y "dos golpes") y Porción 3 (Memoria de audiencia + respuestas asistidas a comentarios) completas y commiteadas localmente, pendientes de push y verificación de CI.
 
 ## Objetivo y criterio de salida (PLAN-MAESTRO)
 
@@ -54,11 +54,27 @@ row=NULL
 ```
 `estado VARCHAR(20)` en `pluma_tendencias` era demasiado corto para el nuevo valor `'posible_actualizacion'` (21 caracteres). `$wpdb->insert()` valida la longitud del campo contra el esquema real de la tabla y **falla en silencio** (no lanza excepción PHP), dejando `$wpdb->insert_id` con el valor de la ÚLTIMA inserción exitosa anterior (que resultó ser la propia tendencia original) — de ahí el `null`/404 engañoso. Corregido ensanchando a `estado VARCHAR(30)` (mismo ancho que `pluma_piezas.estado`, ya usado en el resto del esquema). El test de diagnóstico se eliminó inmediatamente después del hallazgo.
 
+## Porción 3 — Memoria de audiencia + respuestas asistidas a comentarios (commit pendiente)
+
+**Qué se agregó:**
+- **Territorio nuevo**: cero interacción con comentarios reales de WordPress existía en el plugin antes de esta porción. `Pluma\Publicacion\LectorComentarios`/`PublicadorComentario` son ahora los únicos puntos con `get_comments()`/`wp_insert_comment()` (mismo principio de "único punto" que `CreadorBorrador` con `wp_insert_post`).
+- **Memoria de audiencia**: en cada tick, `Orquestador::procesarComentarios()` recorre las Piezas Publicadas con post real de los últimos 30 días (`RepositorioPiezasInterface::obtenerPublicadasParaSincronizarComentarios()`, nuevo), lee sus comentarios aprobados, descarta los ya procesados y el ruido (`VerificadorComentarioSustantivo`, determinista, longitud mínima — sin gastar presupuesto de IA en "primero!" o saludos). Por cada comentario sustantivo nuevo con periodista asignado, `Pluma\Redaccion\AnalizadorAudiencia` (proveedor económico y determinista, mismo patrón que `ComparadorHistorias`/`ClasificadorNoticia`) extrae un resumen + sentimiento que se persiste en `pluma_memoria_editorial` bajo `TipoMemoria::Audiencia` — el tercer tipo de memoria del enum, declarado desde la Etapa 2 pero huérfano (cero escritores, cero lectores) hasta ahora.
+- **Respuestas asistidas**: si el periodista tiene el nuevo interruptor **"Responder comentarios automáticamente"** habilitado (campo `respuestasHabilitadas` en `ConductaVersion`, editable en el Estudio de Conducta, **deshabilitado por defecto para todo periodista nuevo o clonado** — decisión del propietario, 2026-07-23), `Pluma\Redaccion\GeneradorRespuestaComentario` redacta un borrador de respuesta en la voz del periodista (mismo patrón que `GeneradorBloqueEditor`: directrices con línea editorial/líneas rojas + JSON estricto). El borrador queda `pendiente_aprobacion` en la nueva tabla `pluma_respuestas_comentarios` — **el sistema nunca publica la respuesta por su cuenta**. La nueva **Sala de Comentarios** (`#/comentarios` en el panel) lista los borradores pendientes; el editor los **Aprueba** (publica un comentario real, autor invitado con el nombre del periodista, sin cuenta WP vinculada — mismo criterio que `CreadorBorrador`, que tampoco fija `post_author`) o los **Descarta**, vía `Pluma\Pipeline\GestorRespuestasComentarios` + `Pluma\Admin\RestRespuestasComentarios` (capacidad `pluma_aprobar_piezas`). La Portada avisa con un enlace directo cuando hay borradores esperando.
+- **Fail-safe consistente con el resto del Orquestador**: `AnalizadorAudiencia::analizar()` nunca lanza (sin presupuesto, proveedor caído, o respuesta malformada/truncada → `null`, se salta la memoria); un fallo de `GeneradorRespuestaComentario` (por ejemplo sin presupuesto premium) degrada a registrar el comentario como `procesado` sin borrador, nunca bloquea el resto del lote ni el tick.
+- Esquema `0.12.0`: nueva tabla `pluma_respuestas_comentarios` (`comentario_id` `UNIQUE` — un comentario real se procesa como mucho una vez, evita duplicar aprendizaje o volver a ofrecer un borrador ya resuelto) y columna `respuestas_habilitadas` en `pluma_periodistas_conducta_versiones`. Export/import del banco de periodistas (`ExportadorBancoPeriodistas`/`ImportadorBancoPeriodistas`) incluyen el campo nuevo — la portabilidad del banco es de primera clase (CLAUDE.md), y una exportación anterior a esta porción se sigue importando bien (el campo ausente se interpreta como `false`, el mismo valor por defecto de un periodista nuevo).
+
+**Honestidad de alcance:** la memoria de audiencia queda poblada y consultable, pero **no se integra todavía en `PuntuacionOportunidad`** (componente "Vida útil", `PLUMA-E1-1`) — esa integración es un consumidor futuro, no bloquea esta porción. El editor no puede editar el texto del borrador antes de aprobar (solo Aprobar/Descartar) — el Libro pide "aprueba con un clic", que es exactamente lo que se entrega; edición manual queda fuera hasta que se pida explícitamente. El dormant `NovedadNoticia::HistoriaEnEvolucion` (calculado por `ClasificadorNoticia` en Redacción) sigue sin reconciliarse con la detección de "dos golpes" de la porción 2 — son dos mecanismos distintos que conviven, unificarlos no era parte de esta porción.
+
+**Decisiones de producto tomadas con el propietario al abrir esta porción (2026-07-23):**
+1. Alcance: memoria de audiencia y respuestas asistidas juntas, no partido en dos porciones.
+2. Identidad del autor del comentario aprobado: autor invitado con el nombre del periodista, sin cuenta WP real vinculada.
+3. El interruptor de respuestas vive por periodista (en la Conducta), no como opción global del motor.
+
 ## Pendiente dentro de esta Etapa
 
-- **Memoria de audiencia + respuestas asistidas a comentarios** (paga `PLUMA-E2-3`): `TipoMemoria::Audiencia` ya existe en el enum pero nunca se escribe ni se lee; el plugin todavía no lee comentarios reales de WordPress (`get_comments()`) en ningún lugar.
 - **Informes editoriales semanales**: no existe ninguna pantalla ni generador de informes todavía en `Pluma\Admin`.
 - **Consumidores del dato de Search Console** (`PLUMA-E5-1`, registrada en la porción 1): regenerar títulos débiles, candidatos de refuerzo, ajuste de asignación por periodista, hueco competitivo real en `PuntuacionOportunidad`.
+- **Integración de la memoria de audiencia en `PuntuacionOportunidad`** (componente "Vida útil", `PLUMA-E1-1`): registrada como consumidor futuro en esta misma porción.
 
 ## A tener en cuenta para otras fases
 
@@ -69,6 +85,8 @@ row=NULL
 - **Cada tabla nueva en `Esquema::sentenciasCreateTable()` cambia el conteo total de tablas** que `ActivadorTest.php` espera exactamente vía Mockery (`Functions\expect('dbDelta')->times(N)`) — hay que actualizar esos conteos exactos (11→12 en esta porción) cada vez que se agregue una tabla, o los tests de Unit fallan con "should be called exactly N times but called N+1 times". Ensanchar/añadir una COLUMNA sobre una tabla existente (como en la porción 2) NO cambia este conteo.
 - **`$wpdb->insert()`/`$wpdb->update()` fallan en SILENCIO (sin lanzar excepción PHP) cuando un valor excede la longitud de columna del esquema real** — dejan `$wpdb->insert_id` con el valor de la última inserción exitosa anterior, lo que produce fallos de test engañosos que parecen un problema de timing/orden en vez de un simple `VARCHAR` corto. Cada vez que se añade un nuevo caso de enum que se persiste como `VARCHAR`, verificar que la columna sea suficientemente ancha para el valor MÁS LARGO del enum, no solo para los valores existentes al momento de crear la tabla.
 - **Ante un fallo de Integración que parezca de timing/orden de tests pero no tenga una causa obvia**: aislar el test fallido primero (`--filter`) para descartar contaminación entre clases; si sigue fallando solo, escalar a un test de diagnóstico desechable con `fwrite(STDERR, ...)` volcando `$wpdb->last_error` y las filas reales antes de teorizar más — encontró la causa real (VARCHAR corto) en un solo paso donde seguir especulando habría llevado a un arreglo equivocado.
+- **Cuando una clase gana una dependencia nueva y ya tenía dobles "permisivos" reutilizados en muchos tests** (como `Orquestador`, con 16+ dependencias tras esta porción): el doble permisivo debe ser seguro incluso si el test SÍ ejercita esa rama de código, no solo cuando la rama nunca se alcanza — un mock de `LenguajeInterface` sin `completar()` estable falla con `BadMethodCallException` en cuanto un test real entrega datos a esa dependencia, en vez de degradar limpiamente.
+- **Un archivo editado con PowerShell (`Get-Content -Raw` + `Set-Content`) en este entorno puede corromper acentos/es-dash a mojibake** (`í`→`Ã­`, `—`→`â€”`) si la codificación no se fuerza explícitamente — verificado con `git diff` tras un intento fallido en esta porción. La vía segura para ediciones masivas por patrón en archivos UTF-8 con texto en español es `sed`/Node.js (`fs.readFileSync(..., 'utf8')`), no PowerShell, o revisar el diff de inmediato y revertir (`git checkout --`) ante la primera señal de corrupción.
 
 ## Evidencia de gates
 
@@ -76,5 +94,6 @@ row=NULL
 |---|---|---|---|---|---|---|---|
 | 1 — Bucle de Search Console | 324/324 | 21/21 | 106/106 | 67/67 | 2/2 | limpio | commiteado, sin push todavía |
 | 2 — Piezas de refuerzo y "dos golpes" | 337/337 | 21/21 | 111/111 | 68/68 | 2/2 | limpio | commiteado, sin push todavía |
+| 3 — Memoria de audiencia + respuestas asistidas | 384/384 | 21/21 | 126/126 | 76/76 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin credenciales reales (llave de OpenRouter ni client_secret de Google) filtradas en ningún commit (verificado explícitamente antes de cada uno).

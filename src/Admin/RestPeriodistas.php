@@ -201,18 +201,19 @@ final class RestPeriodistas {
 
 		return new WP_REST_Response(
 			array(
-				'id'              => $periodista->id,
-				'nombre'          => $periodista->nombre,
-				'avatarUrl'       => $periodista->avatarUrl,
-				'biografia'       => $periodista->biografia,
-				'rol'             => $periodista->rol->value,
-				'especialidades'  => array_map( static fn ( $e ): array => $e->aArray(), $periodista->especialidades ),
-				'estado'          => $periodista->estado->value,
-				'diales'          => $periodista->conductaActual->diales->aArray(),
-				'reglasConducta'  => $periodista->conductaActual->reglas->aArray(),
-				'matrizTonos'     => $periodista->conductaActual->matrizTonos->aArray(),
-				'metricas'        => $this->piezas->metricasPorPeriodista( $periodista->id ),
-				'memoriaReciente' => $memoriaReciente,
+				'id'                    => $periodista->id,
+				'nombre'                => $periodista->nombre,
+				'avatarUrl'             => $periodista->avatarUrl,
+				'biografia'             => $periodista->biografia,
+				'rol'                   => $periodista->rol->value,
+				'especialidades'        => array_map( static fn ( $e ): array => $e->aArray(), $periodista->especialidades ),
+				'estado'                => $periodista->estado->value,
+				'diales'                => $periodista->conductaActual->diales->aArray(),
+				'reglasConducta'        => $periodista->conductaActual->reglas->aArray(),
+				'matrizTonos'           => $periodista->conductaActual->matrizTonos->aArray(),
+				'respuestasHabilitadas' => $periodista->conductaActual->respuestasHabilitadas,
+				'metricas'              => $this->piezas->metricasPorPeriodista( $periodista->id ),
+				'memoriaReciente'       => $memoriaReciente,
 			),
 			200
 		);
@@ -308,7 +309,9 @@ final class RestPeriodistas {
 
 		[$diales, $reglas, $matriz] = $conducta;
 
-		$versionId = $this->periodistas->nuevaVersionConducta( $periodistaId, $diales, $reglas, $matriz, $this->reloj->ahora() );
+		$respuestasHabilitadas = (bool) $request->get_param( 'respuestasHabilitadas' );
+
+		$versionId = $this->periodistas->nuevaVersionConducta( $periodistaId, $diales, $reglas, $matriz, $respuestasHabilitadas, $this->reloj->ahora() );
 
 		return new WP_REST_Response( array( 'versionId' => $versionId ), 200 );
 	}

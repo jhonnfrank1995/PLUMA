@@ -91,6 +91,7 @@ function textosDeEjemplo(): TextosBancoPeriodistas {
         guardarCambios: 'Guardar cambios',
         clonar: 'Clonar',
         nombreDelClon: 'Nombre del nuevo periodista clonado',
+        respuestasHabilitadas: 'Responder comentarios automáticamente',
     };
 }
 
