@@ -25,6 +25,14 @@ interface RepositorioPiezasInterface {
 	public function obtenerPorId( int $id ): ?Pieza;
 
 	/**
+	 * Resuelve una Pieza a partir del post de WordPress que publicó (Libro
+	 * Cap. 6.4: el bucle de Search Console reporta por URL de página, hay
+	 * que mapearla de vuelta a la Pieza real que la generó). `null` si el
+	 * post no es de ninguna Pieza gestionada por PLUMA.
+	 */
+	public function obtenerPorPostId( int $postId ): ?Pieza;
+
+	/**
 	 * La Pieza más reciente de una tendencia (Sala de Tendencias, Libro
 	 * Cap. 10.2: las acciones Cubrir/Ignorar/Vigilar operan sobre la Pieza
 	 * en curso de la tarjeta). `null` si nunca se creó una.

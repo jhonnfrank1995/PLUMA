@@ -416,10 +416,10 @@ final class PantallaPanel {
 	 */
 	private function textosSalaMaquinas(): array {
 		return array(
-			'cargando'    => __( 'Cargando…', 'pluma-engine' ),
-			'errorCarga'  => __( 'No se pudo cargar. Reintenta en unos segundos.', 'pluma-engine' ),
-			'errorAccion' => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
-			'bitacora'    => array(
+			'cargando'      => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'    => __( 'No se pudo cargar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'   => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'bitacora'      => array(
 				'titulo'     => __( 'Bitácora del motor', 'pluma-engine' ),
 				'vacia'      => __( 'el motor no se ha ejecutado todavía', 'pluma-engine' ),
 				'inicio'     => __( 'Inicio', 'pluma-engine' ),
@@ -429,14 +429,14 @@ final class PantallaPanel {
 				'sinErrores' => __( 'sin errores', 'pluma-engine' ),
 				'enCurso'    => __( 'en curso', 'pluma-engine' ),
 			),
-			'coste'       => array(
+			'coste'         => array(
 				'titulo'        => __( 'Coste', 'pluma-engine' ),
 				'gastoHoy'      => __( 'Gasto de hoy', 'pluma-engine' ),
 				'limiteDiario'  => __( 'Límite diario (USD)', 'pluma-engine' ),
 				'guardarLimite' => __( 'Guardar límite', 'pluma-engine' ),
 				'guardado'      => __( 'Límite actualizado', 'pluma-engine' ),
 			),
-			'apis'        => array(
+			'apis'          => array(
 				'titulo'          => __( 'Estado de las APIs conectadas', 'pluma-engine' ),
 				'openRouter'      => __( 'OpenRouter (proveedor de lenguaje)', 'pluma-engine' ),
 				'googleTrends'    => __( 'Google Trends (Radar)', 'pluma-engine' ),
@@ -445,7 +445,7 @@ final class PantallaPanel {
 				'circuitoAbierto' => __( 'en enfriamiento tras fallos repetidos', 'pluma-engine' ),
 				'circuitoCerrado' => __( 'conectada', 'pluma-engine' ),
 			),
-			'llave'       => array(
+			'llave'         => array(
 				'titulo'          => __( 'Llave de OpenRouter', 'pluma-engine' ),
 				'actual'          => __( 'Llave actual', 'pluma-engine' ),
 				'campoNueva'      => __( 'Nueva llave', 'pluma-engine' ),
@@ -457,6 +457,38 @@ final class PantallaPanel {
 				'cambiar'         => __( 'Cambiar llave', 'pluma-engine' ),
 				'quitar'          => __( 'Quitar llave', 'pluma-engine' ),
 				'confirmarQuitar' => __( '¿Quitar la llave? Sin ella, la redacción vuelve al modo mecánico de respaldo.', 'pluma-engine' ),
+			),
+			'searchConsole' => array(
+				'titulo'               => __( 'Search Console', 'pluma-engine' ),
+				'cargando'             => __( 'Cargando…', 'pluma-engine' ),
+				'errorCarga'           => __( 'No se pudo cargar Search Console. Reintenta en unos segundos.', 'pluma-engine' ),
+				'errorAccion'          => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+				'avisoConectado'       => __( 'Conectado con Google Search Console.', 'pluma-engine' ),
+				'avisoError'           => __( 'No se pudo completar la conexión con Google. Verifica las credenciales e inténtalo de nuevo.', 'pluma-engine' ),
+				'campoClientId'        => __( 'Client ID', 'pluma-engine' ),
+				'campoClientSecret'    => __( 'Client secret', 'pluma-engine' ),
+				'conectar'             => __( 'Conectar', 'pluma-engine' ),
+				'conectando'           => __( 'Conectando…', 'pluma-engine' ),
+				'redirectUriTitulo'    => __( 'URI de redirección', 'pluma-engine' ),
+				'redirectUriAyuda'     => __( 'Registra esta URI exacta en tu proyecto de Google Cloud antes de continuar.', 'pluma-engine' ),
+				'irAGoogle'            => __( 'Ir a Google para autorizar', 'pluma-engine' ),
+				'elegirSitio'          => __( 'Elegir sitio de Search Console', 'pluma-engine' ),
+				'guardarSitio'         => __( 'Guardar sitio', 'pluma-engine' ),
+				'sitioActual'          => __( 'Sitio conectado', 'pluma-engine' ),
+				'sincronizarAhora'     => __( 'Sincronizar ahora', 'pluma-engine' ),
+				'sincronizando'        => __( 'Sincronizando…', 'pluma-engine' ),
+				'ultimaSincronizacion' => __( 'Última sincronización', 'pluma-engine' ),
+				'nuncaSincronizado'    => __( 'todavía no se ha sincronizado', 'pluma-engine' ),
+				'circuitoAbierto'      => __( 'en enfriamiento tras fallos repetidos', 'pluma-engine' ),
+				'desconectar'          => __( 'Desconectar', 'pluma-engine' ),
+				'confirmarDesconectar' => __( '¿Desconectar Search Console? Se borran las credenciales y el sitio elegido.', 'pluma-engine' ),
+				'tablaPagina'          => __( 'Página (post_id)', 'pluma-engine' ),
+				'tablaConsulta'        => __( 'Consulta', 'pluma-engine' ),
+				'tablaClics'           => __( 'Clics', 'pluma-engine' ),
+				'tablaImpresiones'     => __( 'Impresiones', 'pluma-engine' ),
+				'tablaCtr'             => __( 'CTR', 'pluma-engine' ),
+				'tablaPosicion'        => __( 'Posición', 'pluma-engine' ),
+				'sinMetricas'          => __( 'todavía no hay métricas sincronizadas', 'pluma-engine' ),
 			),
 		);
 	}

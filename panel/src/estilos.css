@@ -1261,6 +1261,28 @@
     align-items: baseline;
 }
 
+/* Search Console */
+
+.pluma-search-console__aviso {
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.pluma-search-console__redirect {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: var(--pluma-color-fondo);
+    border-radius: var(--pluma-radio);
+}
+
+.pluma-search-console__redirect code {
+    display: block;
+    padding: 0.4rem;
+    overflow-wrap: break-word;
+}
+
 /* Sala de Máquinas (Salud) */
 
 .pluma-salud {

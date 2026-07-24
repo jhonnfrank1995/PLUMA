@@ -206,6 +206,24 @@ final class Esquema {
                 KEY vertical (vertical(100)),
                 KEY periodista_id (periodista_id)
             ) {$charset};",
+			// Etapa 5 (bucle de Search Console, Libro Cap. 6.4): métricas
+			// reales de `searchAnalytics.query` agregadas por página+consulta.
+			// "pieza_id" nulo cuando la URL no mapea a ninguna Pieza gestionada
+			// por PLUMA (contenido ajeno del sitio) — dato real, no se descarta.
+			"CREATE TABLE {$prefijo}metricas_search_console (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                post_id BIGINT UNSIGNED NOT NULL,
+                pieza_id BIGINT UNSIGNED NULL,
+                consulta VARCHAR(191) NOT NULL,
+                clics INT UNSIGNED NOT NULL,
+                impresiones INT UNSIGNED NOT NULL,
+                ctr DECIMAL(6,4) NOT NULL,
+                posicion DECIMAL(6,2) NOT NULL,
+                sincronizada_en DATETIME NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY post_id_consulta (post_id, consulta(100)),
+                KEY pieza_id (pieza_id)
+            ) {$charset};",
 		);
 	}
 
@@ -227,6 +245,7 @@ final class Esquema {
 			$prefijo . 'auditoria',
 			$prefijo . 'vocabulario',
 			$prefijo . 'cola_publicacion',
+			$prefijo . 'metricas_search_console',
 		);
 	}
 

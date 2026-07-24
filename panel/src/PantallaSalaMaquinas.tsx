@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { BloqueLlaveOpenRouter } from './BloqueLlaveOpenRouter';
+import { BloqueSearchConsole, type TextosSearchConsole } from './BloqueSearchConsole';
 
 export interface DatosSalud {
     versionPhp: string;
@@ -86,6 +87,7 @@ export interface TextosSalaMaquinas {
         quitar: string;
         confirmarQuitar: string;
     };
+    searchConsole: TextosSearchConsole;
 }
 
 interface Props {
@@ -258,6 +260,8 @@ function SeccionesMotor({ restUrl, nonce, textos }: { restUrl: string; nonce: st
                 alGuardar={cargar}
                 alError={() => setError(textos.errorAccion)}
             />
+
+            <BloqueSearchConsole restUrl={restUrl} nonce={nonce} textos={textos.searchConsole} />
 
             <section className="pluma-maquinas__seccion">
                 <h2>{textos.bitacora.titulo}</h2>

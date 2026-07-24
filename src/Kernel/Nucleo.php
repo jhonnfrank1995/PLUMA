@@ -16,6 +16,7 @@ use Pluma\Admin\RestPortada;
 use Pluma\Admin\RestSalaMaquinas;
 use Pluma\Admin\RestSalaRevision;
 use Pluma\Admin\RestSalaTendencias;
+use Pluma\Admin\RestSearchConsole;
 use Pluma\Compuertas\CompuertaCalidad;
 use Pluma\Compuertas\CompuertaOriginalidad;
 use Pluma\Compuertas\CompuertaRiesgo;
@@ -34,6 +35,8 @@ use Pluma\Datos\RepositorioColaPublicacion;
 use Pluma\Datos\RepositorioColaPublicacionInterface;
 use Pluma\Datos\RepositorioMemoriaEditorial;
 use Pluma\Datos\RepositorioMemoriaEditorialInterface;
+use Pluma\Datos\RepositorioMetricasSearchConsole;
+use Pluma\Datos\RepositorioMetricasSearchConsoleInterface;
 use Pluma\Datos\RepositorioPeriodistas;
 use Pluma\Datos\RepositorioPeriodistasInterface;
 use Pluma\Datos\RepositorioPiezas;
@@ -55,6 +58,8 @@ use Pluma\Proveedores\LenguajeInterface;
 use Pluma\Proveedores\PresupuestoLenguaje;
 use Pluma\Proveedores\ProveedorGoogleTrends;
 use Pluma\Proveedores\ProveedorOpenRouter;
+use Pluma\Proveedores\ProveedorSearchConsole;
+use Pluma\Proveedores\ProveedorSearchConsoleInterface;
 use Pluma\Proveedores\ProveedorTendenciasInterface;
 use Pluma\Publicacion\AsignadorTaxonomiaWp;
 use Pluma\Publicacion\CreadorBorrador;
@@ -174,6 +179,13 @@ final class Nucleo {
 			RepositorioColaPublicacionInterface::class,
 			fn ( Contenedor $c ): RepositorioColaPublicacion => new RepositorioColaPublicacion( $c->obtener( 'wpdb' ) )
 		);
+		$this->contenedor->registrar(
+			RepositorioMetricasSearchConsoleInterface::class,
+			fn ( Contenedor $c ): RepositorioMetricasSearchConsole => new RepositorioMetricasSearchConsole(
+				$c->obtener( 'wpdb' ),
+				$c->obtener( RepositorioPiezasInterface::class )
+			)
+		);
 
 		$this->contenedor->registrar(
 			Transicionador::class,
@@ -198,6 +210,10 @@ final class Nucleo {
 		$this->contenedor->registrar(
 			SensorInterface::class,
 			fn ( Contenedor $c ): SensorGoogleTrends => new SensorGoogleTrends( $c->obtener( ProveedorTendenciasInterface::class ) )
+		);
+		$this->contenedor->registrar(
+			ProveedorSearchConsoleInterface::class,
+			fn ( Contenedor $c ): ProveedorSearchConsole => new ProveedorSearchConsole( $c->obtener( RelojInterface::class ) )
 		);
 		$this->contenedor->registrar(
 			InvestigadorInterface::class,
@@ -543,6 +559,14 @@ final class Nucleo {
 				$c->obtener( RelojInterface::class )
 			)
 		);
+		$this->contenedor->registrar(
+			RestSearchConsole::class,
+			fn ( Contenedor $c ): RestSearchConsole => new RestSearchConsole(
+				$c->obtener( ProveedorSearchConsoleInterface::class ),
+				$c->obtener( RepositorioMetricasSearchConsoleInterface::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin, string $versionEsquemaObjetivo ): void {
@@ -566,5 +590,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestSalaMaquinas::class )->registrar();
 		$this->contenedor->obtener( RestEstudioSeo::class )->registrar();
 		$this->contenedor->obtener( RestOnboarding::class )->registrar();
+		$this->contenedor->obtener( RestSearchConsole::class )->registrar();
 	}
 }

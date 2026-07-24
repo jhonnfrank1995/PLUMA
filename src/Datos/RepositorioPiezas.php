@@ -91,6 +91,16 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return null !== $fila ? $this->filaAPieza( $fila ) : null;
 	}
 
+	public function obtenerPorPostId( int $postId ): ?Pieza {
+		$sql = $this->wpdb->prepare( "SELECT * FROM {$this->tabla()} WHERE post_id = %d ORDER BY id DESC LIMIT 1", $postId ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$fila = $this->wpdb->get_row( $sql, ARRAY_A );
+
+		return null !== $fila ? $this->filaAPieza( $fila ) : null;
+	}
+
 	public function obtenerPorEstado( EstadoPieza $estado, int $limite ): array {
 		$sql = $this->wpdb->prepare(
 			"SELECT * FROM {$this->tabla()} WHERE estado = %s ORDER BY prioridad DESC, actualizada_en ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
