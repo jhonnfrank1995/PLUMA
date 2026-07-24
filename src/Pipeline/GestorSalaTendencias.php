@@ -57,6 +57,36 @@ final class GestorSalaTendencias {
 	}
 
 	/**
+	 * "Cubrir como actualización" (Libro Cap. 3.4, "dos golpes"): confirma
+	 * que una tendencia marcada POSIBLE_ACTUALIZACION por el Radar es en
+	 * efecto la evolución de la historia original, y crea la Pieza enlazada
+	 * — decisión del propietario, 2026-07-23: nunca automático, siempre
+	 * confirmado aquí por el editor.
+	 *
+	 * @throws TendenciaNoEncontradaException
+	 */
+	public function cubrirComoActualizacion( int $tendenciaId ): void {
+		$tendenciaOriginalId = $this->tendencias->obtenerTendenciaOriginal( $tendenciaId );
+
+		if ( null === $tendenciaOriginalId ) {
+			$excepcion = new TendenciaNoEncontradaException( $tendenciaId );
+
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- mensaje interno construido por la propia excepción, sin entrada de usuario.
+			throw $excepcion;
+		}
+
+		$this->asegurarQueExiste( $tendenciaId, EstadoTendencia::EnPipeline );
+
+		$piezaOriginal = $this->piezas->obtenerUltimaPorTendencia( $tendenciaOriginalId );
+
+		$piezaId = null !== $piezaOriginal
+			? $this->piezas->crearComoActualizacion( $tendenciaId, $piezaOriginal->id, $this->reloj->ahora() )
+			: $this->piezas->crear( $tendenciaId, $this->reloj->ahora() );
+
+		$this->piezas->priorizar( $piezaId, $this->reloj->ahora() );
+	}
+
+	/**
 	 * @throws TendenciaNoEncontradaException
 	 */
 	public function ignorar( int $tendenciaId ): void {

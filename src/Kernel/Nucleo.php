@@ -91,6 +91,7 @@ use Pluma\Seo\EnlazadorInterno;
 use Pluma\Seo\ExtractorPalabrasClave;
 use Pluma\Seo\GeneradorMetadatosSeo;
 use Pluma\Seo\MotorSeo;
+use Pluma\Sensores\ComparadorHistorias;
 use Pluma\Sensores\SensorGoogleTrends;
 use Pluma\Sensores\SensorInterface;
 use Pluma\Taxonomia\AsignadorCategoria;
@@ -404,6 +405,13 @@ final class Nucleo {
 		);
 
 		$this->contenedor->registrar(
+			ComparadorHistorias::class,
+			fn ( Contenedor $c ): ComparadorHistorias => new ComparadorHistorias(
+				$c->obtener( LenguajeInterface::class ),
+				$c->obtener( PresupuestoLenguaje::class )
+			)
+		);
+		$this->contenedor->registrar(
 			Orquestador::class,
 			fn ( Contenedor $c ): Orquestador => new Orquestador(
 				$c->obtener( CandadoGlobalInterface::class ),
@@ -423,6 +431,7 @@ final class Nucleo {
 				$c->obtener( ProgramadorCadencia::class ),
 				$c->obtener( CreadorBorradorInterface::class ),
 				$c->obtener( PublicadorInterface::class ),
+				$c->obtener( ComparadorHistorias::class ),
 				$c->obtener( RelojInterface::class )
 			)
 		);

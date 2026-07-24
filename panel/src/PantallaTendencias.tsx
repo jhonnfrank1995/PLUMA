@@ -7,9 +7,10 @@ export interface TarjetaTendencia {
     velocidad: number;
     afinidad: number;
     puntuacionTotal: number;
-    estado: 'en_pipeline' | 'ignorada' | 'vigilada';
+    estado: 'en_pipeline' | 'ignorada' | 'vigilada' | 'posible_actualizacion';
     articulosRelacionados: { titulo: string; url: string; fuente: string }[];
     detectadaEn: string;
+    tendenciaOriginalId: number | null;
 }
 
 export interface TextosTendencias {
@@ -28,6 +29,8 @@ export interface TextosTendencias {
     cubrirAhora: string;
     ignorar: string;
     vigilar: string;
+    posibleActualizacion: string;
+    cubrirActualizacion: string;
 }
 
 interface Props {
@@ -66,7 +69,7 @@ export function PantallaTendencias({ restUrl, nonce, textos }: Props) {
         cargar();
     }, [cargar]);
 
-    const ejecutar = (tendenciaId: number, accion: 'cubrir' | 'ignorar' | 'vigilar') => {
+    const ejecutar = (tendenciaId: number, accion: 'cubrir' | 'ignorar' | 'vigilar' | 'cubrir-actualizacion') => {
         setAccionEnCurso(tendenciaId);
         fetch(`${restUrl}pluma/v1/tendencias/${tendenciaId}/${accion}`, {
             method: 'POST',
@@ -109,6 +112,11 @@ export function PantallaTendencias({ restUrl, nonce, textos }: Props) {
                                 {'vigilada' === tarjeta.estado && (
                                     <span className="pluma-tendencias__insignia">{textos.estadoVigilada}</span>
                                 )}
+                                {'posible_actualizacion' === tarjeta.estado && (
+                                    <span className="pluma-tendencias__insignia pluma-tendencias__insignia--actualizacion">
+                                        {textos.posibleActualizacion}
+                                    </span>
+                                )}
                                 <span className="pluma-tendencias__total" title={textos.total}>
                                     {tarjeta.puntuacionTotal.toFixed(0)}
                                 </span>
@@ -145,14 +153,25 @@ export function PantallaTendencias({ restUrl, nonce, textos }: Props) {
                             </div>
 
                             <div className="pluma-tendencias__acciones">
-                                <button
-                                    type="button"
-                                    className="pluma-tendencias__boton pluma-tendencias__boton--cubrir"
-                                    disabled={accionEnCurso === tarjeta.id}
-                                    onClick={() => ejecutar(tarjeta.id, 'cubrir')}
-                                >
-                                    {textos.cubrirAhora}
-                                </button>
+                                {'posible_actualizacion' === tarjeta.estado ? (
+                                    <button
+                                        type="button"
+                                        className="pluma-tendencias__boton pluma-tendencias__boton--cubrir"
+                                        disabled={accionEnCurso === tarjeta.id}
+                                        onClick={() => ejecutar(tarjeta.id, 'cubrir-actualizacion')}
+                                    >
+                                        {textos.cubrirActualizacion}
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="pluma-tendencias__boton pluma-tendencias__boton--cubrir"
+                                        disabled={accionEnCurso === tarjeta.id}
+                                        onClick={() => ejecutar(tarjeta.id, 'cubrir')}
+                                    >
+                                        {textos.cubrirAhora}
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     className="pluma-tendencias__boton"

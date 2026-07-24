@@ -32,6 +32,8 @@ use Pluma\Pipeline\Orquestador;
 use Pluma\Pipeline\Pieza;
 use Pluma\Pipeline\ProgramadorCadencia;
 use Pluma\Pipeline\Transicionador;
+use Pluma\Proveedores\LenguajeInterface;
+use Pluma\Proveedores\PresupuestoLenguaje;
 use Pluma\Publicacion\CreadorBorradorInterface;
 use Pluma\Publicacion\PublicadorInterface;
 use Pluma\Redaccion\AnotacionCorrector;
@@ -45,6 +47,7 @@ use Pluma\Redaccion\PuntoCorrector;
 use Pluma\Redaccion\RedactorInterface;
 use Pluma\Redaccion\TipoNoticia;
 use Pluma\Redaccion\Tono;
+use Pluma\Sensores\ComparadorHistorias;
 use Pluma\Sensores\SensorInterface;
 use Pluma\Seo\AuditorCanibalizacion;
 use Pluma\Seo\DetectorPluginSeo;
@@ -198,6 +201,7 @@ final class RegistroDiagnosticoCompuertasInvarianteTest extends CasoDePruebaUnit
 			new ProgramadorCadencia( new AzarFijo( 0 ) ),
 			Mockery::mock( CreadorBorradorInterface::class ),
 			Mockery::mock( PublicadorInterface::class ),
+			new ComparadorHistorias( Mockery::mock( LenguajeInterface::class ), new PresupuestoLenguaje( new RelojFijo() ) ),
 			new RelojFijo()
 		);
 

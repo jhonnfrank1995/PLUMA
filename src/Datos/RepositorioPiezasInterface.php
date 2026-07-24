@@ -22,6 +22,15 @@ interface RepositorioPiezasInterface {
 
 	public function crear( int $tendenciaId, DateTimeImmutable $ahora ): int;
 
+	/**
+	 * Crea una Pieza como actualización enlazada de otra ya cubierta (Libro
+	 * Cap. 3.4, "dos golpes") — solo se invoca cuando el editor confirma
+	 * "Cubrir como actualización" desde la Sala de Tendencias sobre una
+	 * tendencia POSIBLE_ACTUALIZACION (decisión del propietario, 2026-07-23:
+	 * nunca automático).
+	 */
+	public function crearComoActualizacion( int $tendenciaId, int $piezaOriginalId, DateTimeImmutable $ahora ): int;
+
 	public function obtenerPorId( int $id ): ?Pieza;
 
 	/**

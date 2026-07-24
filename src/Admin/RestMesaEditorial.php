@@ -138,6 +138,7 @@ final class RestMesaEditorial {
 				'fichaDecisionEditorial' => $pieza->fichaDecisionEditorial?->aArray(),
 				'resultadoCompuertas'    => $pieza->resultadoCompuertas?->aArray(),
 				'postId'                 => $pieza->postId,
+				'piezaOriginalId'        => $pieza->piezaOriginalId,
 				'creadaEn'               => $pieza->creadaEn->format( DATE_ATOM ),
 				'actualizadaEn'          => $pieza->actualizadaEn->format( DATE_ATOM ),
 				'borradores'             => array_map( array( $this, 'borradorComoArray' ), $this->borradores->obtenerPorPieza( $pieza->id ) ),

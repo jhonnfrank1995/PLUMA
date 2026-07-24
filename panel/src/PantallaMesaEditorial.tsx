@@ -111,6 +111,7 @@ export interface DetallePieza {
     fichaDecisionEditorial: FichaDecisionEditorial | null;
     resultadoCompuertas: ResultadoCompuertas | null;
     postId: number | null;
+    piezaOriginalId: number | null;
     creadaEn: string;
     actualizadaEn: string;
     borradores: BorradorCiclo[];
@@ -157,6 +158,7 @@ export interface TextosMesaEditorial {
     aprobar: string;
     descartar: string;
     confirmarDescartar: string;
+    actualizacionDe: string;
 }
 
 interface Props {
@@ -371,6 +373,12 @@ function PanelDetalle({ restUrl, cabeceras, piezaId, textos, onCerrar, onCambio 
             {null !== error && (
                 <p className="pluma-mesa__aviso" role="alert">
                     {error}
+                </p>
+            )}
+
+            {null !== detalle.piezaOriginalId && (
+                <p className="pluma-mesa__insignia-actualizacion">
+                    {textos.actualizacionDe} #{detalle.piezaOriginalId}
                 </p>
             )}
 

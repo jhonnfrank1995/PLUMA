@@ -33,6 +33,7 @@ final readonly class Pieza {
 		public ?ResultadoEvaluacion $resultadoCompuertas = null,
 		public ?DatosSeo $datosSeo = null,
 		public ?ResultadoTaxonomia $resultadoTaxonomia = null,
+		public ?int $piezaOriginalId = null,
 	) {
 	}
 

@@ -154,6 +154,43 @@ final class RestSalaTendenciasTest extends WP_UnitTestCase {
 		self::assertNull( $this->tarjetaDe( $tarjetas, $tendenciaId ) );
 	}
 
+	public function test_cubrir_actualizacion_crea_la_pieza_enlazada_a_la_original(): void {
+		Activador::activar( new RelojSistema(), '0.11.0' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		[$tendenciaOriginalId, $piezaOriginalId] = $this->crearTendenciaConPieza();
+		$repoPiezas->actualizarEstado( $piezaOriginalId, EstadoPieza::Detectada, EstadoPieza::Publicada, $reloj->ahora() );
+
+		$tendenciaActualizacionId = $repoTendencias->guardarComoPosibleActualizacion(
+			new TendenciaDetectada(
+				'evolución de la historia ' . uniqid(),
+				PuntuacionOportunidad::calcular( 70, 60 ),
+				$reloj->ahora(),
+				array(),
+				'google_trends'
+			),
+			$tendenciaOriginalId,
+			$reloj->ahora()
+		);
+
+		$this->registrarRutas();
+
+		$respuesta = rest_get_server()->dispatch( new WP_REST_Request( 'POST', "/pluma/v1/tendencias/{$tendenciaActualizacionId}/cubrir-actualizacion" ) );
+		self::assertSame( 200, $respuesta->get_status() );
+
+		$piezaNueva = $repoPiezas->obtenerUltimaPorTendencia( $tendenciaActualizacionId );
+		self::assertNotNull( $piezaNueva );
+		self::assertSame( $piezaOriginalId, $piezaNueva->piezaOriginalId );
+
+		$tarjetas = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/pluma/v1/tendencias' ) )->get_data();
+		self::assertSame( 'en_pipeline', $this->tarjetaDe( $tarjetas, $tendenciaActualizacionId )['estado'] );
+	}
+
 	public function test_una_tendencia_inexistente_devuelve_404(): void {
 		Activador::activar( new RelojSistema(), '0.9.0' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );

@@ -14,10 +14,17 @@ namespace Pluma\Sensores;
  * - VIGILADA: "observar sin cubrir todavía" — su Pieza se descarta (no se
  *   gasta investigación/redacción/APIs) pero la tendencia sigue visible y
  *   destacada en la Sala; "Cubrir ahora" crea una Pieza nueva con prioridad.
+ * - POSIBLE_ACTUALIZACION: el Radar detectó (Libro Cap. 3.4, huella
+ *   semántica) que esta tendencia es probablemente la evolución de una
+ *   historia ya cubierta ("dos golpes") — decisión del propietario,
+ *   2026-07-23: NO se crea Pieza automáticamente, el editor confirma desde
+ *   la Sala de Tendencias ("Cubrir como actualización") antes de gastar
+ *   investigación/redacción.
  */
 enum EstadoTendencia: string {
 
-	case EnPipeline = 'en_pipeline';
-	case Ignorada   = 'ignorada';
-	case Vigilada   = 'vigilada';
+	case EnPipeline           = 'en_pipeline';
+	case Ignorada             = 'ignorada';
+	case Vigilada             = 'vigilada';
+	case PosibleActualizacion = 'posible_actualizacion';
 }

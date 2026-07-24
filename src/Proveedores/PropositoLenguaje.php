@@ -24,12 +24,19 @@ enum PropositoLenguaje: string {
 	 * presupuesto diario compartido (decisión del propietario, 2026-07-23).
 	 */
 	case VistaPrevia = 'vista_previa';
+	/**
+	 * Huella semántica del Radar (Libro Cap. 3.4, Etapa 5): ¿una tendencia
+	 * nueva es la misma historia que una ya procesada, o su evolución?
+	 * Económico y determinista, igual que `Clasificar` — es una comparación
+	 * estructurada, no redacción.
+	 */
+	case CompararHistorias = 'comparar_historias';
 
 	public function esPremium(): bool {
 		// phpcs:ignore PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext -- falso positivo: $this en un método de enum (PHP 8.1) es válido; el sniff aún no reconoce enums.
 		return match ( $this ) {
 			self::Redactar, self::Corregir, self::BloqueEditor => true,
-			self::Clasificar, self::Angulos, self::Titulares, self::VistaPrevia => false,
+			self::Clasificar, self::Angulos, self::Titulares, self::VistaPrevia, self::CompararHistorias => false,
 		};
 	}
 
@@ -41,7 +48,7 @@ enum PropositoLenguaje: string {
 	public function temperatura(): float {
 		// phpcs:ignore PHPCompatibility.Variables.ForbiddenThisUseContexts.OutsideObjectContext -- falso positivo: $this en un método de enum (PHP 8.1) es válido; el sniff aún no reconoce enums.
 		return match ( $this ) {
-			self::Clasificar => 0.0,
+			self::Clasificar, self::CompararHistorias => 0.0,
 			self::Corregir => 0.2,
 			self::Angulos, self::Titulares => 0.8,
 			self::Redactar, self::BloqueEditor, self::VistaPrevia => 0.7,

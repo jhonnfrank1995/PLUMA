@@ -49,6 +49,7 @@ function textosDeEjemplo(): TextosMesaEditorial {
         aprobar: 'Forzar aprobación',
         descartar: 'Descartar',
         confirmarDescartar: '¿Descartar esta Pieza?',
+        actualizacionDe: 'Actualización de la pieza',
     };
 }
 
@@ -123,6 +124,7 @@ function detalleDeEjemplo(sobrescribir: Partial<DetallePieza> = {}): DetallePiez
             originalidad: { solapamientoConFuentes: false, solapamientoConSitioPropio: false, ratioGananciaInformacion: 0.8, umbralGananciaMinima: 0.4 },
         },
         postId: null,
+        piezaOriginalId: null,
         creadaEn: '2026-07-23T06:00:00+00:00',
         actualizadaEn: '2026-07-23T08:00:00+00:00',
         borradores: [

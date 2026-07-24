@@ -19,6 +19,24 @@ interface RepositorioTendenciasInterface {
 	public function guardar( TendenciaDetectada $tendencia, DateTimeImmutable $ahora ): int;
 
 	/**
+	 * Guarda una tendencia detectada como POSIBLE_ACTUALIZACION de otra ya
+	 * procesada (Libro Cap. 3.4, "dos golpes") — decisión del propietario,
+	 * 2026-07-23: NO crea Pieza, el editor confirma desde la Sala de
+	 * Tendencias antes de gastar investigación/redacción.
+	 */
+	public function guardarComoPosibleActualizacion( TendenciaDetectada $tendencia, int $tendenciaOriginalId, DateTimeImmutable $ahora ): int;
+
+	/**
+	 * Candidatas reales para la huella semántica (`ComparadorHistorias`):
+	 * tendencias de los últimos `$diasVentana` días cuya última Pieza NO esté
+	 * DESCARTADA ni FALLIDA — comparar contra una tendencia que se abandonó
+	 * no tiene valor para detectar "dos golpes".
+	 *
+	 * @return list<array{id: int, termino: string, articulosRelacionados: list<array{titulo: string, url: string, fuente: string}>}>
+	 */
+	public function obtenerRecientesConPiezaViva( int $diasVentana, int $limite, DateTimeImmutable $ahora ): array;
+
+	/**
 	 * @return array{termino: string, articulosRelacionados: list<array{titulo: string, url: string, fuente: string}>}|null
 	 */
 	public function obtenerPorId( int $id ): ?array;
@@ -36,7 +54,7 @@ interface RepositorioTendenciasInterface {
 	 * puntuación desglosada, estado y quién la está cubriendo ya. Excluye
 	 * las IGNORADAS — el editor las sacó de la agenda.
 	 *
-	 * @return list<array{id: int, termino: string, fuenteSenal: string, velocidad: float, afinidad: float, puntuacionTotal: float, estado: EstadoTendencia, articulosRelacionados: list<array{titulo: string, url: string, fuente: string}>, detectadaEn: string}>
+	 * @return list<array{id: int, termino: string, fuenteSenal: string, velocidad: float, afinidad: float, puntuacionTotal: float, estado: EstadoTendencia, articulosRelacionados: list<array{titulo: string, url: string, fuente: string}>, detectadaEn: string, tendenciaOriginalId: ?int}>
 	 */
 	public function obtenerParaSala( int $limite ): array;
 
@@ -45,4 +63,10 @@ interface RepositorioTendenciasInterface {
 	 * Cubrir ahora / Ignorar / Vigilar). Devuelve `false` si no existe.
 	 */
 	public function actualizarEstadoTendencia( int $id, EstadoTendencia $estado ): bool;
+
+	/**
+	 * `tendencia_original_id` de una tendencia (Libro Cap. 3.4, "dos
+	 * golpes") — `null` si no existe la tendencia o no está vinculada.
+	 */
+	public function obtenerTendenciaOriginal( int $id ): ?int;
 }

@@ -56,6 +56,24 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 		return (int) $this->wpdb->insert_id;
 	}
 
+	public function crearComoActualizacion( int $tendenciaId, int $piezaOriginalId, DateTimeImmutable $ahora ): int {
+		$this->wpdb->insert(
+			$this->tabla(),
+			array(
+				'tendencia_id'      => $tendenciaId,
+				'estado'            => EstadoPieza::Detectada->value,
+				'expediente'        => null,
+				'post_id'           => null,
+				'pieza_original_id' => $piezaOriginalId,
+				'creada_en'         => $ahora->format( 'Y-m-d H:i:s' ),
+				'actualizada_en'    => $ahora->format( 'Y-m-d H:i:s' ),
+			),
+			array( '%d', '%s', '%s', '%d', '%d', '%s', '%s' )
+		);
+
+		return (int) $this->wpdb->insert_id;
+	}
+
 	public function obtenerUltimaPorTendencia( int $tendenciaId ): ?Pieza {
 		$sql = $this->wpdb->prepare( "SELECT * FROM {$this->tabla()} WHERE tendencia_id = %d ORDER BY id DESC LIMIT 1", $tendenciaId ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
 		assert( null !== $sql );
@@ -400,6 +418,8 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			$resultadoTaxonomia = ResultadoTaxonomia::desdeArray( $datosTaxonomia );
 		}
 
+		$piezaOriginalId = null !== ( $fila['pieza_original_id'] ?? null ) ? (int) $fila['pieza_original_id'] : null;
+
 		return new Pieza(
 			(int) $fila['id'],
 			(int) $fila['tendencia_id'],
@@ -413,7 +433,8 @@ final class RepositorioPiezas implements RepositorioPiezasInterface {
 			$ficha,
 			$resultadoCompuertas,
 			$datosSeo,
-			$resultadoTaxonomia
+			$resultadoTaxonomia,
+			$piezaOriginalId
 		);
 	}
 }

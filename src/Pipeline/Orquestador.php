@@ -18,6 +18,8 @@ use Pluma\Proveedores\ProveedorTendenciasException;
 use Pluma\Publicacion\CreadorBorradorInterface;
 use Pluma\Publicacion\PublicadorInterface;
 use Pluma\Redaccion\RedactorInterface;
+use Pluma\Sensores\ComparadorHistorias;
+use Pluma\Sensores\RelacionHistoria;
 use Pluma\Sensores\SensorInterface;
 use Pluma\Seo\MetadatosSeo;
 use Pluma\Seo\MotorSeo;
@@ -37,7 +39,9 @@ use Throwable;
  */
 final class Orquestador {
 
-	private const LIMITE_POR_LOTE = 5;
+	private const LIMITE_POR_LOTE                    = 5;
+	private const DIAS_VENTANA_COMPARACION_HISTORIAS = 14;
+	private const LIMITE_CANDIDATAS_COMPARACION      = 20;
 
 	public const OPCION_MODO_OPERACION     = 'pluma_modo_operacion';
 	public const OPCION_VENTANA_VETO_HORAS = 'pluma_ventana_veto_horas';
@@ -64,6 +68,7 @@ final class Orquestador {
 		private readonly ProgramadorCadencia $programadorCadencia,
 		private readonly CreadorBorradorInterface $creadorBorrador,
 		private readonly PublicadorInterface $publicador,
+		private readonly ComparadorHistorias $comparadorHistorias,
 		private readonly RelojInterface $reloj,
 	) {
 	}
@@ -122,6 +127,27 @@ final class Orquestador {
 
 		foreach ( $detectadas as $detectada ) {
 			if ( $this->tendencias->existePorTermino( $detectada->termino, $detectada->fuenteSenal ) ) {
+				continue;
+			}
+
+			$candidatas = $this->tendencias->obtenerRecientesConPiezaViva(
+				self::DIAS_VENTANA_COMPARACION_HISTORIAS,
+				self::LIMITE_CANDIDATAS_COMPARACION,
+				$this->reloj->ahora()
+			);
+			$resultado  = $this->comparadorHistorias->comparar( $detectada, $candidatas );
+
+			if ( RelacionHistoria::Identica === $resultado->relacion ) {
+				// Ya cubierta bajo otro titular (huella semántica, Libro Cap.
+				// 3.4) — extiende la deduplicación exacta de arriba, no duplica.
+				continue;
+			}
+
+			if ( RelacionHistoria::Evoluciona === $resultado->relacion && null !== $resultado->tendenciaRelacionadaId ) {
+				// "Dos golpes": NO se crea Pieza automáticamente — el editor
+				// confirma desde la Sala de Tendencias (decisión del
+				// propietario, 2026-07-23).
+				$this->tendencias->guardarComoPosibleActualizacion( $detectada, $resultado->tendenciaRelacionadaId, $this->reloj->ahora() );
 				continue;
 			}
 

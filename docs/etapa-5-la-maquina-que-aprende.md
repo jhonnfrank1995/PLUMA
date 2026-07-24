@@ -1,6 +1,6 @@
 # Etapa 5 — La máquina que aprende
 
-**Estado: EN CURSO.** Porción 1 (Bucle de Search Console) completa y commiteada localmente, pendiente de push y verificación de CI.
+**Estado: EN CURSO.** Porción 1 (Bucle de Search Console) y Porción 2 (Piezas de refuerzo y "dos golpes") completas y commiteadas localmente, pendientes de push y verificación de CI.
 
 ## Objetivo y criterio de salida (PLAN-MAESTRO)
 
@@ -32,12 +32,33 @@ Esta etapa tiene 4 piezas grandes e independientes entre sí (Libro Cap. 6.4 y `
 
 **Decisión técnica no trivial, corregida durante la implementación:** el callback OAuth2 inicialmente usaba `wp_safe_redirect()` + `exit` (patrón común pero intestable: `exit` mata el proceso de PHPUnit si el método se invoca en un test). Corregido devolviendo un `WP_REST_Response` con cabecera `Location` y estado 302 — `WP_REST_Server::serve_request()` envía esas cabeceras al navegador real exactamente igual, pero el método queda invocable y verificable en `RestSearchConsoleTest`.
 
+## Porción 2 — Piezas de refuerzo y "dos golpes" (commit pendiente)
+
+**Qué se agregó:**
+- **`Pluma\Sensores\ComparadorHistorias`**: antes de crear una Pieza para una tendencia nueva, el Orquestador ahora la compara contra las historias recientes (últimos 14 días) que todavía tienen una Pieza viva (`obtenerRecientesConPiezaViva()`, excluye `descartada`/`fallida`), usando el proveedor de lenguaje económico y determinista (`PropositoLenguaje::CompararHistorias`, mismo patrón exacto que `ClasificadorNoticia`: directrices + JSON estricto + verificación de truncamiento). Devuelve `Identica | Evoluciona | SinRelacion` (`RelacionHistoria`).
+  - **Idéntica**: la tendencia se descarta silenciosamente — ya está cubierta bajo otro titular, extiende el dedup exacto por término que ya existía desde la Etapa 1.
+  - **Evoluciona** (nuevo dato, giro, desmentido de una historia ya cubierta): la tendencia se guarda con `estado = posible_actualizacion` y un vínculo a la tendencia original (`tendencia_original_id`) — **decisión explícita del propietario**: el sistema NUNCA crea la Pieza de actualización automáticamente. Queda a la vista en la Sala de Tendencias con una insignia distinta y un nuevo botón **"Cubrir como actualización"** (en vez de "Cubrir ahora"), que dispara `POST /tendencias/{id}/cubrir-actualizacion` → `GestorSalaTendencias::cubrirComoActualizacion()` → crea la Pieza enlazada a la Pieza viva de la historia original (`pieza_original_id`) y la prioriza.
+  - **Sin relación**: sigue el flujo normal (se crea Pieza nueva sin vínculo).
+  - **Fail-safe obligatorio, verificado con tests**: sin presupuesto disponible, sin candidatas, proveedor caído, o respuesta truncada/no interpretable/con un id de candidata inventado → siempre `SinRelacion`, nunca lanza — el tick del Orquestador jamás se bloquea por esta comparación (mismo espíritu que los circuit breakers ya existentes en `Pluma\Proveedores`).
+- La Mesa Editorial muestra "Actualización de la pieza #X" en el detalle cuando la Pieza abierta tiene `piezaOriginalId` (solo lectura, sin acción nueva).
+- Esquema `0.11.0`: `pluma_tendencias` gana `tendencia_original_id` + índice; `pluma_piezas` gana `pieza_original_id` + índice.
+
+**Honestidad de alcance:** el dormant `NovedadNoticia::HistoriaEnEvolucion` (calculado hoy por `ClasificadorNoticia`, mucho después, en Redacción) NO se reconcilia con esta detección — sigue siendo una etiqueta descriptiva sin vínculo a la Pieza anterior, mientras que esta porción resuelve DE QUÉ Pieza es evolución, y lo hace en el Radar, antes de gastar investigación/redacción. Son dos mecanismos distintos que conviven; unificarlos no era parte de esta porción y no se ha registrado como deuda porque no bloquea ningún criterio de salida.
+
+**Hallazgo real durante la verificación — bug de esquema, no de lógica:** dos tests de Integración fallaban contra MySQL real de forma confusa (`obtenerTendenciaOriginal()` devolvía `null` en vez del id esperado; el endpoint de confirmación devolvía 404 en vez de 200). La hipótesis inicial (timing del auto-sanado de esquema entre clases de test) se descartó corriendo el test fallido en aislamiento total — seguía fallando solo. Se escribió un test de diagnóstico desechable que volcaba `$wpdb->last_error` y la fila insertada real vía `fwrite(STDERR, ...)`, lo que reveló la causa real de inmediato:
+```
+originalId=687 last_error=
+actId=0 last_error=WordPress database error: Processing the value for the following
+field failed: estado. The supplied value may be too long or contains invalid data.
+row=NULL
+```
+`estado VARCHAR(20)` en `pluma_tendencias` era demasiado corto para el nuevo valor `'posible_actualizacion'` (21 caracteres). `$wpdb->insert()` valida la longitud del campo contra el esquema real de la tabla y **falla en silencio** (no lanza excepción PHP), dejando `$wpdb->insert_id` con el valor de la ÚLTIMA inserción exitosa anterior (que resultó ser la propia tendencia original) — de ahí el `null`/404 engañoso. Corregido ensanchando a `estado VARCHAR(30)` (mismo ancho que `pluma_piezas.estado`, ya usado en el resto del esquema). El test de diagnóstico se eliminó inmediatamente después del hallazgo.
+
 ## Pendiente dentro de esta Etapa
 
-- **Piezas de refuerzo y "dos golpes"** (Libro Cap. 3.4, 6.4): requiere además pagar `PLUMA-E1-2` (huella semántica de tendencias, abierta desde la Etapa 1) para detectar que una historia ya cubierta "evoluciona".
 - **Memoria de audiencia + respuestas asistidas a comentarios** (paga `PLUMA-E2-3`): `TipoMemoria::Audiencia` ya existe en el enum pero nunca se escribe ni se lee; el plugin todavía no lee comentarios reales de WordPress (`get_comments()`) en ningún lugar.
 - **Informes editoriales semanales**: no existe ninguna pantalla ni generador de informes todavía en `Pluma\Admin`.
-- **Consumidores del dato de Search Console** (`PLUMA-E5-1`, registrada en esta porción): regenerar títulos débiles, candidatos de refuerzo, ajuste de asignación por periodista, hueco competitivo real en `PuntuacionOportunidad`.
+- **Consumidores del dato de Search Console** (`PLUMA-E5-1`, registrada en la porción 1): regenerar títulos débiles, candidatos de refuerzo, ajuste de asignación por periodista, hueco competitivo real en `PuntuacionOportunidad`.
 
 ## A tener en cuenta para otras fases
 
@@ -45,12 +66,15 @@ Esta etapa tiene 4 piezas grandes e independientes entre sí (Libro Cap. 6.4 y `
 - **`exit` después de `wp_safe_redirect()` dentro de un callback REST mata el proceso de PHPUnit si el método se invoca directamente en un test** — la alternativa correcta y verificada es devolver un `WP_REST_Response` con cabecera `Location` y el código de estado 3xx; `WP_REST_Server::serve_request()` ya envía esas cabeceras al navegador real. Cualquier futuro callback OAuth (o cualquier redirección desde un endpoint REST) debe seguir este patrón, no `wp_safe_redirect()`+`exit`.
 - **`add_query_arg()` espera valores ya codificados por el llamador** (`urlencode()`/`rawurlencode()`) — verificado contra la documentación oficial antes de usarlo en `ProveedorSearchConsole::urlAutorizacion()`. No es automático.
 - **Al construir una URL de redirección que además necesita un fragmento hash del panel** (`#/salud`), el fragmento debe ir SIEMPRE al final, después de `add_query_arg()` sobre la URL base sin `#` — anteponerlo produce un query arg anexado dentro del fragmento, invisible para PHP y semánticamente incorrecto. Corregido en `RestSearchConsole::callback()` antes de cerrar esta porción.
-- **Cada tabla nueva en `Esquema::sentenciasCreateTable()` cambia el conteo total de tablas** que `ActivadorTest.php` espera exactamente vía Mockery (`Functions\expect('dbDelta')->times(N)`) — hay que actualizar esos conteos exactos (11→12 en esta porción) cada vez que se agregue una tabla, o los tests de Unit fallan con "should be called exactly N times but called N+1 times".
+- **Cada tabla nueva en `Esquema::sentenciasCreateTable()` cambia el conteo total de tablas** que `ActivadorTest.php` espera exactamente vía Mockery (`Functions\expect('dbDelta')->times(N)`) — hay que actualizar esos conteos exactos (11→12 en esta porción) cada vez que se agregue una tabla, o los tests de Unit fallan con "should be called exactly N times but called N+1 times". Ensanchar/añadir una COLUMNA sobre una tabla existente (como en la porción 2) NO cambia este conteo.
+- **`$wpdb->insert()`/`$wpdb->update()` fallan en SILENCIO (sin lanzar excepción PHP) cuando un valor excede la longitud de columna del esquema real** — dejan `$wpdb->insert_id` con el valor de la última inserción exitosa anterior, lo que produce fallos de test engañosos que parecen un problema de timing/orden en vez de un simple `VARCHAR` corto. Cada vez que se añade un nuevo caso de enum que se persiste como `VARCHAR`, verificar que la columna sea suficientemente ancha para el valor MÁS LARGO del enum, no solo para los valores existentes al momento de crear la tabla.
+- **Ante un fallo de Integración que parezca de timing/orden de tests pero no tenga una causa obvia**: aislar el test fallido primero (`--filter`) para descartar contaminación entre clases; si sigue fallando solo, escalar a un test de diagnóstico desechable con `fwrite(STDERR, ...)` volcando `$wpdb->last_error` y las filas reales antes de teorizar más — encontró la causa real (VARCHAR corto) en un solo paso donde seguir especulando habría llevado a un arreglo equivocado.
 
 ## Evidencia de gates
 
 | Porción | Unit | Invariantes | Integration (wp-env real) | Vitest | E2E | PHPCS / PHPStan L8 | Push + CI |
 |---|---|---|---|---|---|---|---|
 | 1 — Bucle de Search Console | 324/324 | 21/21 | 106/106 | 67/67 | 2/2 | limpio | commiteado, sin push todavía |
+| 2 — Piezas de refuerzo y "dos golpes" | 337/337 | 21/21 | 111/111 | 68/68 | 2/2 | limpio | commiteado, sin push todavía |
 
-Build de producción del panel verificado (`npm run build`) al cierre de la porción. Sin credenciales reales (llave de OpenRouter ni client_secret de Google) filtradas en ningún commit (verificado explícitamente antes de cada uno).
+Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin credenciales reales (llave de OpenRouter ni client_secret de Google) filtradas en ningún commit (verificado explícitamente antes de cada uno).

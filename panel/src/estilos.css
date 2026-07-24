@@ -354,10 +354,26 @@
     white-space: nowrap;
 }
 
+.pluma-tendencias__insignia--actualizacion {
+    color: var(--pluma-color-publicada);
+    border-color: var(--pluma-color-publicada);
+}
+
 .pluma-tendencias__total {
     font-size: 1.6rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+}
+
+.pluma-mesa__insignia-actualizacion {
+    display: inline-block;
+    margin: 0 0 var(--pluma-espaciado) 0;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--pluma-color-publicada);
+    border: 1px solid var(--pluma-color-publicada);
+    border-radius: 999px;
 }
 
 .pluma-tendencias__desglose {

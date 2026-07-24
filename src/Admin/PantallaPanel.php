@@ -216,21 +216,23 @@ final class PantallaPanel {
 	 */
 	private function textosTendencias(): array {
 		return array(
-			'titulo'          => __( 'Sala de Tendencias', 'pluma-engine' ),
-			'cargando'        => __( 'Cargando…', 'pluma-engine' ),
-			'errorCarga'      => __( 'No se pudo cargar la Sala de Tendencias. Reintenta en unos segundos.', 'pluma-engine' ),
-			'errorAccion'     => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
-			'vacio'           => __( 'todavía no se ha detectado ninguna tendencia', 'pluma-engine' ),
-			'velocidad'       => __( 'Velocidad', 'pluma-engine' ),
-			'afinidad'        => __( 'Afinidad', 'pluma-engine' ),
-			'total'           => __( 'Puntuación de Oportunidad', 'pluma-engine' ),
-			'desgloseParcial' => __( 'Desglose sobre velocidad y afinidad; hueco competitivo y vida útil llegan con el Radar completo.', 'pluma-engine' ),
-			'quienCubre'      => __( 'Quién la está cubriendo ya', 'pluma-engine' ),
-			'nadieCubre'      => __( 'sin cobertura detectada en las señales', 'pluma-engine' ),
-			'estadoVigilada'  => __( 'En vigilancia', 'pluma-engine' ),
-			'cubrirAhora'     => __( 'Cubrir ahora', 'pluma-engine' ),
-			'ignorar'         => __( 'Ignorar', 'pluma-engine' ),
-			'vigilar'         => __( 'Vigilar', 'pluma-engine' ),
+			'titulo'               => __( 'Sala de Tendencias', 'pluma-engine' ),
+			'cargando'             => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga'           => __( 'No se pudo cargar la Sala de Tendencias. Reintenta en unos segundos.', 'pluma-engine' ),
+			'errorAccion'          => __( 'La acción no se pudo completar. Reintenta en unos segundos.', 'pluma-engine' ),
+			'vacio'                => __( 'todavía no se ha detectado ninguna tendencia', 'pluma-engine' ),
+			'velocidad'            => __( 'Velocidad', 'pluma-engine' ),
+			'afinidad'             => __( 'Afinidad', 'pluma-engine' ),
+			'total'                => __( 'Puntuación de Oportunidad', 'pluma-engine' ),
+			'desgloseParcial'      => __( 'Desglose sobre velocidad y afinidad; hueco competitivo y vida útil llegan con el Radar completo.', 'pluma-engine' ),
+			'quienCubre'           => __( 'Quién la está cubriendo ya', 'pluma-engine' ),
+			'nadieCubre'           => __( 'sin cobertura detectada en las señales', 'pluma-engine' ),
+			'estadoVigilada'       => __( 'En vigilancia', 'pluma-engine' ),
+			'cubrirAhora'          => __( 'Cubrir ahora', 'pluma-engine' ),
+			'ignorar'              => __( 'Ignorar', 'pluma-engine' ),
+			'vigilar'              => __( 'Vigilar', 'pluma-engine' ),
+			'posibleActualizacion' => __( 'Posible actualización de una historia ya cubierta', 'pluma-engine' ),
+			'cubrirActualizacion'  => __( 'Cubrir como actualización', 'pluma-engine' ),
 		);
 	}
 
@@ -278,6 +280,7 @@ final class PantallaPanel {
 			'aprobar'              => __( 'Forzar aprobación', 'pluma-engine' ),
 			'descartar'            => __( 'Descartar', 'pluma-engine' ),
 			'confirmarDescartar'   => __( '¿Descartar esta Pieza? Esta acción queda registrada en la auditoría y no se puede deshacer.', 'pluma-engine' ),
+			'actualizacionDe'      => __( 'Actualización de la pieza', 'pluma-engine' ),
 		);
 	}
 

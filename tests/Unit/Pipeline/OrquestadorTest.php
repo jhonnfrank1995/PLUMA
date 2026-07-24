@@ -35,6 +35,8 @@ use Pluma\Pipeline\Pieza;
 use Pluma\Pipeline\ProgramadorCadencia;
 use Pluma\Pipeline\RanuraPublicacion;
 use Pluma\Pipeline\Transicionador;
+use Pluma\Proveedores\LenguajeInterface;
+use Pluma\Proveedores\PresupuestoLenguaje;
 use Pluma\Proveedores\ProveedorTendenciasException;
 use Pluma\Publicacion\CreadorBorradorInterface;
 use Pluma\Publicacion\PublicacionException;
@@ -51,6 +53,7 @@ use Pluma\Redaccion\RedactorInterface;
 use Pluma\Redaccion\ResultadoRedaccion;
 use Pluma\Redaccion\TipoNoticia;
 use Pluma\Redaccion\Tono;
+use Pluma\Sensores\ComparadorHistorias;
 use Pluma\Sensores\PuntuacionOportunidad;
 use Pluma\Sensores\SensorInterface;
 use Pluma\Sensores\TendenciaDetectada;
@@ -192,6 +195,16 @@ final class OrquestadorTest extends CasoDePruebaUnitario {
 	}
 
 	/**
+	 * `PresupuestoLenguaje` es una clase `final` (mismo criterio que
+	 * `MotorSeo`/`Taxonomo`): instancia real con un reloj fijo — nunca se
+	 * invoca de verdad en estos tests porque `ComparadorHistorias::comparar()`
+	 * devuelve `SinRelacion` sin tocar el proveedor cuando no hay candidatas.
+	 */
+	private function comparadorHistoriasPermisivo(): ComparadorHistorias {
+		return new ComparadorHistorias( Mockery::mock( LenguajeInterface::class ), new PresupuestoLenguaje( new RelojFijo() ) );
+	}
+
+	/**
 	 * @param array<string, mixed> $overrides
 	 */
 	private function construir( array $overrides = array() ): Orquestador {
@@ -235,6 +248,7 @@ final class OrquestadorTest extends CasoDePruebaUnitario {
 			$overrides['programadorCadencia'] ?? new ProgramadorCadencia( new AzarFijo( 0 ) ),
 			$overrides['creadorBorrador'] ?? Mockery::mock( CreadorBorradorInterface::class ),
 			$overrides['publicador'] ?? Mockery::mock( PublicadorInterface::class ),
+			$overrides['comparadorHistorias'] ?? $this->comparadorHistoriasPermisivo(),
 			new RelojFijo()
 		);
 	}
@@ -282,6 +296,7 @@ final class OrquestadorTest extends CasoDePruebaUnitario {
 
 		$tendencias = Mockery::mock( RepositorioTendenciasInterface::class );
 		$tendencias->expects( 'existePorTermino' )->with( 'tendencia nueva', 'google_trends' )->andReturn( false );
+		$tendencias->allows( 'obtenerRecientesConPiezaViva' )->andReturn( array() );
 		$tendencias->expects( 'guardar' )->once()->andReturn( 55 );
 
 		$sensor = Mockery::mock( SensorInterface::class );

@@ -20,6 +20,8 @@ function textosDeEjemplo(): TextosTendencias {
         cubrirAhora: 'Cubrir ahora',
         ignorar: 'Ignorar',
         vigilar: 'Vigilar',
+        posibleActualizacion: 'Posible actualización de una historia ya cubierta',
+        cubrirActualizacion: 'Cubrir como actualización',
     };
 }
 
@@ -34,6 +36,7 @@ function tarjetaDeEjemplo(sobrescribir: Partial<TarjetaTendencia> = {}): Tarjeta
         estado: 'en_pipeline',
         articulosRelacionados: [{ titulo: 'Cobertura previa', url: 'https://example.com/a', fuente: 'Example' }],
         detectadaEn: '2026-07-23T08:00:00+00:00',
+        tendenciaOriginalId: null,
         ...sobrescribir,
     };
 }
@@ -102,6 +105,24 @@ describe('PantallaTendencias', () => {
         await userEvent.click(await screen.findByRole('button', { name: 'Ignorar' }));
 
         await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('La acción no se pudo completar.'));
+    });
+
+    it('muestra la insignia y el botón "Cubrir como actualización" para una posible actualización', async () => {
+        const fetchSimulado = stubFetchConTarjetas([tarjetaDeEjemplo({ estado: 'posible_actualizacion', tendenciaOriginalId: 3 })]);
+
+        render(<PantallaTendencias restUrl="https://ejemplo.test/wp-json/" nonce="nonce-x" textos={textosDeEjemplo()} />);
+
+        expect(await screen.findByText('Posible actualización de una historia ya cubierta')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Cubrir ahora' })).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', { name: 'Cubrir como actualización' }));
+
+        await waitFor(() =>
+            expect(fetchSimulado).toHaveBeenCalledWith(
+                'https://ejemplo.test/wp-json/pluma/v1/tendencias/7/cubrir-actualizacion',
+                expect.objectContaining({ method: 'POST', headers: { 'X-WP-Nonce': 'nonce-x' } })
+            )
+        );
     });
 
     it('muestra el mensaje vacío cuando el radar no tiene tendencias', async () => {

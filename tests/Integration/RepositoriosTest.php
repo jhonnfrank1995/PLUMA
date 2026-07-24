@@ -23,6 +23,7 @@ use Pluma\Seo\MetadatosSeo;
 use Pluma\Seo\PalabrasClave;
 use Pluma\Seo\TipoEsquemaArticulo;
 use Pluma\Seo\TipoPluginSeo;
+use Pluma\Sensores\EstadoTendencia;
 use Pluma\Sensores\PuntuacionOportunidad;
 use Pluma\Sensores\TendenciaDetectada;
 use Pluma\Taxonomia\EtiquetaAsignada;
@@ -256,6 +257,100 @@ final class RepositoriosTest extends WP_UnitTestCase {
 		self::assertSame( $idAlta, $recientes[0]['id'] );
 		self::assertSame( 'tendencia alta', $recientes[0]['termino'] );
 		self::assertGreaterThan( $recientes[1]['puntuacionTotal'], $recientes[0]['puntuacionTotal'] );
+	}
+
+	public function test_crear_como_actualizacion_enlaza_la_pieza_original(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$tendenciaOriginalId = $repoTendencias->guardar(
+			new TendenciaDetectada( 'historia original ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$piezaOriginalId     = $repoPiezas->crear( $tendenciaOriginalId, $reloj->ahora() );
+
+		$tendenciaActualizacionId = $repoTendencias->guardar(
+			new TendenciaDetectada( 'historia actualización ' . uniqid(), PuntuacionOportunidad::calcular( 60, 60 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$piezaActualizacionId     = $repoPiezas->crearComoActualizacion( $tendenciaActualizacionId, $piezaOriginalId, $reloj->ahora() );
+
+		$piezaActualizacion = $repoPiezas->obtenerPorId( $piezaActualizacionId );
+
+		self::assertNotNull( $piezaActualizacion );
+		self::assertSame( $piezaOriginalId, $piezaActualizacion->piezaOriginalId );
+		self::assertSame( EstadoPieza::Detectada, $piezaActualizacion->estado );
+	}
+
+	public function test_obtener_recientes_con_pieza_viva_excluye_descartadas_y_falladas(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+
+		$tendenciaViva = $repoTendencias->guardar(
+			new TendenciaDetectada( 'historia viva ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$repoPiezas->crear( $tendenciaViva, $reloj->ahora() );
+
+		$tendenciaDescartada = $repoTendencias->guardar(
+			new TendenciaDetectada( 'historia descartada ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+		$piezaDescartadaId   = $repoPiezas->crear( $tendenciaDescartada, $reloj->ahora() );
+		$repoPiezas->actualizarEstado( $piezaDescartadaId, EstadoPieza::Detectada, EstadoPieza::Descartada, $reloj->ahora() );
+
+		$candidatas = $repoTendencias->obtenerRecientesConPiezaViva( 14, 50, $reloj->ahora() );
+		$idsVivos   = array_column( $candidatas, 'id' );
+
+		self::assertContains( $tendenciaViva, $idsVivos );
+		self::assertNotContains( $tendenciaDescartada, $idsVivos );
+	}
+
+	public function test_guardar_como_posible_actualizacion_vincula_la_tendencia_original(): void {
+		global $wpdb;
+		$repo  = new RepositorioTendencias( $wpdb );
+		$reloj = new RelojSistema();
+
+		$tendenciaOriginalId = $repo->guardar(
+			new TendenciaDetectada( 'historia original ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+
+		$tendenciaActualizacionId = $repo->guardarComoPosibleActualizacion(
+			new TendenciaDetectada( 'historia que evoluciona ' . uniqid(), PuntuacionOportunidad::calcular( 60, 60 ), $reloj->ahora(), array(), 'google_trends' ),
+			$tendenciaOriginalId,
+			$reloj->ahora()
+		);
+
+		self::assertSame( $tendenciaOriginalId, $repo->obtenerTendenciaOriginal( $tendenciaActualizacionId ) );
+
+		$tarjeta = null;
+		foreach ( $repo->obtenerParaSala( 100 ) as $candidata ) {
+			if ( $candidata['id'] === $tendenciaActualizacionId ) {
+				$tarjeta = $candidata;
+			}
+		}
+
+		self::assertNotNull( $tarjeta );
+		self::assertSame( EstadoTendencia::PosibleActualizacion, $tarjeta['estado'] );
+		self::assertSame( $tendenciaOriginalId, $tarjeta['tendenciaOriginalId'] );
+	}
+
+	public function test_obtener_tendencia_original_es_nulo_sin_vinculo(): void {
+		global $wpdb;
+		$repo  = new RepositorioTendencias( $wpdb );
+		$reloj = new RelojSistema();
+
+		$tendenciaId = $repo->guardar(
+			new TendenciaDetectada( 'historia sin vínculo ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $reloj->ahora(), array(), 'google_trends' ),
+			$reloj->ahora()
+		);
+
+		self::assertNull( $repo->obtenerTendenciaOriginal( $tendenciaId ) );
 	}
 
 	public function test_contar_por_estado_devuelve_el_total_exacto_sin_limitarlo(): void {

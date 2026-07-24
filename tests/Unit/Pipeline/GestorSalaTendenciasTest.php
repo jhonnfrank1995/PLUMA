@@ -116,4 +116,49 @@ final class GestorSalaTendenciasTest extends CasoDePruebaUnitario {
 
 		$this->construir( $tendencias, $piezas )->cubrirAhora( 999 );
 	}
+
+	public function test_cubrir_como_actualizacion_crea_la_pieza_enlazada_a_la_original(): void {
+		$tendencias = Mockery::mock( RepositorioTendenciasInterface::class );
+		$tendencias->expects( 'obtenerTendenciaOriginal' )->with( 10 )->andReturn( 3 );
+		$tendencias->expects( 'actualizarEstadoTendencia' )->with( 10, EstadoTendencia::EnPipeline )->andReturn( true );
+
+		$piezaOriginal = $this->pieza( 70, EstadoPieza::Publicada );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+		$piezas->expects( 'obtenerUltimaPorTendencia' )->with( 3 )->andReturn( $piezaOriginal );
+		$piezas->expects( 'crearComoActualizacion' )->with( 10, 70, Mockery::any() )->andReturn( 71 );
+		$piezas->expects( 'crear' )->never();
+		$piezas->expects( 'priorizar' )->with( 71, Mockery::any() )->andReturn( true );
+
+		$this->construir( $tendencias, $piezas )->cubrirComoActualizacion( 10 );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_cubrir_como_actualizacion_sin_pieza_original_viva_crea_una_pieza_normal(): void {
+		$tendencias = Mockery::mock( RepositorioTendenciasInterface::class );
+		$tendencias->expects( 'obtenerTendenciaOriginal' )->with( 11 )->andReturn( 4 );
+		$tendencias->expects( 'actualizarEstadoTendencia' )->with( 11, EstadoTendencia::EnPipeline )->andReturn( true );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+		$piezas->expects( 'obtenerUltimaPorTendencia' )->with( 4 )->andReturn( null );
+		$piezas->expects( 'crearComoActualizacion' )->never();
+		$piezas->expects( 'crear' )->with( 11, Mockery::any() )->andReturn( 80 );
+		$piezas->expects( 'priorizar' )->with( 80, Mockery::any() )->andReturn( true );
+
+		$this->construir( $tendencias, $piezas )->cubrirComoActualizacion( 11 );
+
+		$this->expectNotToPerformAssertions();
+	}
+
+	public function test_cubrir_como_actualizacion_sin_tendencia_original_lanza_excepcion(): void {
+		$tendencias = Mockery::mock( RepositorioTendenciasInterface::class );
+		$tendencias->expects( 'obtenerTendenciaOriginal' )->with( 12 )->andReturn( null );
+
+		$piezas = Mockery::mock( RepositorioPiezasInterface::class );
+
+		$this->expectException( TendenciaNoEncontradaException::class );
+
+		$this->construir( $tendencias, $piezas )->cubrirComoActualizacion( 12 );
+	}
 }

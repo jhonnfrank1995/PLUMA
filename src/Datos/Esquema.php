@@ -31,6 +31,10 @@ final class Esquema {
 			// Etapa 4 añade estado (Libro Cap. 11: la tabla de tendencias lleva
 			// estado; la Sala de Tendencias lo usa para las acciones directas
 			// Cubrir ahora / Ignorar / Vigilar, Cap. 10.2).
+			// Etapa 5 (huella semántica, Libro Cap. 3.4) añade
+			// tendencia_original_id: cuando el Radar detecta que esta tendencia
+			// es la evolución de una historia ya cubierta ("dos golpes"), este
+			// campo apunta a esa tendencia original — nulo en el caso normal.
 			"CREATE TABLE {$prefijo}tendencias (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 termino VARCHAR(191) NOT NULL,
@@ -39,13 +43,15 @@ final class Esquema {
                 puntuacion_afinidad DECIMAL(5,2) NOT NULL,
                 puntuacion_total DECIMAL(5,2) NOT NULL,
                 articulos_relacionados LONGTEXT NOT NULL,
-                estado VARCHAR(20) NOT NULL DEFAULT 'en_pipeline',
+                estado VARCHAR(30) NOT NULL DEFAULT 'en_pipeline',
+                tendencia_original_id BIGINT UNSIGNED NULL,
                 detectada_en DATETIME NOT NULL,
                 creada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
                 KEY termino_fuente (termino(100), fuente_senal),
                 KEY puntuacion_total (puntuacion_total),
-                KEY estado (estado)
+                KEY estado (estado),
+                KEY tendencia_original_id (tendencia_original_id)
             ) {$charset};",
 			// Etapa 2 añade periodista_id, periodista_version_id (trazabilidad de
 			// qué Conducta redactó la pieza, pl-periodistas §1) y
@@ -61,6 +67,11 @@ final class Esquema {
 			// Etapa 4 añade prioridad: "Cubrir ahora (salta la cola)" de la Sala
 			// de Tendencias (Cap. 10.2) — el Orquestador ordena cada lote por
 			// prioridad DESC antes que por antigüedad.
+			// Etapa 5 (huella semántica, Libro Cap. 3.4) añade
+			// pieza_original_id: cuando el editor confirma "Cubrir como
+			// actualización" sobre una tendencia marcada POSIBLE_ACTUALIZACION,
+			// la Pieza nueva queda enlazada a la Pieza que actualiza ("dos
+			// golpes") — nulo para toda Pieza de cobertura original.
 			"CREATE TABLE {$prefijo}piezas (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
                 tendencia_id BIGINT UNSIGNED NOT NULL,
@@ -76,6 +87,7 @@ final class Esquema {
                 datos_seo LONGTEXT NULL,
                 resultado_taxonomia LONGTEXT NULL,
                 post_id BIGINT UNSIGNED NULL,
+                pieza_original_id BIGINT UNSIGNED NULL,
                 creada_en DATETIME NOT NULL,
                 actualizada_en DATETIME NOT NULL,
                 PRIMARY KEY  (id),
@@ -83,7 +95,8 @@ final class Esquema {
                 KEY estado_prioridad (estado, prioridad, actualizada_en),
                 KEY tendencia_id (tendencia_id),
                 KEY periodista_id (periodista_id),
-                KEY keyword_principal (keyword_principal(100))
+                KEY keyword_principal (keyword_principal(100)),
+                KEY pieza_original_id (pieza_original_id)
             ) {$charset};",
 			"CREATE TABLE {$prefijo}periodistas (
                 id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

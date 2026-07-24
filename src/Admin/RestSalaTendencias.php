@@ -20,10 +20,11 @@ use WP_REST_Response;
  */
 final class RestSalaTendencias {
 
-	private const RUTA_TARJETAS = '/tendencias';
-	private const RUTA_CUBRIR   = '/tendencias/(?P<id>\d+)/cubrir';
-	private const RUTA_IGNORAR  = '/tendencias/(?P<id>\d+)/ignorar';
-	private const RUTA_VIGILAR  = '/tendencias/(?P<id>\d+)/vigilar';
+	private const RUTA_TARJETAS             = '/tendencias';
+	private const RUTA_CUBRIR               = '/tendencias/(?P<id>\d+)/cubrir';
+	private const RUTA_IGNORAR              = '/tendencias/(?P<id>\d+)/ignorar';
+	private const RUTA_VIGILAR              = '/tendencias/(?P<id>\d+)/vigilar';
+	private const RUTA_CUBRIR_ACTUALIZACION = '/tendencias/(?P<id>\d+)/cubrir-actualizacion';
 
 	public function __construct( private readonly GestorSalaTendencias $gestor ) {
 	}
@@ -44,9 +45,10 @@ final class RestSalaTendencias {
 		);
 
 		foreach ( array(
-			self::RUTA_CUBRIR  => 'cubrir',
-			self::RUTA_IGNORAR => 'ignorar',
-			self::RUTA_VIGILAR => 'vigilar',
+			self::RUTA_CUBRIR               => 'cubrir',
+			self::RUTA_IGNORAR              => 'ignorar',
+			self::RUTA_VIGILAR              => 'vigilar',
+			self::RUTA_CUBRIR_ACTUALIZACION => 'cubrirActualizacion',
 		) as $ruta => $metodo ) {
 			register_rest_route(
 				'pluma/v1',
@@ -101,6 +103,13 @@ final class RestSalaTendencias {
 	 */
 	public function vigilar( WP_REST_Request $request ) {
 		return $this->ejecutarAccion( (int) $request->get_param( 'id' ), fn ( int $id ) => $this->gestor->vigilar( $id ) );
+	}
+
+	/**
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function cubrirActualizacion( WP_REST_Request $request ) {
+		return $this->ejecutarAccion( (int) $request->get_param( 'id' ), fn ( int $id ) => $this->gestor->cubrirComoActualizacion( $id ) );
 	}
 
 	/**

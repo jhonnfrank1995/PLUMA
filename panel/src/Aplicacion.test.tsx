@@ -143,6 +143,8 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             cubrirAhora: 'Cubrir ahora',
             ignorar: 'Ignorar',
             vigilar: 'Vigilar',
+            posibleActualizacion: 'Posible actualización de una historia ya cubierta',
+            cubrirActualizacion: 'Cubrir como actualización',
         },
         textosBancoPeriodistas: {
             titulo: 'Banco de Periodistas',
@@ -395,6 +397,7 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             aprobar: 'Forzar aprobación',
             descartar: 'Descartar',
             confirmarDescartar: '¿Descartar esta Pieza?',
+            actualizacionDe: 'Actualización de la pieza',
         },
     };
 }
