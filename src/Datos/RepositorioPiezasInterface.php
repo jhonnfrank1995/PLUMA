@@ -71,6 +71,17 @@ interface RepositorioPiezasInterface {
 	public function obtenerPorEstado( EstadoPieza $estado, int $limite ): array;
 
 	/**
+	 * Piezas en `$estado` dentro de una ventana de fechas explícita (Libro
+	 * Cap. 14, Etapa 5: informes editoriales semanales) — a diferencia de
+	 * `obtenerPorEstado()`/`obtenerPublicadasParaSincronizarComentarios()`,
+	 * que acotan "recientes" desde ahora hacia atrás, esta consulta permite
+	 * cualquier rango `[$desde, $hasta]`.
+	 *
+	 * @return list<Pieza>
+	 */
+	public function obtenerPorEstadoEntre( EstadoPieza $estado, DateTimeImmutable $desde, DateTimeImmutable $hasta, int $limite ): array;
+
+	/**
 	 * Total exacto de Piezas en `$estado` (Portada, Libro Cap. 10.2: "piezas
 	 * en cada estado del pipeline, como un tablero kanban"). Deliberadamente
 	 * un `COUNT(*)` propio y no `count(obtenerPorEstado(...))`: ese método

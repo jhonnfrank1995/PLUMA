@@ -122,4 +122,46 @@ final class RepositorioRespuestasComentariosTest extends WP_UnitTestCase {
 		self::assertSame( 987654, $respuesta->comentarioRespuestaId );
 		self::assertNotNull( $respuesta->resueltaEn );
 	}
+
+	public function test_contar_creados_entre_filtra_por_rango_de_fechas(): void {
+		global $wpdb;
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repo           = new RepositorioRespuestasComentarios( $wpdb );
+		$reloj          = new RelojSistema();
+		$ahora          = $reloj->ahora();
+
+		$piezaId    = $this->crearPieza( $repoTendencias, $repoPiezas, $reloj );
+		$totalAntes = $repo->contarCreadosEntre( $ahora->modify( '-7 days' ), $ahora );
+
+		$repo->registrar( $piezaId, random_int( 1000000, 9999999 ), null, null, EstadoRespuestaComentario::Procesado, $ahora );
+		$repo->registrar( $piezaId, random_int( 1000000, 9999999 ), null, null, EstadoRespuestaComentario::Procesado, $ahora->modify( '-10 days' ) );
+
+		self::assertSame( $totalAntes + 1, $repo->contarCreadosEntre( $ahora->modify( '-7 days' ), $ahora ) );
+	}
+
+	public function test_contar_por_estado_resuelto_entre_filtra_por_rango_de_fechas(): void {
+		global $wpdb;
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repo           = new RepositorioRespuestasComentarios( $wpdb );
+		$reloj          = new RelojSistema();
+		$ahora          = $reloj->ahora();
+
+		$piezaId = $this->crearPieza( $repoTendencias, $repoPiezas, $reloj );
+
+		$aprobadaDentroId = $repo->registrar( $piezaId, random_int( 1000000, 9999999 ), 7, 'borrador', EstadoRespuestaComentario::PendienteAprobacion, $ahora );
+		$repo->marcarResuelta( $aprobadaDentroId, EstadoRespuestaComentario::Aprobado, 111, $ahora );
+
+		$aprobadaFueraId = $repo->registrar( $piezaId, random_int( 1000000, 9999999 ), 7, 'borrador', EstadoRespuestaComentario::PendienteAprobacion, $ahora->modify( '-10 days' ) );
+		$repo->marcarResuelta( $aprobadaFueraId, EstadoRespuestaComentario::Aprobado, 222, $ahora->modify( '-10 days' ) );
+
+		$descartadaDentroId = $repo->registrar( $piezaId, random_int( 1000000, 9999999 ), 7, 'borrador', EstadoRespuestaComentario::PendienteAprobacion, $ahora );
+		$repo->marcarResuelta( $descartadaDentroId, EstadoRespuestaComentario::Descartado, null, $ahora );
+
+		$desde = $ahora->modify( '-7 days' );
+
+		self::assertSame( 1, $repo->contarPorEstadoResueltoEntre( EstadoRespuestaComentario::Aprobado, $desde, $ahora ) );
+		self::assertSame( 1, $repo->contarPorEstadoResueltoEntre( EstadoRespuestaComentario::Descartado, $desde, $ahora ) );
+	}
 }

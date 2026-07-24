@@ -130,6 +130,7 @@ final class PantallaPanel {
 			'textosSalaMaquinas'     => $this->textosSalaMaquinas(),
 			'textosEstudioSeo'       => $this->textosEstudioSeo(),
 			'textosComentarios'      => $this->textosComentarios(),
+			'textosInformes'         => $this->textosInformesEditoriales(),
 			'onboardingCompletado'   => (bool) get_option( RestOnboarding::OPCION_COMPLETADO, false ),
 			'textosOnboarding'       => $this->textosOnboarding(),
 		);
@@ -226,6 +227,54 @@ final class PantallaPanel {
 			'borrador'    => __( 'Borrador de respuesta', 'pluma-engine' ),
 			'aprobar'     => __( 'Aprobar', 'pluma-engine' ),
 			'descartar'   => __( 'Descartar', 'pluma-engine' ),
+		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function textosInformesEditoriales(): array {
+		return array(
+			'titulo'     => __( 'Informes Editoriales', 'pluma-engine' ),
+			'cargando'   => __( 'Cargando…', 'pluma-engine' ),
+			'errorCarga' => __( 'No se pudo cargar el Informe Editorial. Reintenta en unos segundos.', 'pluma-engine' ),
+			'rango'      => __( 'Semana', 'pluma-engine' ),
+			'piezas'     => array(
+				'titulo'        => __( 'Piezas publicadas', 'pluma-engine' ),
+				'publicadas'    => __( 'piezas publicadas esta semana', 'pluma-engine' ),
+				'porPeriodista' => __( 'Por periodista', 'pluma-engine' ),
+				'porVertical'   => __( 'Por vertical', 'pluma-engine' ),
+				'sinDatos'      => __( 'sin datos esta semana', 'pluma-engine' ),
+				'retenidas'     => __( 'Retenidas esta semana', 'pluma-engine' ),
+				'fallidas'      => __( 'Fallidas esta semana', 'pluma-engine' ),
+				'sinRetenidas'  => __( 'ninguna pieza retenida esta semana', 'pluma-engine' ),
+				'sinFallidas'   => __( 'ninguna pieza fallida esta semana', 'pluma-engine' ),
+			),
+			'tendencias' => array(
+				'titulo'               => __( 'Tendencias de la semana', 'pluma-engine' ),
+				'enPipeline'           => __( 'En el pipeline', 'pluma-engine' ),
+				'posibleActualizacion' => __( 'Posibles actualizaciones detectadas', 'pluma-engine' ),
+				'ignoradas'            => __( 'Ignoradas', 'pluma-engine' ),
+				'vigiladas'            => __( 'En vigilancia', 'pluma-engine' ),
+			),
+			'motor'      => array(
+				'titulo'                => __( 'Salud del motor esta semana', 'pluma-engine' ),
+				'ejecuciones'           => __( 'Ejecuciones', 'pluma-engine' ),
+				'lotesProcesados'       => __( 'Lotes procesados', 'pluma-engine' ),
+				'ejecucionesConErrores' => __( 'Ejecuciones con errores', 'pluma-engine' ),
+			),
+			'audiencia'  => array(
+				'titulo'                  => __( 'Audiencia esta semana', 'pluma-engine' ),
+				'comentariosProcesados'   => __( 'Comentarios procesados', 'pluma-engine' ),
+				'aprendizajesRegistrados' => __( 'Aprendizajes registrados', 'pluma-engine' ),
+				'sentimiento'             => __( 'Sentimiento de los comentarios', 'pluma-engine' ),
+				'positivo'                => __( 'Positivo', 'pluma-engine' ),
+				'negativo'                => __( 'Negativo', 'pluma-engine' ),
+				'mixto'                   => __( 'Mixto', 'pluma-engine' ),
+				'neutral'                 => __( 'Neutral', 'pluma-engine' ),
+				'respuestasAprobadas'     => __( 'Respuestas aprobadas', 'pluma-engine' ),
+				'respuestasDescartadas'   => __( 'Respuestas descartadas', 'pluma-engine' ),
+			),
 		);
 	}
 

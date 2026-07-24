@@ -38,6 +38,22 @@ interface RepositorioRespuestasComentariosInterface {
 
 	public function contarPendientes(): int;
 
+	/**
+	 * Comentarios reales procesados (memoria de audiencia y/o borrador de
+	 * respuesta) dentro de `[$desde, $hasta]`, sin importar su estado final
+	 * (Libro Cap. 14, Etapa 5: informes editoriales semanales).
+	 */
+	public function contarCreadosEntre( DateTimeImmutable $desde, DateTimeImmutable $hasta ): int;
+
+	/**
+	 * Respuestas resueltas (aprobadas o descartadas) dentro de
+	 * `[$desde, $hasta]`, según `$estado` — solo tiene sentido para
+	 * {@see EstadoRespuestaComentario::Aprobado} o
+	 * {@see EstadoRespuestaComentario::Descartado}, los únicos que fijan
+	 * `resuelta_en`.
+	 */
+	public function contarPorEstadoResueltoEntre( EstadoRespuestaComentario $estado, DateTimeImmutable $desde, DateTimeImmutable $hasta ): int;
+
 	public function marcarResuelta(
 		int $id,
 		EstadoRespuestaComentario $nuevoEstado,

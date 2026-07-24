@@ -86,6 +86,31 @@ final class RepositorioRespuestasComentarios implements RepositorioRespuestasCom
 		return (int) $this->wpdb->get_var( $sql );
 	}
 
+	public function contarCreadosEntre( DateTimeImmutable $desde, DateTimeImmutable $hasta ): int {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE creada_en BETWEEN %s AND %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$desde->format( 'Y-m-d H:i:s' ),
+			$hasta->format( 'Y-m-d H:i:s' )
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		return (int) $this->wpdb->get_var( $sql );
+	}
+
+	public function contarPorEstadoResueltoEntre( EstadoRespuestaComentario $estado, DateTimeImmutable $desde, DateTimeImmutable $hasta ): int {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE estado = %s AND resuelta_en BETWEEN %s AND %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$estado->value,
+			$desde->format( 'Y-m-d H:i:s' ),
+			$hasta->format( 'Y-m-d H:i:s' )
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		return (int) $this->wpdb->get_var( $sql );
+	}
+
 	public function marcarResuelta(
 		int $id,
 		EstadoRespuestaComentario $nuevoEstado,

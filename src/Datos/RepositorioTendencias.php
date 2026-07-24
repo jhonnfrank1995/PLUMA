@@ -199,6 +199,19 @@ final class RepositorioTendencias implements RepositorioTendenciasInterface {
 		return null !== $valor ? (int) $valor : null;
 	}
 
+	public function contarPorEstadoEntre( EstadoTendencia $estado, DateTimeImmutable $desde, DateTimeImmutable $hasta ): int {
+		$sql = $this->wpdb->prepare(
+			"SELECT COUNT(*) FROM {$this->tabla()} WHERE estado = %s AND detectada_en BETWEEN %s AND %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$estado->value,
+			$desde->format( 'Y-m-d H:i:s' ),
+			$hasta->format( 'Y-m-d H:i:s' )
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		return (int) $this->wpdb->get_var( $sql );
+	}
+
 	public function actualizarEstadoTendencia( int $id, EstadoTendencia $estado ): bool {
 		$actualizadas = $this->wpdb->update(
 			$this->tabla(),

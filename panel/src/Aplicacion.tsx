@@ -4,6 +4,7 @@ import { BarraEstado } from './BarraEstado';
 import { PantallaBancoPeriodistas, type TextosBancoPeriodistas } from './PantallaBancoPeriodistas';
 import { PantallaComentarios, type TextosComentarios } from './PantallaComentarios';
 import { PantallaEstudioSeo, type TextosEstudioSeo } from './PantallaEstudioSeo';
+import { PantallaInformes, type TextosInformes } from './PantallaInformes';
 import { PantallaMesaEditorial, type TextosMesaEditorial } from './PantallaMesaEditorial';
 import { PantallaPortada, type DatosPortada, type TextosPortada } from './PantallaPortada';
 import { PantallaSalaRevision, type TextosSalaRevision } from './PantallaSalaRevision';
@@ -22,6 +23,7 @@ export interface DatosPlumaPanel {
     textosSalaMaquinas: TextosSalaMaquinas;
     textosEstudioSeo: TextosEstudioSeo;
     textosComentarios: TextosComentarios;
+    textosInformes: TextosInformes;
     onboardingCompletado: boolean;
     textosOnboarding: TextosOnboarding;
 }
@@ -30,7 +32,7 @@ interface Props {
     datos: DatosPlumaPanel;
 }
 
-type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'revision' | 'estudio-seo' | 'comentarios' | 'salud';
+type Ruta = 'portada' | 'tendencias' | 'mesa-editorial' | 'periodistas' | 'revision' | 'estudio-seo' | 'comentarios' | 'informes' | 'salud';
 
 const INTERVALO_REFRESCO_MS = 60_000;
 
@@ -59,7 +61,11 @@ function leerRuta(): Ruta {
         return 'estudio-seo';
     }
 
-    return '#/comentarios' === window.location.hash ? 'comentarios' : 'portada';
+    if ('#/comentarios' === window.location.hash) {
+        return 'comentarios';
+    }
+
+    return '#/informes' === window.location.hash ? 'informes' : 'portada';
 }
 
 /**
@@ -177,6 +183,12 @@ export function Aplicacion({ datos }: Props) {
                 >
                     {datos.textosComentarios.titulo}
                 </a>
+                <a
+                    href="#/informes"
+                    className={'informes' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}
+                >
+                    {datos.textosInformes.titulo}
+                </a>
                 <a href="#/salud" className={'salud' === ruta ? 'pluma-panel__nav-enlace pluma-panel__nav-enlace--activo' : 'pluma-panel__nav-enlace'}>
                     {datos.textosPortada.navSalud}
                 </a>
@@ -199,6 +211,9 @@ export function Aplicacion({ datos }: Props) {
                 )}
                 {'comentarios' === ruta && (
                     <PantallaComentarios restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosComentarios} />
+                )}
+                {'informes' === ruta && (
+                    <PantallaInformes restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosInformes} />
                 )}
                 {'salud' === ruta && (
                     <PantallaSalaMaquinas datos={datos.salud} restUrl={datos.restUrl} nonce={datos.nonce} textos={datos.textosSalaMaquinas} />

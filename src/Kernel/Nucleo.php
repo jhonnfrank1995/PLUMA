@@ -8,6 +8,7 @@ use Pluma\Admin\NotificadorRevision;
 use Pluma\Admin\PantallaPanel;
 use Pluma\Admin\RestBancoPeriodistas;
 use Pluma\Admin\RestEstudioSeo;
+use Pluma\Admin\RestInformesEditoriales;
 use Pluma\Admin\RestOnboarding;
 use Pluma\Admin\RestOrquestador;
 use Pluma\Admin\RestMesaEditorial;
@@ -628,6 +629,19 @@ final class Nucleo {
 				$c->obtener( RelojInterface::class )
 			)
 		);
+
+		$this->contenedor->registrar(
+			RestInformesEditoriales::class,
+			fn ( Contenedor $c ): RestInformesEditoriales => new RestInformesEditoriales(
+				$c->obtener( RepositorioPiezasInterface::class ),
+				$c->obtener( RepositorioTendenciasInterface::class ),
+				$c->obtener( RepositorioBitacoraInterface::class ),
+				$c->obtener( RepositorioRespuestasComentariosInterface::class ),
+				$c->obtener( RepositorioMemoriaEditorialInterface::class ),
+				$c->obtener( RepositorioPeriodistasInterface::class ),
+				$c->obtener( RelojInterface::class )
+			)
+		);
 	}
 
 	public function arrancar( string $archivoPrincipalPlugin, string $versionEsquemaObjetivo ): void {
@@ -653,5 +667,6 @@ final class Nucleo {
 		$this->contenedor->obtener( RestOnboarding::class )->registrar();
 		$this->contenedor->obtener( RestSearchConsole::class )->registrar();
 		$this->contenedor->obtener( RestRespuestasComentarios::class )->registrar();
+		$this->contenedor->obtener( RestInformesEditoriales::class )->registrar();
 	}
 }

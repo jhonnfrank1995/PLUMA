@@ -70,6 +70,20 @@ final class RepositorioBitacora implements RepositorioBitacoraInterface {
 		return array_map( fn ( array $fila ): array => $this->filaAResumen( $fila ), $filas ?? array() );
 	}
 
+	public function obtenerEntre( DateTimeImmutable $desde, DateTimeImmutable $hasta ): array {
+		$sql = $this->wpdb->prepare(
+			"SELECT iniciada_en, finalizada_en, lotes_procesados, errores FROM {$this->tabla()} WHERE iniciada_en BETWEEN %s AND %s ORDER BY iniciada_en DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- tabla interna. @phpstan-ignore-line argument.type
+			$desde->format( 'Y-m-d H:i:s' ),
+			$hasta->format( 'Y-m-d H:i:s' )
+		);
+		assert( null !== $sql );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql ya se construyó con $wpdb->prepare() arriba.
+		$filas = $this->wpdb->get_results( $sql, ARRAY_A );
+
+		return array_map( fn ( array $fila ): array => $this->filaAResumen( $fila ), $filas ?? array() );
+	}
+
 	/**
 	 * @param array<string, mixed> $fila
 	 * @return array{iniciadaEn: string, finalizadaEn: ?string, lotesProcesados: int, errores: list<string>}

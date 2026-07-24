@@ -411,6 +411,48 @@ function datosPanelDeEjemplo(): DatosPlumaPanel {
             aprobar: 'Aprobar',
             descartar: 'Descartar',
         },
+        textosInformes: {
+            titulo: 'Informes Editoriales',
+            cargando: 'Cargando…',
+            errorCarga: 'No se pudo cargar el Informe Editorial.',
+            rango: 'Semana',
+            piezas: {
+                titulo: 'Piezas publicadas',
+                publicadas: 'piezas publicadas esta semana',
+                porPeriodista: 'Por periodista',
+                porVertical: 'Por vertical',
+                sinDatos: 'sin datos esta semana',
+                retenidas: 'Retenidas esta semana',
+                fallidas: 'Fallidas esta semana',
+                sinRetenidas: 'ninguna pieza retenida esta semana',
+                sinFallidas: 'ninguna pieza fallida esta semana',
+            },
+            tendencias: {
+                titulo: 'Tendencias de la semana',
+                enPipeline: 'En el pipeline',
+                posibleActualizacion: 'Posibles actualizaciones detectadas',
+                ignoradas: 'Ignoradas',
+                vigiladas: 'En vigilancia',
+            },
+            motor: {
+                titulo: 'Salud del motor esta semana',
+                ejecuciones: 'Ejecuciones',
+                lotesProcesados: 'Lotes procesados',
+                ejecucionesConErrores: 'Ejecuciones con errores',
+            },
+            audiencia: {
+                titulo: 'Audiencia esta semana',
+                comentariosProcesados: 'Comentarios procesados',
+                aprendizajesRegistrados: 'Aprendizajes registrados',
+                sentimiento: 'Sentimiento de los comentarios',
+                positivo: 'Positivo',
+                negativo: 'Negativo',
+                mixto: 'Mixto',
+                neutral: 'Neutral',
+                respuestasAprobadas: 'Respuestas aprobadas',
+                respuestasDescartadas: 'Respuestas descartadas',
+            },
+        },
     };
 }
 

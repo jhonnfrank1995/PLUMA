@@ -372,6 +372,54 @@ final class RepositoriosTest extends WP_UnitTestCase {
 		self::assertSame( $totalAntes + 3, $repoPiezas->contarPorEstado( EstadoPieza::Detectada ) );
 	}
 
+	public function test_obtener_por_estado_entre_filtra_por_rango_de_fechas_explicito(): void {
+		global $wpdb;
+		$repoTendencias = new RepositorioTendencias( $wpdb );
+		$repoPiezas     = new RepositorioPiezas( $wpdb );
+		$reloj          = new RelojSistema();
+		$ahora          = $reloj->ahora();
+
+		$crearRetenidaEn = function ( \DateTimeImmutable $cuando ) use ( $repoTendencias, $repoPiezas ): int {
+			$tendenciaId = $repoTendencias->guardar(
+				new TendenciaDetectada( 'tendencia rango ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $cuando, array(), 'google_trends' ),
+				$cuando
+			);
+			$piezaId     = $repoPiezas->crear( $tendenciaId, $cuando );
+			$repoPiezas->actualizarEstado( $piezaId, EstadoPieza::Detectada, EstadoPieza::Retenida, $cuando );
+
+			return $piezaId;
+		};
+
+		$piezaDentro = $crearRetenidaEn( $ahora );
+		$piezaFuera  = $crearRetenidaEn( $ahora->modify( '-10 days' ) );
+
+		$encontradas = $repoPiezas->obtenerPorEstadoEntre( EstadoPieza::Retenida, $ahora->modify( '-7 days' ), $ahora, 100 );
+		$ids         = array_map( static fn ( $p ) => $p->id, $encontradas );
+
+		self::assertContains( $piezaDentro, $ids, 'Una Pieza retenida dentro del rango debe aparecer.' );
+		self::assertNotContains( $piezaFuera, $ids, 'Una Pieza retenida fuera del rango no debe aparecer.' );
+	}
+
+	public function test_contar_por_estado_entre_filtra_tendencias_por_rango_de_fechas(): void {
+		global $wpdb;
+		$repo  = new RepositorioTendencias( $wpdb );
+		$reloj = new RelojSistema();
+		$ahora = $reloj->ahora();
+
+		$totalAntes = $repo->contarPorEstadoEntre( EstadoTendencia::EnPipeline, $ahora->modify( '-7 days' ), $ahora );
+
+		$repo->guardar(
+			new TendenciaDetectada( 'tendencia dentro del rango ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $ahora, array(), 'google_trends' ),
+			$ahora
+		);
+		$repo->guardar(
+			new TendenciaDetectada( 'tendencia fuera del rango ' . uniqid(), PuntuacionOportunidad::calcular( 50, 50 ), $ahora->modify( '-10 days' ), array(), 'google_trends' ),
+			$ahora->modify( '-10 days' )
+		);
+
+		self::assertSame( $totalAntes + 1, $repo->contarPorEstadoEntre( EstadoTendencia::EnPipeline, $ahora->modify( '-7 days' ), $ahora ) );
+	}
+
 	public function test_obtener_publicadas_para_sincronizar_comentarios_filtra_por_estado_post_id_y_ventana(): void {
 		global $wpdb;
 		$repoTendencias = new RepositorioTendencias( $wpdb );
@@ -451,5 +499,23 @@ final class RepositoriosTest extends WP_UnitTestCase {
 		self::assertCount( 1, $recientes );
 		self::assertSame( 4, $recientes[0]['lotesProcesados'] );
 		self::assertSame( array( 'fallo de proveedor' ), $recientes[0]['errores'] );
+	}
+
+	public function test_obtener_entre_filtra_ejecuciones_por_rango_de_fechas(): void {
+		global $wpdb;
+		$repo  = new RepositorioBitacora( $wpdb );
+		$reloj = new RelojSistema();
+		$ahora = $reloj->ahora();
+
+		$dentroId = $repo->iniciarEjecucion( $ahora );
+		$repo->finalizarEjecucion( $dentroId, $ahora, 3, array() );
+
+		$fueraId = $repo->iniciarEjecucion( $ahora->modify( '-10 days' ) );
+		$repo->finalizarEjecucion( $fueraId, $ahora->modify( '-10 days' ), 5, array() );
+
+		$enRango = $repo->obtenerEntre( $ahora->modify( '-7 days' ), $ahora->modify( '+1 minute' ) );
+
+		self::assertContains( 3, array_column( $enRango, 'lotesProcesados' ) );
+		self::assertNotContains( 5, array_column( $enRango, 'lotesProcesados' ) );
 	}
 }

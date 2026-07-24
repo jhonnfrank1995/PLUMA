@@ -69,4 +69,10 @@ interface RepositorioTendenciasInterface {
 	 * golpes") — `null` si no existe la tendencia o no está vinculada.
 	 */
 	public function obtenerTendenciaOriginal( int $id ): ?int;
+
+	/**
+	 * Total de tendencias en `$estado` detectadas dentro de `[$desde, $hasta]`
+	 * (Libro Cap. 14, Etapa 5: informes editoriales semanales).
+	 */
+	public function contarPorEstadoEntre( EstadoTendencia $estado, DateTimeImmutable $desde, DateTimeImmutable $hasta ): int;
 }

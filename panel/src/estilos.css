@@ -528,6 +528,100 @@
     color: var(--pluma-color-texto-tenue);
 }
 
+/* Informes Editoriales */
+
+.pluma-informes__rango {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.9rem;
+    margin-top: -0.5rem;
+}
+
+.pluma-informes__seccion {
+    background: var(--pluma-color-superficie);
+    border: 1px solid var(--pluma-color-borde);
+    border-radius: var(--pluma-radio);
+    padding: var(--pluma-espaciado);
+    margin-bottom: var(--pluma-espaciado);
+}
+
+.pluma-informes__total {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    margin: 0 0 var(--pluma-espaciado);
+}
+
+.pluma-informes__vacio {
+    color: var(--pluma-color-texto-tenue);
+    font-size: 0.9rem;
+}
+
+.pluma-informes__tablas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--pluma-espaciado);
+    margin-bottom: var(--pluma-espaciado);
+}
+
+.pluma-informes__tabla {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pluma-informes__tabla li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--pluma-radio);
+    background: var(--pluma-color-fondo);
+    font-size: 0.92rem;
+}
+
+.pluma-informes__alertas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--pluma-espaciado);
+}
+
+.pluma-informes__resumen {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.pluma-informes__resumen li {
+    font-size: 0.88rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--pluma-radio);
+    background: var(--pluma-color-fondo);
+}
+
+.pluma-informes__contadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.6rem;
+    margin: 0 0 var(--pluma-espaciado);
+}
+
+.pluma-informes__contadores dt {
+    font-size: 0.75rem;
+    color: var(--pluma-color-texto-tenue);
+}
+
+.pluma-informes__contadores dd {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Mesa Editorial */
 
 .pluma-mesa__kanban {

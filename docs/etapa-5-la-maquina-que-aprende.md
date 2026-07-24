@@ -1,6 +1,6 @@
 # Etapa 5 — La máquina que aprende
 
-**Estado: EN CURSO.** Porción 1 (Bucle de Search Console), Porción 2 (Piezas de refuerzo y "dos golpes") y Porción 3 (Memoria de audiencia + respuestas asistidas a comentarios) completas y commiteadas localmente, pendientes de push y verificación de CI.
+**Estado: CERRADA (localmente).** Las 4 piezas de la Etapa 5 — Bucle de Search Console, Piezas de refuerzo y "dos golpes", Memoria de audiencia + respuestas asistidas a comentarios, e Informes editoriales semanales — están completas y commiteadas localmente, pendientes de push y verificación de CI.
 
 ## Objetivo y criterio de salida (PLAN-MAESTRO)
 
@@ -70,11 +70,23 @@ row=NULL
 2. Identidad del autor del comentario aprobado: autor invitado con el nombre del periodista, sin cuenta WP real vinculada.
 3. El interruptor de respuestas vive por periodista (en la Conducta), no como opción global del motor.
 
-## Pendiente dentro de esta Etapa
+## Porción 4 (última) — Informes editoriales semanales (commit pendiente)
 
-- **Informes editoriales semanales**: no existe ninguna pantalla ni generador de informes todavía en `Pluma\Admin`.
-- **Consumidores del dato de Search Console** (`PLUMA-E5-1`, registrada en la porción 1): regenerar títulos débiles, candidatos de refuerzo, ajuste de asignación por periodista, hueco competitivo real en `PuntuacionOportunidad`.
-- **Integración de la memoria de audiencia en `PuntuacionOportunidad`** (componente "Vida útil", `PLUMA-E1-1`): registrada como consumidor futuro en esta misma porción.
+**Qué se agregó:**
+- Nueva pantalla **"Informes Editoriales"** (`#/informes`, capacidad `pluma_configurar_motor`): una fotografía real de los últimos 7 días, calculada bajo demanda al abrir la pantalla (sin sondeo — a diferencia de La Portada, la semana no cambia segundo a segundo). Decisión del propietario al abrir la porción: **solo pantalla del panel, sin correo automático ni estado de "último envío"** — el Libro solo menciona "informes editoriales semanales" en una línea del roadmap (Cap. 14), sin capítulo propio ni mecanismo de entrega especificado; inventar uno habría violado "cero invención".
+- `Pluma\Admin\RestInformesEditoriales` (`GET /panel/informes`) replica exactamente el patrón de `RestPortada`: constructor con repositorios por interfaz + `RelojInterface` (nunca `new DateTimeImmutable()`/`time()` directo), un método `obtener()` que delega en métodos privados por sección. Contenido: piezas publicadas (total, por periodista, por vertical), retenidas/fallidas de la semana, tendencias por estado (`en_pipeline`/`posible_actualizacion`/`ignorada`/`vigilada`), salud del motor (ejecuciones, lotes procesados, ejecuciones con errores) y audiencia (comentarios procesados, aprendizajes registrados, distribución de sentimiento, respuestas aprobadas/descartadas).
+- **Ningún repositorio tenía un método de agregación por rango de fechas explícito** (todos eran "recientes por límite de filas" o "desde X hasta ahora implícito"). Esta porción añade, sin tocar el esquema: `RepositorioPiezasInterface::obtenerPorEstadoEntre()`, `RepositorioTendenciasInterface::contarPorEstadoEntre()`, `RepositorioBitacoraInterface::obtenerEntre()`, `RepositorioRespuestasComentariosInterface::contarCreadosEntre()`/`contarPorEstadoResueltoEntre()` — todos con la firma `(DateTimeImmutable $desde, DateTimeImmutable $hasta)`. La memoria de audiencia no necesitó método nuevo: se reutiliza `obtenerPorPeriodista()` iterando `obtenerActivos()`, filtrando `EntradaMemoria::creadaEn` en PHP contra el rango (acotado por periodistas activos × límite, no una consulta sin cota).
+
+**Honestidad de alcance (cero invención), decidida en el diseño de esta porción:** el informe **NO incluye Search Console** — el bucle actual agrega por página+consulta, sin fecha real por fila; incluir una ventana de 7 días ahí sería fabricar precisión que no existe. Tampoco agrega el **gasto en USD de la semana** — `PresupuestoLenguaje` solo persiste el gasto del día actual (`get_option` se sobrescribe cada día), sin histórico. Ambos quedan como consumidores futuros bajo la deuda `PLUMA-E5-1`, ya registrada desde la porción 1.
+
+**Decisiones de producto tomadas con el propietario al abrir esta porción (2026-07-23):** entrega solo como pantalla del panel bajo demanda, replicando el patrón exacto de `RestPortada` — descartada la alternativa de correo automático semanal (más grande: plantilla de correo, estado de cadencia, nuevo camino de fallo) por no estar especificada en el Libro.
+
+## Cierre de la Etapa 5
+
+Las 4 piezas del criterio de PLAN-MAESTRO están completas: Bucle de Search Console (porción 1), Piezas de refuerzo y "dos golpes" (porción 2), Memoria de audiencia + respuestas asistidas a comentarios (porción 3), Informes editoriales semanales (porción 4). Deuda que queda abierta y registrada para etapas futuras:
+
+- **Consumidores del dato de Search Console** (`PLUMA-E5-1`, registrada en la porción 1, ampliada en la porción 4): regenerar títulos débiles, candidatos de refuerzo, ajuste de asignación por periodista, hueco competitivo real en `PuntuacionOportunidad`, y ahora también una sección de Search Console en el informe semanal (necesita fecha real por fila, no solo agregación por página+consulta).
+- **Integración de la memoria de audiencia en `PuntuacionOportunidad`** (componente "Vida útil", `PLUMA-E1-1`): registrada como consumidor futuro en la porción 3.
 
 ## A tener en cuenta para otras fases
 
@@ -87,6 +99,8 @@ row=NULL
 - **Ante un fallo de Integración que parezca de timing/orden de tests pero no tenga una causa obvia**: aislar el test fallido primero (`--filter`) para descartar contaminación entre clases; si sigue fallando solo, escalar a un test de diagnóstico desechable con `fwrite(STDERR, ...)` volcando `$wpdb->last_error` y las filas reales antes de teorizar más — encontró la causa real (VARCHAR corto) en un solo paso donde seguir especulando habría llevado a un arreglo equivocado.
 - **Cuando una clase gana una dependencia nueva y ya tenía dobles "permisivos" reutilizados en muchos tests** (como `Orquestador`, con 16+ dependencias tras esta porción): el doble permisivo debe ser seguro incluso si el test SÍ ejercita esa rama de código, no solo cuando la rama nunca se alcanza — un mock de `LenguajeInterface` sin `completar()` estable falla con `BadMethodCallException` en cuanto un test real entrega datos a esa dependencia, en vez de degradar limpiamente.
 - **Un archivo editado con PowerShell (`Get-Content -Raw` + `Set-Content`) en este entorno puede corromper acentos/es-dash a mojibake** (`í`→`Ã­`, `—`→`â€”`) si la codificación no se fuerza explícitamente — verificado con `git diff` tras un intento fallido en esta porción. La vía segura para ediciones masivas por patrón en archivos UTF-8 con texto en español es `sed`/Node.js (`fs.readFileSync(..., 'utf8')`), no PowerShell, o revisar el diff de inmediato y revertir (`git checkout --`) ante la primera señal de corrupción.
+- **`composer test:integration` tiene un timeout de proceso interno de 300s (Symfony Process, sin override en `composer.json`)** — con 133 tests contra wp-env real la suite ya tarda ~288s, peligrosamente cerca del límite; en esta porción el script de composer cortó la ejecución a mitad de camino con "process timeout" sin que hubiera ningún bug real. Corregido invocando `vendor/bin/phpunit -c phpunit-integration.xml.dist` directamente (sin pasar por el script de composer) para esta verificación puntual. Si la suite de Integración sigue creciendo, vale la pena añadir `"process-timeout": 0` (sin límite) al `composer.json`, o dividir la suite.
+- **Un endpoint tipo "informe" que agrega sobre varios repositorios por rango de fechas no necesita cambios de esquema si cada repositorio ya expone sus datos crudos con un timestamp real** — bastó con añadir métodos `...Entre(DateTimeImmutable $desde, DateTimeImmutable $hasta)` a los repositorios existentes, replicando la firma allí donde antes solo había "recientes por límite" o "desde ahora hacia atrás". Vale como patrón a seguir para cualquier futura pantalla de reporte/agregación.
 
 ## Evidencia de gates
 
@@ -95,5 +109,6 @@ row=NULL
 | 1 — Bucle de Search Console | 324/324 | 21/21 | 106/106 | 67/67 | 2/2 | limpio | commiteado, sin push todavía |
 | 2 — Piezas de refuerzo y "dos golpes" | 337/337 | 21/21 | 111/111 | 68/68 | 2/2 | limpio | commiteado, sin push todavía |
 | 3 — Memoria de audiencia + respuestas asistidas | 384/384 | 21/21 | 126/126 | 76/76 | 2/2 | limpio | commiteado, sin push todavía |
+| 4 — Informes editoriales semanales | 384/384 | 21/21 | 133/133 | 81/81 | 2/2 | limpio | commiteado, sin push todavía |
 
 Build de producción del panel verificado (`npm run build`) al cierre de cada porción. Sin credenciales reales (llave de OpenRouter ni client_secret de Google) filtradas en ningún commit (verificado explícitamente antes de cada uno).
